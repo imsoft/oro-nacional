@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Calendar, Clock, User, ArrowLeft, Tag, Loader2, BookOpen } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
 import { getBlogPostBySlug, getBlogPostsByCategory, incrementBlogPostViews } from "@/lib/supabase/blog";
@@ -147,11 +148,12 @@ export default function BlogPostPage({
 
           {/* Imagen destacada */}
           {post.featured_image ? (
-            <div className="aspect-video rounded-2xl overflow-hidden bg-muted mb-8">
-              <img
+            <div className="aspect-video rounded-2xl overflow-hidden bg-muted mb-8 relative">
+              <Image
                 src={post.featured_image}
                 alt={post.title}
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
               />
             </div>
           ) : (
@@ -302,10 +304,11 @@ export default function BlogPostPage({
                 >
                   <div className="relative aspect-video overflow-hidden bg-muted">
                     {relatedPost.featured_image ? (
-                      <img
+                      <Image
                         src={relatedPost.featured_image}
                         alt={relatedPost.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-muted">

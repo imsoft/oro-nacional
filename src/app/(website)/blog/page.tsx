@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { BookOpen, Calendar, Clock, Loader2 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
 import { getPublishedPosts, getBlogCategories } from "@/lib/supabase/blog";
@@ -108,10 +109,11 @@ const BlogPage = () => {
                     {/* Imagen */}
                     <div className="relative aspect-video overflow-hidden bg-muted">
                       {post.featured_image ? (
-                        <img
+                        <Image
                           src={post.featured_image}
                           alt={post.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-muted">
@@ -119,7 +121,7 @@ const BlogPage = () => {
                         </div>
                       )}
                       {post.category_name && (
-                        <div className="absolute top-4 left-4">
+                        <div className="absolute top-4 left-4 z-10">
                           <span className="inline-block px-3 py-1 rounded-full bg-[#D4AF37] text-white text-xs font-medium">
                             {post.category_name}
                           </span>

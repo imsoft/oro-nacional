@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { Plus, Pencil, Trash2, Search, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -143,12 +144,13 @@ export default function ProductosAdmin() {
                 <tr key={product.id} className="hover:bg-muted/50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="h-12 w-12 flex-shrink-0 rounded-lg overflow-hidden bg-muted">
+                      <div className="h-12 w-12 flex-shrink-0 rounded-lg overflow-hidden bg-muted relative">
                         {product.primary_image ? (
-                          <img
+                          <Image
                             src={product.primary_image}
                             alt={product.name}
-                            className="h-12 w-12 object-cover"
+                            fill
+                            className="object-cover"
                           />
                         ) : (
                           <div className="h-12 w-12 flex items-center justify-center text-muted-foreground text-xs">

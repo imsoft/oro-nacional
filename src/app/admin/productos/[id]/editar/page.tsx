@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { ArrowLeft, Upload, X, Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -532,23 +533,24 @@ export default function EditarProducto({ params }: ProductPageProps) {
                 <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-4">
                   {existingImages.map((image, index) => (
                     !image.toDelete && (
-                      <div key={image.id} className="relative group">
-                        <img
+                      <div key={image.id} className="relative group h-32">
+                        <Image
                           src={image.url}
                           alt={`Imagen ${index + 1}`}
-                          className="w-full h-32 object-cover rounded-lg"
+                          fill
+                          className="object-cover rounded-lg"
                         />
                         <button
                           type="button"
                           onClick={() => markExistingImageForDeletion(index)}
-                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
                         >
                           <X className="h-4 w-4" />
                         </button>
                         <button
                           type="button"
                           onClick={() => setPrimaryExistingImage(index)}
-                          className={`absolute bottom-2 left-2 text-xs px-2 py-1 rounded ${
+                          className={`absolute bottom-2 left-2 text-xs px-2 py-1 rounded z-10 ${
                             image.isPrimary
                               ? "bg-[#D4AF37] text-white"
                               : "bg-white text-gray-700 opacity-0 group-hover:opacity-100"
@@ -569,23 +571,24 @@ export default function EditarProducto({ params }: ProductPageProps) {
                 <Label>Imágenes Nuevas</Label>
                 <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-4">
                   {newImages.map((image, index) => (
-                    <div key={index} className="relative group">
-                      <img
+                    <div key={index} className="relative group h-32">
+                      <Image
                         src={image.preview}
                         alt={`Nueva ${index + 1}`}
-                        className="w-full h-32 object-cover rounded-lg"
+                        fill
+                        className="object-cover rounded-lg"
                       />
                       <button
                         type="button"
                         onClick={() => removeNewImage(index)}
-                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
                       >
                         <X className="h-4 w-4" />
                       </button>
                       <button
                         type="button"
                         onClick={() => setPrimaryNewImage(index)}
-                        className={`absolute bottom-2 left-2 text-xs px-2 py-1 rounded ${
+                        className={`absolute bottom-2 left-2 text-xs px-2 py-1 rounded z-10 ${
                           image.isPrimary
                             ? "bg-[#D4AF37] text-white"
                             : "bg-white text-gray-700 opacity-0 group-hover:opacity-100"

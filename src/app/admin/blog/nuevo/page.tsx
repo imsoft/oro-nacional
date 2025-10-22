@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -271,17 +272,18 @@ export default function NuevoPostPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="relative rounded-lg overflow-hidden border border-border">
-                <img
+              <div className="relative rounded-lg overflow-hidden border border-border h-64">
+                <Image
                   src={imagePreview}
                   alt="Preview"
-                  className="w-full h-64 object-cover"
+                  fill
+                  className="object-cover"
                 />
                 <Button
                   type="button"
                   variant="destructive"
                   size="icon"
-                  className="absolute top-2 right-2"
+                  className="absolute top-2 right-2 z-10"
                   onClick={handleRemoveImage}
                 >
                   <X className="h-4 w-4" />

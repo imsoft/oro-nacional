@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -306,17 +307,18 @@ export default function EditarPostPage({
           {currentFeaturedImage && !imagePreview && (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">Imagen actual:</p>
-              <div className="relative rounded-lg overflow-hidden border border-border">
-                <img
+              <div className="relative rounded-lg overflow-hidden border border-border h-64">
+                <Image
                   src={currentFeaturedImage}
                   alt="Current featured"
-                  className="w-full h-64 object-cover"
+                  fill
+                  className="object-cover"
                 />
                 <Button
                   type="button"
                   variant="destructive"
                   size="icon"
-                  className="absolute top-2 right-2"
+                  className="absolute top-2 right-2 z-10"
                   onClick={handleRemoveCurrentImage}
                 >
                   <X className="h-4 w-4" />
@@ -362,17 +364,18 @@ export default function EditarPostPage({
           {imagePreview && (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">Nueva imagen:</p>
-              <div className="relative rounded-lg overflow-hidden border border-border">
-                <img
+              <div className="relative rounded-lg overflow-hidden border border-border h-64">
+                <Image
                   src={imagePreview}
                   alt="Preview"
-                  className="w-full h-64 object-cover"
+                  fill
+                  className="object-cover"
                 />
                 <Button
                   type="button"
                   variant="destructive"
                   size="icon"
-                  className="absolute top-2 right-2"
+                  className="absolute top-2 right-2 z-10"
                   onClick={handleRemoveNewImage}
                 >
                   <X className="h-4 w-4" />

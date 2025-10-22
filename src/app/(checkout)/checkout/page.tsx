@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, CreditCard, Truck, CheckCircle2, AlertCircle } from "lucide-react";
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
@@ -378,10 +379,11 @@ const CheckoutPage = () => {
                   {items.map((item) => (
                     <div key={`${item.id}-${item.size}`} className="flex gap-3">
                       <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                        <img
+                        <Image
                           src={item.image}
                           alt={item.name}
-                          className="w-full h-full object-cover"
+                          fill
+                          className="object-cover"
                         />
                       </div>
                       <div className="flex-1 min-w-0">
