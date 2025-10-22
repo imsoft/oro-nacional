@@ -1,48 +1,75 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Pencil, Trash2, Search, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-// Datos de ejemplo
-const mockProducts = [
-  {
-    id: 1,
-    name: "Anillo de Compromiso Esmeralda",
-    category: "Anillos",
-    price: 12500,
-    stock: 5,
-    material: "Oro 14k",
-    image: "https://images.unsplash.com/photo-1605100804763-247f67b3557e",
-  },
-  {
-    id: 2,
-    name: "Collar Infinito Oro Blanco",
-    category: "Collares",
-    price: 8900,
-    stock: 12,
-    material: "Oro Blanco 18k",
-    image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f",
-  },
-  {
-    id: 3,
-    name: "Aretes de Perlas Clásicos",
-    category: "Aretes",
-    price: 5400,
-    stock: 20,
-    material: "Oro 14k con Perlas",
-    image: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908",
-  },
-];
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { getAllProducts, softDeleteProduct } from "@/lib/supabase/products";
+import type { ProductListItem } from "@/types/product";
 
 export default function ProductosAdmin() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [products] = useState(mockProducts);
+  const [products, setProducts] = useState<ProductListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<ProductListItem | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  const loadProducts = async () => {
+    setIsLoading(true);
+    const data = await getAllProducts();
+    setProducts(data);
+    setIsLoading(false);
+  };
+
+  const handleDeleteClick = (product: ProductListItem) => {
+    setProductToDelete(product);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!productToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      await softDeleteProduct(productToDelete.id);
+      // Reload products after deletion
+      await loadProducts();
+      setDeleteDialogOpen(false);
+      setProductToDelete(null);
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      alert("Error al eliminar el producto. Por favor intenta de nuevo.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const filteredProducts = products.filter((product) =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-[#D4AF37]" />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -54,7 +81,10 @@ export default function ProductosAdmin() {
             Gestiona tu catálogo de productos
           </p>
         </div>
-        <Button className="bg-[#D4AF37] hover:bg-[#B8941E] text-white">
+        <Button
+          className="bg-[#D4AF37] hover:bg-[#B8941E] text-white"
+          onClick={() => window.location.href = '/admin/productos/nuevo'}
+        >
           <Plus className="mr-2 h-5 w-5" />
           Nuevo Producto
         </Button>
@@ -100,16 +130,31 @@ export default function ProductosAdmin() {
               </tr>
             </thead>
             <tbody className="bg-card divide-y divide-border">
-              {filteredProducts.map((product) => (
+              {filteredProducts.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
+                    {searchTerm
+                      ? "No se encontraron productos que coincidan con la búsqueda"
+                      : "No hay productos registrados. Crea tu primer producto."}
+                  </td>
+                </tr>
+              ) : (
+                filteredProducts.map((product) => (
                 <tr key={product.id} className="hover:bg-muted/50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="h-12 w-12 flex-shrink-0 rounded-lg overflow-hidden bg-muted">
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          className="h-12 w-12 object-cover"
-                        />
+                        {product.primary_image ? (
+                          <img
+                            src={product.primary_image}
+                            alt={product.name}
+                            className="h-12 w-12 object-cover"
+                          />
+                        ) : (
+                          <div className="h-12 w-12 flex items-center justify-center text-muted-foreground text-xs">
+                            Sin imagen
+                          </div>
+                        )}
                       </div>
                       <div className="ml-4">
                         <div className="text-sm font-medium text-foreground">
@@ -120,7 +165,7 @@ export default function ProductosAdmin() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="text-sm text-muted-foreground">
-                      {product.category}
+                      {product.category_name || "Sin categoría"}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -148,6 +193,7 @@ export default function ProductosAdmin() {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        onClick={() => window.location.href = `/admin/productos/${product.id}/editar`}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -155,13 +201,15 @@ export default function ProductosAdmin() {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => handleDeleteClick(product)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </td>
                 </tr>
-              ))}
+              ))
+              )}
             </tbody>
           </table>
         </div>
@@ -191,6 +239,57 @@ export default function ProductosAdmin() {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
+                <Trash2 className="h-5 w-5 text-red-600" />
+              </div>
+              Eliminar Producto
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3 pt-3">
+              <p>
+                ¿Estás seguro de que deseas eliminar el producto{" "}
+                <span className="font-semibold text-foreground">
+                  {productToDelete?.name}
+                </span>
+                ?
+              </p>
+              <div className="rounded-lg bg-amber-50 border border-amber-200 p-3">
+                <p className="text-sm text-amber-800">
+                  <strong>Nota:</strong> El producto se desactivará y ya no aparecerá en el catálogo público.
+                  Los datos se conservarán en el sistema.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Eliminando...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Eliminar Producto
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

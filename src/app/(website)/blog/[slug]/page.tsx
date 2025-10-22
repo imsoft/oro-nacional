@@ -1,22 +1,89 @@
-import { Calendar, Clock, User, ArrowLeft, Tag } from "lucide-react";
+"use client";
+
+import { useState, useEffect } from "react";
+import { Calendar, Clock, User, ArrowLeft, Tag, Loader2, BookOpen } from "lucide-react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
-import { getPostBySlug, getRelatedPosts } from "@/lib/blog-data";
+import { getBlogPostBySlug, getBlogPostsByCategory, incrementBlogPostViews } from "@/lib/supabase/blog";
+import type { BlogPostDetail, BlogPostCard } from "@/types/blog";
 
 export default function BlogPostPage({
   params,
 }: {
   params: { slug: string };
 }) {
-  const post = getPostBySlug(params.slug);
+  const [post, setPost] = useState<BlogPostDetail | null>(null);
+  const [relatedPosts, setRelatedPosts] = useState<BlogPostCard[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  if (!post) {
-    notFound();
+  useEffect(() => {
+    loadPost();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.slug]);
+
+  const loadPost = async () => {
+    setIsLoading(true);
+    try {
+      const postData = await getBlogPostBySlug(params.slug);
+
+      if (!postData) {
+        setIsLoading(false);
+        setPost(null);
+        return;
+      }
+
+      setPost(postData);
+
+      // Incrementar vistas
+      await incrementBlogPostViews(postData.id);
+
+      // Cargar posts relacionados de la misma categoría
+      if (postData.category?.slug) {
+        const related = await getBlogPostsByCategory(postData.category.slug);
+        const filtered = related.filter((p) => p.id !== postData.id).slice(0, 3);
+        setRelatedPosts(filtered);
+      }
+    } catch (error) {
+      console.error("Error loading post:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-[#D4AF37]" />
+        </div>
+        <Footer />
+      </div>
+    );
   }
 
-  const relatedPosts = getRelatedPosts(post.id, 3);
+  // Post not found
+  if (!post) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex flex-col items-center justify-center py-20 px-6">
+          <h1 className="text-2xl font-bold text-foreground mb-4">Post no encontrado</h1>
+          <p className="text-muted-foreground mb-6">El artículo que buscas no existe o ha sido eliminado.</p>
+          <Link
+            href="/blog"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-[#D4AF37] hover:bg-[#B8941E] text-white font-medium transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Volver al blog
+          </Link>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -39,11 +106,13 @@ export default function BlogPostPage({
       <article className="py-12 lg:py-16">
         <div className="mx-auto max-w-4xl px-6 lg:px-8">
           {/* Categoría */}
-          <div className="mb-4">
-            <span className="inline-block px-3 py-1 rounded-full bg-[#D4AF37]/10 text-[#D4AF37] text-sm font-medium">
-              {post.category}
-            </span>
-          </div>
+          {post.category && (
+            <div className="mb-4">
+              <span className="inline-block px-3 py-1 rounded-full bg-[#D4AF37]/10 text-[#D4AF37] text-sm font-medium">
+                {post.category.name}
+              </span>
+            </div>
+          )}
 
           {/* Título */}
           <h1 className="text-4xl lg:text-5xl font-semibold tracking-tight text-foreground mb-6">
@@ -52,41 +121,53 @@ export default function BlogPostPage({
 
           {/* Metadata */}
           <div className="flex flex-wrap items-center gap-6 mb-8 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              <span>{post.author}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              <span>
-                {new Date(post.date).toLocaleDateString("es-MX", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </span>
-            </div>
+            {post.author && (
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                <span>{post.author.full_name}</span>
+              </div>
+            )}
+            {post.published_at && (
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                <span>
+                  {new Date(post.published_at).toLocaleDateString("es-MX", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </span>
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4" />
-              <span>{post.readTime} de lectura</span>
+              <span>{post.views} vistas</span>
             </div>
           </div>
 
           {/* Imagen destacada */}
-          <div className="aspect-video rounded-2xl overflow-hidden bg-muted mb-8">
-            <img
-              src={post.image}
-              alt={post.title}
-              className="w-full h-full object-cover"
-            />
-          </div>
+          {post.featured_image ? (
+            <div className="aspect-video rounded-2xl overflow-hidden bg-muted mb-8">
+              <img
+                src={post.featured_image}
+                alt={post.title}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="aspect-video rounded-2xl overflow-hidden bg-muted mb-8 flex items-center justify-center">
+              <BookOpen className="h-16 w-16 text-muted-foreground" />
+            </div>
+          )}
 
           {/* Excerpt */}
-          <div className="bg-muted/30 border-l-4 border-[#D4AF37] p-6 rounded-r-lg mb-8">
-            <p className="text-lg text-foreground font-medium italic">
-              {post.excerpt}
-            </p>
-          </div>
+          {post.excerpt && (
+            <div className="bg-muted/30 border-l-4 border-[#D4AF37] p-6 rounded-r-lg mb-8">
+              <p className="text-lg text-foreground font-medium italic">
+                {post.excerpt}
+              </p>
+            </div>
+          )}
 
           {/* Contenido del artículo */}
           <div className="prose prose-lg dark:prose-invert max-w-none">
@@ -162,19 +243,21 @@ export default function BlogPostPage({
           </div>
 
           {/* Tags */}
-          <div className="mt-12 pt-8 border-t border-border">
-            <div className="flex items-center gap-2 flex-wrap">
-              <Tag className="h-4 w-4 text-muted-foreground" />
-              {post.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="px-3 py-1 rounded-full bg-muted text-muted-foreground text-sm"
-                >
-                  {tag}
-                </span>
-              ))}
+          {post.tags && post.tags.length > 0 && (
+            <div className="mt-12 pt-8 border-t border-border">
+              <div className="flex items-center gap-2 flex-wrap">
+                <Tag className="h-4 w-4 text-muted-foreground" />
+                {post.tags.map((tag) => (
+                  <span
+                    key={tag.id}
+                    className="px-3 py-1 rounded-full bg-muted text-muted-foreground text-sm"
+                  >
+                    {tag.name}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* CTA */}
           <div className="mt-12 rounded-2xl bg-gradient-to-br from-[#D4AF37]/10 to-[#D4AF37]/5 p-8 lg:p-12 border border-[#D4AF37]/20 text-center">
@@ -218,22 +301,32 @@ export default function BlogPostPage({
                   className="group rounded-lg bg-card shadow-sm hover:shadow-md transition-all overflow-hidden"
                 >
                   <div className="relative aspect-video overflow-hidden bg-muted">
-                    <img
-                      src={relatedPost.image}
-                      alt={relatedPost.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
+                    {relatedPost.featured_image ? (
+                      <img
+                        src={relatedPost.featured_image}
+                        alt={relatedPost.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-muted">
+                        <BookOpen className="h-12 w-12 text-muted-foreground" />
+                      </div>
+                    )}
                   </div>
                   <div className="p-6">
-                    <span className="inline-block px-2 py-1 rounded-full bg-[#D4AF37]/10 text-[#D4AF37] text-xs font-medium mb-3">
-                      {relatedPost.category}
-                    </span>
+                    {relatedPost.category_name && (
+                      <span className="inline-block px-2 py-1 rounded-full bg-[#D4AF37]/10 text-[#D4AF37] text-xs font-medium mb-3">
+                        {relatedPost.category_name}
+                      </span>
+                    )}
                     <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-[#D4AF37] transition-colors line-clamp-2">
                       {relatedPost.title}
                     </h3>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {relatedPost.excerpt}
-                    </p>
+                    {relatedPost.excerpt && (
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {relatedPost.excerpt}
+                      </p>
+                    )}
                   </div>
                 </Link>
               ))}

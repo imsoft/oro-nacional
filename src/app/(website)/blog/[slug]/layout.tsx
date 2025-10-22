@@ -1,32 +1,52 @@
 import type { Metadata } from "next";
-import { getPostBySlug } from "@/lib/blog-data";
+import { getBlogPostBySlug } from "@/lib/supabase/blog";
+
+// Force dynamic rendering - don't try to statically generate during build
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({
   params,
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const post = getPostBySlug(params.slug);
-
-  if (!post) {
-    return {
-      title: "Artículo no encontrado | Oro Nacional",
-      description: "El artículo que buscas no existe.",
-    };
-  }
-
-  return {
-    title: `${post.title} | Blog Oro Nacional`,
-    description: post.excerpt,
-    openGraph: {
-      title: post.title,
-      description: post.excerpt,
-      images: [post.image],
-      type: "article",
-      publishedTime: post.date,
-      authors: [post.author],
-    },
+  // Default metadata
+  const defaultMetadata: Metadata = {
+    title: "Artículo no encontrado | Oro Nacional",
+    description: "El artículo que buscas no existe.",
   };
+
+  try {
+    const post = await getBlogPostBySlug(params.slug);
+
+    if (!post) {
+      return defaultMetadata;
+    }
+
+    return {
+      title: `${post.title} | Blog Oro Nacional`,
+      description: post.excerpt || post.title,
+      keywords: [
+        post.title,
+        post.category?.name || "joyería",
+        "Oro Nacional",
+        "blog joyería",
+        "Guadalajara",
+        ...(post.tags?.map((tag) => tag.name) || []),
+      ].join(", "),
+      openGraph: {
+        title: post.title,
+        description: post.excerpt || post.title,
+        images: post.featured_image ? [{ url: post.featured_image, alt: post.title }] : [],
+        type: "article",
+        publishedTime: post.published_at || post.created_at,
+        authors: post.author ? [post.author.full_name] : undefined,
+        locale: "es_MX",
+      },
+    };
+  } catch (error) {
+    console.error("Error generating metadata:", error);
+    return defaultMetadata;
+  }
 }
 
 export default function BlogPostLayout({

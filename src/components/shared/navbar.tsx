@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, ShoppingCart, User, LogOut, Package, Settings, Heart, UserCircle } from "lucide-react";
+import { Menu, ShoppingCart, LogOut, Package, Settings, Heart, UserCircle } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -17,6 +17,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/stores/auth-store";
 import { useCartStore } from "@/stores/cart-store";
@@ -225,15 +230,36 @@ const Navbar = () => {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  size="sm"
-                  className="flex items-center gap-2 text-sm/6 font-semibold text-foreground hover:text-[#D4AF37]"
+                  className="flex items-center gap-2 hover:bg-accent h-auto p-2 rounded-full"
                 >
-                  <User className="h-5 w-5" />
-                  <span className="max-w-[100px] truncate">{user?.name}</span>
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user?.avatarUrl} alt={user?.name} />
+                    <AvatarFallback className="bg-[#D4AF37] text-white text-sm font-semibold">
+                      {user?.name?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm font-semibold text-foreground max-w-[100px] truncate hidden md:block">
+                    {user?.name}
+                  </span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
+                <DropdownMenuLabel>
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={user?.avatarUrl} alt={user?.name} />
+                      <AvatarFallback className="bg-[#D4AF37] text-white font-semibold">
+                        {user?.name?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{user?.name}</p>
+                      <p className="text-xs leading-none text-muted-foreground truncate max-w-[150px]">
+                        {user?.email}
+                      </p>
+                    </div>
+                  </div>
+                </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {isAdmin && (
                   <>
