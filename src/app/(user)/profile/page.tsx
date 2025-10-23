@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/auth-store";
 import { Button } from "@/components/ui/button";
@@ -8,12 +8,28 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Lock, MapPin, Mail, Phone, Save } from "lucide-react";
+import { User, Lock, MapPin, Mail, Phone, Save, Loader2, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  getUserProfile,
+  getDefaultAddress,
+  upsertUserProfile,
+  createAddress,
+  updateAddress,
+  updateUserPassword,
+} from "@/lib/supabase/profiles";
+import type { UserProfile, UserAddress } from "@/types/profile";
 
 const ProfilePage = () => {
   const router = useRouter();
   const { user, isAuthenticated } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true);
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Data from database
+  const [, setUserProfile] = useState<UserProfile | null>(null);
+  const [userAddress, setUserAddress] = useState<UserAddress | null>(null);
 
   // Formulario de información personal
   const [personalInfo, setPersonalInfo] = useState({
@@ -38,66 +54,155 @@ const ProfilePage = () => {
     confirmPassword: "",
   });
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push("/login");
+  // Load user data from database
+  const loadUserData = useCallback(async () => {
+    setIsLoadingData(true);
+    const [profile, defaultAddress] = await Promise.all([
+      getUserProfile(),
+      getDefaultAddress(),
+    ]);
+
+    setUserProfile(profile);
+    setUserAddress(defaultAddress);
+
+    // Populate forms with data
+    if (profile) {
+      setPersonalInfo({
+        name: profile.full_name || "",
+        email: user?.email || "",
+        phone: profile.phone || "",
+      });
     } else if (user) {
       setPersonalInfo({
-        name: user.name,
+        name: user.name || "",
         email: user.email,
         phone: "",
       });
     }
-  }, [isAuthenticated, user, router]);
 
-  const handleSavePersonalInfo = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    // TODO: Implementar guardado en base de datos
-    setTimeout(() => {
-      setIsLoading(false);
-      alert("Información personal actualizada");
-    }, 1000);
+    if (defaultAddress) {
+      setAddress({
+        street: defaultAddress.street,
+        city: defaultAddress.city,
+        state: defaultAddress.state,
+        zipCode: defaultAddress.zip_code,
+        country: defaultAddress.country,
+      });
+    }
+
+    setIsLoadingData(false);
+  }, [user]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push("/login");
+    } else {
+      loadUserData();
+    }
+  }, [isAuthenticated, router, loadUserData]);
+
+  const showMessage = (type: "success" | "error", text: string) => {
+    setMessage({ type, text });
+    setTimeout(() => setMessage(null), 5000);
   };
 
-  const handleSaveAddress = (e: React.FormEvent) => {
+  const handleSavePersonalInfo = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // TODO: Implementar guardado en base de datos
-    setTimeout(() => {
-      setIsLoading(false);
-      alert("Dirección guardada");
-    }, 1000);
+
+    const result = await upsertUserProfile({
+      full_name: personalInfo.name,
+      phone: personalInfo.phone || undefined,
+    });
+
+    setIsLoading(false);
+
+    if (result.success) {
+      setUserProfile(result.profile || null);
+      showMessage("success", "Información personal actualizada correctamente");
+    } else {
+      showMessage("error", result.error || "Error al actualizar la información");
+    }
   };
 
-  const handleChangePassword = (e: React.FormEvent) => {
+  const handleSaveAddress = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    const addressData = {
+      street: address.street,
+      city: address.city,
+      state: address.state,
+      zip_code: address.zipCode,
+      country: address.country,
+      is_default: true,
+      address_type: "shipping" as const,
+    };
+
+    let result;
+    if (userAddress) {
+      // Update existing address
+      result = await updateAddress(userAddress.id, addressData);
+    } else {
+      // Create new address
+      result = await createAddress(addressData);
+    }
+
+    setIsLoading(false);
+
+    if (result.success) {
+      setUserAddress(result.address || null);
+      showMessage("success", "Dirección guardada correctamente");
+    } else {
+      showMessage("error", result.error || "Error al guardar la dirección");
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      alert("Las contraseñas no coinciden");
+      showMessage("error", "Las contraseñas no coinciden");
       return;
     }
 
     if (passwordForm.newPassword.length < 6) {
-      alert("La contraseña debe tener al menos 6 caracteres");
+      showMessage("error", "La contraseña debe tener al menos 6 caracteres");
       return;
     }
 
     setIsLoading(true);
-    // TODO: Implementar cambio de contraseña en base de datos
-    setTimeout(() => {
-      setIsLoading(false);
+
+    const result = await updateUserPassword(passwordForm.newPassword);
+
+    setIsLoading(false);
+
+    if (result.success) {
       setPasswordForm({
         currentPassword: "",
         newPassword: "",
         confirmPassword: "",
       });
-      alert("Contraseña actualizada");
-    }, 1000);
+      showMessage("success", "Contraseña actualizada correctamente");
+    } else {
+      showMessage("error", result.error || "Error al actualizar la contraseña");
+    }
   };
 
   if (!isAuthenticated || !user) {
     return null;
+  }
+
+  if (isLoadingData) {
+    return (
+      <div className="min-h-screen bg-background py-12">
+        <div className="mx-auto max-w-4xl px-6 lg:px-8">
+          <div className="flex justify-center items-center min-h-[400px]">
+            <Loader2 className="h-12 w-12 animate-spin text-[#D4AF37]" />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -109,6 +214,13 @@ const ProfilePage = () => {
             Administra tu información personal y preferencias
           </p>
         </div>
+
+        {message && (
+          <Alert className={`mb-6 ${message.type === "error" ? "border-red-500" : "border-green-500"}`}>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{message.text}</AlertDescription>
+          </Alert>
+        )}
 
         <Tabs defaultValue="personal" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
@@ -153,11 +265,12 @@ const ProfilePage = () => {
                       id="email"
                       type="email"
                       value={personalInfo.email}
-                      onChange={(e) =>
-                        setPersonalInfo({ ...personalInfo, email: e.target.value })
-                      }
-                      required
+                      disabled
+                      className="bg-muted"
                     />
+                    <p className="text-xs text-muted-foreground">
+                      El correo electrónico no se puede modificar
+                    </p>
                   </div>
 
                   <div className="space-y-2">
@@ -181,8 +294,17 @@ const ProfilePage = () => {
                     className="w-full bg-[#D4AF37] hover:bg-[#B8941E]"
                     disabled={isLoading}
                   >
-                    <Save className="mr-2 h-4 w-4" />
-                    {isLoading ? "Guardando..." : "Guardar Cambios"}
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Guardando...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="mr-2 h-4 w-4" />
+                        Guardar Cambios
+                      </>
+                    )}
                   </Button>
                 </form>
               </CardContent>
@@ -281,8 +403,17 @@ const ProfilePage = () => {
                     className="w-full bg-[#D4AF37] hover:bg-[#B8941E]"
                     disabled={isLoading}
                   >
-                    <Save className="mr-2 h-4 w-4" />
-                    {isLoading ? "Guardando..." : "Guardar Dirección"}
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Guardando...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="mr-2 h-4 w-4" />
+                        Guardar Dirección
+                      </>
+                    )}
                   </Button>
                 </form>
               </CardContent>
@@ -317,6 +448,9 @@ const ProfilePage = () => {
                       }
                       required
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Por seguridad, ingresa tu contraseña actual
+                    </p>
                   </div>
 
                   <div className="space-y-2">
@@ -361,8 +495,17 @@ const ProfilePage = () => {
                     className="w-full bg-[#D4AF37] hover:bg-[#B8941E]"
                     disabled={isLoading}
                   >
-                    <Lock className="mr-2 h-4 w-4" />
-                    {isLoading ? "Actualizando..." : "Cambiar Contraseña"}
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Actualizando...
+                      </>
+                    ) : (
+                      <>
+                        <Lock className="mr-2 h-4 w-4" />
+                        Cambiar Contraseña
+                      </>
+                    )}
                   </Button>
                 </form>
               </CardContent>
