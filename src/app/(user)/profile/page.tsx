@@ -13,7 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   getUserProfile,
   getDefaultAddress,
-  upsertUserProfile,
+  updateUserProfile,
   createAddress,
   updateAddress,
   updateUserPassword,
@@ -110,7 +110,7 @@ const ProfilePage = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    const result = await upsertUserProfile({
+    const result = await updateUserProfile({
       full_name: personalInfo.name,
       phone: personalInfo.phone || undefined,
     });

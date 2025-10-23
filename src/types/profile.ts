@@ -1,10 +1,13 @@
 // User Profile Types
+// Uses the existing 'profiles' table from the database
 
 export interface UserProfile {
   id: string;
-  user_id: string;
-  full_name: string | null;
+  email: string;
+  full_name: string;
+  role: "user" | "admin";
   phone: string | null;
+  avatar_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -23,15 +26,11 @@ export interface UserAddress {
   updated_at: string;
 }
 
-// DTOs for creating/updating
-export interface CreateUserProfileData {
-  full_name: string;
-  phone?: string;
-}
-
+// DTOs for creating/updating profiles
 export interface UpdateUserProfileData {
   full_name?: string;
   phone?: string;
+  avatar_url?: string;
 }
 
 export interface CreateUserAddressData {

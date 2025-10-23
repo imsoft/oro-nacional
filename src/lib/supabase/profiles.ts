@@ -2,7 +2,6 @@ import { supabase } from "./client";
 import type {
   UserProfile,
   UserAddress,
-  CreateUserProfileData,
   UpdateUserProfileData,
   CreateUserAddressData,
   UpdateUserAddressData,
@@ -10,7 +9,7 @@ import type {
 } from "@/types/profile";
 
 /**
- * Get current user's profile
+ * Get current user's profile from the profiles table
  */
 export async function getUserProfile(): Promise<UserProfile | null> {
   const {
@@ -23,9 +22,9 @@ export async function getUserProfile(): Promise<UserProfile | null> {
   }
 
   const { data, error } = await supabase
-    .from("user_profiles")
+    .from("profiles")
     .select("*")
-    .eq("user_id", user.id)
+    .eq("id", user.id)
     .single();
 
   if (error) {
@@ -41,10 +40,11 @@ export async function getUserProfile(): Promise<UserProfile | null> {
 }
 
 /**
- * Create or update user profile
+ * Update user profile
+ * Note: Profile is created automatically on signup, so we only update here
  */
-export async function upsertUserProfile(
-  profileData: CreateUserProfileData | UpdateUserProfileData
+export async function updateUserProfile(
+  profileData: UpdateUserProfileData
 ): Promise<{ success: boolean; profile?: UserProfile; error?: string }> {
   const {
     data: { user },
@@ -54,42 +54,19 @@ export async function upsertUserProfile(
     return { success: false, error: "Usuario no autenticado" };
   }
 
-  // Check if profile exists
-  const existingProfile = await getUserProfile();
+  const { data, error } = await supabase
+    .from("profiles")
+    .update(profileData)
+    .eq("id", user.id)
+    .select()
+    .single();
 
-  if (existingProfile) {
-    // Update existing profile
-    const { data, error } = await supabase
-      .from("user_profiles")
-      .update(profileData)
-      .eq("user_id", user.id)
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Error updating profile:", error);
-      return { success: false, error: "Error al actualizar el perfil" };
-    }
-
-    return { success: true, profile: data as UserProfile };
-  } else {
-    // Create new profile
-    const { data, error } = await supabase
-      .from("user_profiles")
-      .insert({
-        user_id: user.id,
-        ...profileData,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Error creating profile:", error);
-      return { success: false, error: "Error al crear el perfil" };
-    }
-
-    return { success: true, profile: data as UserProfile };
+  if (error) {
+    console.error("Error updating profile:", error);
+    return { success: false, error: "Error al actualizar el perfil" };
   }
+
+  return { success: true, profile: data as UserProfile };
 }
 
 /**
