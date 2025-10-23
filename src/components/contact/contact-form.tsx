@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Send } from "lucide-react";
+import { Send, Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Select,
   SelectContent,
@@ -13,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { createContactMessage } from "@/lib/supabase/contact";
 
 const ContactForm = () => {
   const [formData, setFormData] = useState({
@@ -22,12 +24,54 @@ const ContactForm = () => {
     subject: "",
     message: "",
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<{
+    type: "success" | "error" | null;
+    message: string;
+  }>({ type: null, message: "" });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Aquí iría la lógica para enviar el formulario
-    console.log("Formulario enviado:", formData);
-    alert("¡Gracias por contactarnos! Te responderemos pronto.");
+    setIsLoading(true);
+    setSubmitStatus({ type: null, message: "" });
+
+    const result = await createContactMessage({
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone || undefined,
+      subject: formData.subject,
+      message: formData.message,
+    });
+
+    setIsLoading(false);
+
+    if (result.success) {
+      setSubmitStatus({
+        type: "success",
+        message:
+          "¡Gracias por contactarnos! Hemos recibido tu mensaje y te responderemos en un plazo máximo de 24 horas.",
+      });
+      // Reset form
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        subject: "",
+        message: "",
+      });
+    } else {
+      setSubmitStatus({
+        type: "error",
+        message:
+          result.error ||
+          "Hubo un error al enviar tu mensaje. Por favor, intenta de nuevo o contáctanos por WhatsApp.",
+      });
+    }
+
+    // Clear status after 10 seconds
+    setTimeout(() => {
+      setSubmitStatus({ type: null, message: "" });
+    }, 10000);
   };
 
   return (
@@ -42,6 +86,23 @@ const ContactForm = () => {
         </p>
       </div>
 
+      {submitStatus.type && (
+        <Alert
+          className={`mb-6 ${
+            submitStatus.type === "error"
+              ? "border-red-500"
+              : "border-green-500"
+          }`}
+        >
+          {submitStatus.type === "success" ? (
+            <CheckCircle className="h-4 w-4 text-green-500" />
+          ) : (
+            <AlertCircle className="h-4 w-4 text-red-500" />
+          )}
+          <AlertDescription>{submitStatus.message}</AlertDescription>
+        </Alert>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Nombre */}
         <div className="space-y-2">
@@ -55,6 +116,7 @@ const ContactForm = () => {
             required
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            disabled={isLoading}
           />
         </div>
 
@@ -73,6 +135,7 @@ const ContactForm = () => {
               onChange={(e) =>
                 setFormData({ ...formData, email: e.target.value })
               }
+              disabled={isLoading}
             />
           </div>
 
@@ -86,6 +149,7 @@ const ContactForm = () => {
               onChange={(e) =>
                 setFormData({ ...formData, phone: e.target.value })
               }
+              disabled={isLoading}
             />
           </div>
         </div>
@@ -101,6 +165,7 @@ const ContactForm = () => {
               setFormData({ ...formData, subject: value })
             }
             required
+            disabled={isLoading}
           >
             <SelectTrigger id="subject">
               <SelectValue placeholder="Selecciona un asunto" />
@@ -135,6 +200,7 @@ const ContactForm = () => {
             onChange={(e) =>
               setFormData({ ...formData, message: e.target.value })
             }
+            disabled={isLoading}
           />
         </div>
 
@@ -143,9 +209,19 @@ const ContactForm = () => {
           type="submit"
           size="lg"
           className="w-full bg-[#D4AF37] hover:bg-[#B8941E] text-white transition-all duration-300 hover:scale-[1.02]"
+          disabled={isLoading}
         >
-          <Send className="mr-2 h-5 w-5" />
-          Enviar Mensaje
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              Enviando...
+            </>
+          ) : (
+            <>
+              <Send className="mr-2 h-5 w-5" />
+              Enviar Mensaje
+            </>
+          )}
         </Button>
 
         <p className="text-xs text-muted-foreground text-center">
