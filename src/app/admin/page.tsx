@@ -1,70 +1,80 @@
 "use client";
 
+import { useEffect, useState, useCallback } from "react";
 import {
   Package,
   ShoppingCart,
   FileText,
   TrendingUp,
-  Users,
   DollarSign,
+  Loader2,
 } from "lucide-react";
-
-const stats = [
-  {
-    name: "Ventas Totales",
-    value: "$45,231 MXN",
-    change: "+20.1%",
-    changeType: "positive",
-    icon: DollarSign,
-  },
-  {
-    name: "Pedidos",
-    value: "23",
-    change: "+15.3%",
-    changeType: "positive",
-    icon: ShoppingCart,
-  },
-  {
-    name: "Productos",
-    value: "156",
-    change: "+4 nuevos",
-    changeType: "neutral",
-    icon: Package,
-  },
-  {
-    name: "Posts de Blog",
-    value: "12",
-    change: "+2 esta semana",
-    changeType: "neutral",
-    icon: FileText,
-  },
-];
-
-const recentOrders = [
-  {
-    id: "ORO-00012345",
-    customer: "María García",
-    product: "Anillo de Compromiso Esmeralda",
-    amount: "$12,500 MXN",
-    status: "Enviado",
-  },
-  {
-    id: "ORO-00012344",
-    customer: "Juan Rodríguez",
-    product: "Collar Infinito Oro Blanco",
-    amount: "$8,900 MXN",
-    status: "Procesando",
-  },
-  {
-    id: "ORO-00012343",
-    customer: "Ana Martínez",
-    product: "Aretes de Perlas",
-    amount: "$5,400 MXN",
-    status: "Entregado",
-  },
-];
+import { getDashboardData } from "@/lib/supabase/dashboard";
+import type { DashboardData } from "@/types/dashboard";
 
 export default function AdminDashboard() {
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const loadData = useCallback(async () => {
+    setIsLoading(true);
+    const dashboardData = await getDashboardData();
+    setData(dashboardData);
+    setIsLoading(false);
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-[#D4AF37]" />
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">Error al cargar los datos del dashboard</p>
+      </div>
+    );
+  }
+
+  const stats = [
+    {
+      name: "Ventas Totales",
+      value: `$${data.stats.sales.total_sales.toLocaleString("es-MX")} MXN`,
+      change: `${data.stats.sales.growth_percentage >= 0 ? "+" : ""}${data.stats.sales.growth_percentage.toFixed(1)}%`,
+      changeType: data.stats.sales.growth_percentage >= 0 ? "positive" : "negative",
+      icon: DollarSign,
+    },
+    {
+      name: "Pedidos",
+      value: data.stats.orders.total_orders.toString(),
+      change: `${data.stats.orders.growth_percentage >= 0 ? "+" : ""}${data.stats.orders.growth_percentage.toFixed(1)}%`,
+      changeType: data.stats.orders.growth_percentage >= 0 ? "positive" : "negative",
+      icon: ShoppingCart,
+    },
+    {
+      name: "Productos",
+      value: data.stats.products.total_products.toString(),
+      change: data.stats.products.new_products_this_month > 0
+        ? `+${data.stats.products.new_products_this_month} nuevos`
+        : "Sin nuevos",
+      changeType: "neutral",
+      icon: Package,
+    },
+    {
+      name: "Inventario Bajo",
+      value: data.stats.products.low_stock_products.toString(),
+      change: "productos con poco stock",
+      changeType: data.stats.products.low_stock_products > 5 ? "negative" : "neutral",
+      icon: FileText,
+    },
+  ];
   return (
     <div>
       <div className="mb-8">
@@ -148,35 +158,45 @@ export default function AdminDashboard() {
               </tr>
             </thead>
             <tbody className="bg-card divide-y divide-border">
-              {recentOrders.map((order) => (
-                <tr key={order.id} className="hover:bg-muted/50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
-                    {order.id}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                    {order.customer}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-muted-foreground max-w-xs truncate">
-                    {order.product}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
-                    {order.amount}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
-                        order.status === "Entregado"
-                          ? "bg-green-100 text-green-800"
-                          : order.status === "Enviado"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-yellow-100 text-yellow-800"
-                      }`}
-                    >
-                      {order.status}
-                    </span>
+              {data.recentOrders.length > 0 ? (
+                data.recentOrders.map((order) => (
+                  <tr key={order.id} className="hover:bg-muted/50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
+                      {order.order_number}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                      {order.customer_name}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground max-w-xs truncate">
+                      Pedido #{order.order_number}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
+                      ${order.total.toLocaleString("es-MX")} MXN
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
+                          order.status === "Entregado"
+                            ? "bg-green-100 text-green-800"
+                            : order.status === "Enviado"
+                            ? "bg-blue-100 text-blue-800"
+                            : order.status === "Procesando"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {order.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="px-6 py-8 text-center text-sm text-muted-foreground">
+                    No hay pedidos recientes
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
@@ -187,13 +207,15 @@ export default function AdminDashboard() {
         <div className="rounded-lg bg-card border border-border p-6 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center gap-4">
             <div className="rounded-lg bg-[#D4AF37]/10 p-3">
-              <Users className="h-6 w-6 text-[#D4AF37]" />
+              <Package className="h-6 w-6 text-[#D4AF37]" />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-foreground">
-                Clientes Totales
+                Productos Activos
               </h3>
-              <p className="text-2xl font-bold text-[#D4AF37]">127</p>
+              <p className="text-2xl font-bold text-[#D4AF37]">
+                {data.stats.products.active_products}
+              </p>
             </div>
           </div>
         </div>
@@ -207,7 +229,9 @@ export default function AdminDashboard() {
               <h3 className="text-lg font-semibold text-foreground">
                 Inventario Bajo
               </h3>
-              <p className="text-2xl font-bold text-red-600">3</p>
+              <p className={`text-2xl font-bold ${data.stats.products.low_stock_products > 5 ? "text-red-600" : "text-green-600"}`}>
+                {data.stats.products.low_stock_products}
+              </p>
             </div>
           </div>
         </div>
@@ -219,9 +243,11 @@ export default function AdminDashboard() {
             </div>
             <div>
               <h3 className="text-lg font-semibold text-foreground">
-                Conversión
+                Ventas del Mes
               </h3>
-              <p className="text-2xl font-bold text-green-600">4.2%</p>
+              <p className="text-2xl font-bold text-green-600">
+                ${data.stats.sales.current_month_sales.toLocaleString("es-MX")}
+              </p>
             </div>
           </div>
         </div>

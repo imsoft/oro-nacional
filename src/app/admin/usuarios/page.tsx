@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Search, Mail, Calendar, Shield, User as UserIcon } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Search, Mail, Calendar, Shield, User as UserIcon, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -11,65 +11,53 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-// Datos de ejemplo
-const mockUsers = [
-  {
-    id: "1",
-    name: "María García",
-    email: "maria@email.com",
-    role: "user",
-    orders: 3,
-    totalSpent: 26800,
-    createdAt: "2024-11-15",
-    lastLogin: "2025-01-15",
-  },
-  {
-    id: "2",
-    name: "Juan Rodríguez",
-    email: "juan@email.com",
-    role: "user",
-    orders: 1,
-    totalSpent: 8900,
-    createdAt: "2024-12-20",
-    lastLogin: "2025-01-14",
-  },
-  {
-    id: "3",
-    name: "Ana Martínez",
-    email: "ana@email.com",
-    role: "user",
-    orders: 2,
-    totalSpent: 17900,
-    createdAt: "2024-10-10",
-    lastLogin: "2025-01-10",
-  },
-  {
-    id: "4",
-    name: "Administrador",
-    email: "admin@oronacional.com",
-    role: "admin",
-    orders: 0,
-    totalSpent: 0,
-    createdAt: "2024-01-01",
-    lastLogin: "2025-01-15",
-  },
-];
+import { getUsersWithStats, getUserCountByRole } from "@/lib/supabase/user-management";
+import type { UserWithStats, UserCountByRole } from "@/types/user-management";
 
 export default function UsuariosAdmin() {
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
-  const [users] = useState(mockUsers);
+  const [users, setUsers] = useState<UserWithStats[]>([]);
+  const [userCounts, setUserCounts] = useState<UserCountByRole>({
+    total_users: 0,
+    admin_count: 0,
+    user_count: 0,
+  });
+  const [isLoading, setIsLoading] = useState(true);
+
+  const loadData = useCallback(async () => {
+    setIsLoading(true);
+    const [usersData, countsData] = await Promise.all([
+      getUsersWithStats(),
+      getUserCountByRole(),
+    ]);
+    setUsers(usersData);
+    setUserCounts(countsData);
+    setIsLoading(false);
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const filteredUsers = users.filter((user) => {
+    const userName = user.full_name || "Sin nombre";
     const matchesSearch =
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesRole = roleFilter === "all" || user.role === roleFilter;
 
     return matchesSearch && matchesRole;
   });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-[#D4AF37]" />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -134,70 +122,78 @@ export default function UsuariosAdmin() {
               </tr>
             </thead>
             <tbody className="bg-card divide-y divide-border">
-              {filteredUsers.map((user) => (
-                <tr key={user.id} className="hover:bg-muted/50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="h-10 w-10 flex-shrink-0 rounded-full bg-[#D4AF37]/10 flex items-center justify-center">
-                        <UserIcon className="h-5 w-5 text-[#D4AF37]" />
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-foreground">
-                          {user.name}
+              {filteredUsers.length > 0 ? (
+                filteredUsers.map((user) => (
+                  <tr key={user.id} className="hover:bg-muted/50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="h-10 w-10 flex-shrink-0 rounded-full bg-[#D4AF37]/10 flex items-center justify-center">
+                          <UserIcon className="h-5 w-5 text-[#D4AF37]" />
                         </div>
-                        <div className="text-sm text-muted-foreground flex items-center">
-                          <Mail className="h-3 w-3 mr-1" />
-                          {user.email}
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-foreground">
+                            {user.full_name || "Sin nombre"}
+                          </div>
+                          <div className="text-sm text-muted-foreground flex items-center">
+                            <Mail className="h-3 w-3 mr-1" />
+                            {user.email}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${
-                        user.role === "admin"
-                          ? "bg-purple-100 text-purple-800"
-                          : "bg-blue-100 text-blue-800"
-                      }`}
-                    >
-                      {user.role === "admin" && (
-                        <Shield className="h-3 w-3" />
-                      )}
-                      {user.role === "admin" ? "Administrador" : "Usuario"}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-foreground font-medium">
-                      {user.orders} pedidos
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-foreground">
-                      ${user.totalSpent.toLocaleString("es-MX")} MXN
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-muted-foreground flex items-center">
-                      <Calendar className="h-3 w-3 mr-1" />
-                      {new Date(user.createdAt).toLocaleDateString("es-MX")}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-muted-foreground">
-                      {new Date(user.lastLogin).toLocaleDateString("es-MX")}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-[#D4AF37] hover:text-[#B8941E]"
-                    >
-                      Ver Detalles
-                    </Button>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${
+                          user.role === "admin"
+                            ? "bg-purple-100 text-purple-800"
+                            : "bg-blue-100 text-blue-800"
+                        }`}
+                      >
+                        {user.role === "admin" && (
+                          <Shield className="h-3 w-3" />
+                        )}
+                        {user.role === "admin" ? "Administrador" : "Usuario"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-foreground font-medium">
+                        {user.order_count} {user.order_count === 1 ? "pedido" : "pedidos"}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-foreground">
+                        ${Number(user.total_spent).toLocaleString("es-MX")} MXN
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-muted-foreground flex items-center">
+                        <Calendar className="h-3 w-3 mr-1" />
+                        {new Date(user.created_at).toLocaleDateString("es-MX")}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-muted-foreground">
+                        -
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-[#D4AF37] hover:text-[#B8941E]"
+                      >
+                        Ver Detalles
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={7} className="px-6 py-8 text-center text-sm text-muted-foreground">
+                    No se encontraron usuarios
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
@@ -208,25 +204,25 @@ export default function UsuariosAdmin() {
         <div className="rounded-lg bg-card border border-border p-6">
           <div className="text-sm text-muted-foreground">Total Usuarios</div>
           <div className="mt-2 text-3xl font-bold text-foreground">
-            {users.length}
+            {userCounts.total_users}
           </div>
         </div>
         <div className="rounded-lg bg-card border border-border p-6">
           <div className="text-sm text-muted-foreground">Clientes</div>
           <div className="mt-2 text-3xl font-bold text-blue-600">
-            {users.filter((u) => u.role === "user").length}
+            {userCounts.user_count}
           </div>
         </div>
         <div className="rounded-lg bg-card border border-border p-6">
           <div className="text-sm text-muted-foreground">Administradores</div>
           <div className="mt-2 text-3xl font-bold text-purple-600">
-            {users.filter((u) => u.role === "admin").length}
+            {userCounts.admin_count}
           </div>
         </div>
         <div className="rounded-lg bg-card border border-border p-6">
           <div className="text-sm text-muted-foreground">Valor Total</div>
           <div className="mt-2 text-3xl font-bold text-[#D4AF37]">
-            ${users.reduce((sum, u) => sum + u.totalSpent, 0).toLocaleString("es-MX")}
+            ${users.reduce((sum, u) => sum + Number(u.total_spent), 0).toLocaleString("es-MX")}
           </div>
         </div>
       </div>

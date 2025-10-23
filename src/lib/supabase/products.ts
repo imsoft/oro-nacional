@@ -1,5 +1,5 @@
 import { supabase } from "./client";
-import type { Product, ProductDetail, ProductListItem } from "@/types/product";
+import type { Product, ProductDetail, ProductListItem, FeaturedCategory } from "@/types/product";
 
 /**
  * Get all active products with their categories and primary images
@@ -482,5 +482,24 @@ export async function hardDeleteProduct(productId: string) {
   if (error) {
     console.error("Error deleting product:", error);
     throw error;
+  }
+}
+
+/**
+ * Get featured categories for homepage
+ */
+export async function getFeaturedCategories(): Promise<FeaturedCategory[]> {
+  try {
+    const { data, error } = await supabase.rpc("get_featured_categories");
+
+    if (error) {
+      console.error("Error fetching featured categories:", error);
+      return [];
+    }
+
+    return data as FeaturedCategory[];
+  } catch (error) {
+    console.error("Error in getFeaturedCategories:", error);
+    return [];
   }
 }
