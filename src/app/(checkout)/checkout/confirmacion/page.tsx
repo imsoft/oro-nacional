@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { CheckCircle2, Package, Mail, Home, ShoppingBag } from "lucide-react";
 import Navbar from "@/components/shared/navbar";
@@ -12,11 +12,17 @@ import { useAuthStore } from "@/stores/auth-store";
 const ConfirmacionPage = () => {
   const clearCart = useCartStore((state) => state.clearCart);
   const { user } = useAuthStore();
-
-  // Generar número de pedido aleatorio
-  const orderNumber = `ORO-${Date.now().toString().slice(-8)}`;
+  const [orderNumber, setOrderNumber] = useState("");
 
   useEffect(() => {
+    // Obtener el número de pedido del localStorage (guardado por el checkout)
+    const savedOrderNumber = localStorage.getItem("lastOrderNumber");
+    if (savedOrderNumber) {
+      setOrderNumber(savedOrderNumber);
+      // Limpiar el localStorage
+      localStorage.removeItem("lastOrderNumber");
+    }
+
     // Limpiar el carrito después de la confirmación
     clearCart();
   }, [clearCart]);

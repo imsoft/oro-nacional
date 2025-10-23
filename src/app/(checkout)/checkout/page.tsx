@@ -13,6 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCartStore } from "@/stores/cart-store";
 import { useAuthStore } from "@/stores/auth-store";
+import { createOrder } from "@/lib/supabase/orders";
+import type { CreateOrderData, PaymentMethod } from "@/types/order";
 
 const CheckoutPage = () => {
   const router = useRouter();
@@ -96,11 +98,57 @@ const CheckoutPage = () => {
 
     setIsLoading(true);
 
-    // Simular procesamiento del pedido
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      // Mapear método de pago al tipo correcto
+      const paymentMethodMap: Record<string, PaymentMethod> = {
+        card: "Tarjeta",
+        transfer: "Transferencia",
+        cash: "Efectivo",
+      };
 
-    // Redirigir a página de confirmación
-    router.push("/checkout/confirmacion");
+      // Preparar datos del pedido
+      const orderData: CreateOrderData = {
+        customer_name: shippingData.fullName,
+        customer_email: shippingData.email,
+        customer_phone: shippingData.phone,
+        shipping_address: `${shippingData.street} ${shippingData.number}, ${shippingData.colony}`,
+        shipping_city: shippingData.city,
+        shipping_state: shippingData.state,
+        shipping_zip_code: shippingData.zipCode,
+        shipping_country: "México",
+        payment_method: paymentMethodMap[paymentMethod],
+        items: items.map((item) => ({
+          product_id: item.id.toString(),
+          product_name: item.name,
+          product_slug: "",
+          product_sku: undefined,
+          product_image: item.image,
+          quantity: item.quantity,
+          unit_price: item.price,
+          size: item.size,
+          material: item.material,
+        })),
+      };
+
+      // Crear el pedido en la base de datos
+      const result = await createOrder(orderData);
+
+      if (!result.success || !result.order) {
+        setError(result.error || "Error al procesar el pedido");
+        setIsLoading(false);
+        return;
+      }
+
+      // Guardar el número de pedido en localStorage para la página de confirmación
+      localStorage.setItem("lastOrderNumber", result.order.order_number);
+
+      // Redirigir a página de confirmación
+      router.push("/checkout/confirmacion");
+    } catch (err) {
+      console.error("Error al procesar el pedido:", err);
+      setError("Error inesperado al procesar el pedido. Por favor intenta de nuevo.");
+      setIsLoading(false);
+    }
   };
 
   if (items.length === 0) {
