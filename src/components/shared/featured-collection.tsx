@@ -1,66 +1,83 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Heart, Share2 } from "lucide-react";
+import { Heart, Share2, Loader2 } from "lucide-react";
 import { useFavoritesStore } from "@/stores/favorites-store";
+import { getProducts } from "@/lib/supabase/products";
+import type { Product } from "@/types/product";
 
-const products = [
-  {
-    id: 1,
-    name: "Anillo de Compromiso Esmeralda",
-    description: "Anillo de oro 14k con diamantes naturales - Diseño artesanal",
-    price: "$12,500 MXN",
-    category: "Anillos",
-    material: "Oro 14k",
-    image:
-      "https://images.unsplash.com/photo-1605100804763-247f67b3557e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 2,
-    name: "Collar Infinito de Oro Blanco",
-    description: "Collar de oro blanco 18k - Elegancia atemporal",
-    price: "$18,900 MXN",
-    category: "Collares",
-    material: "Oro Blanco 18k",
-    image:
-      "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: 3,
-    name: "Aretes de Oro con Perlas",
-    description: "Aretes de oro amarillo con perlas cultivadas AAA",
-    price: "$8,750 MXN",
-    category: "Aretes",
-    material: "Oro Amarillo",
-    image:
-      "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-  },
-];
+interface DisplayProduct {
+  id: number;
+  name: string;
+  description: string;
+  price: string;
+  category: string;
+  material: string;
+  image: string;
+  slug: string;
+}
 
 const FeaturedCollection = () => {
   const { addFavorite, removeFavorite, isFavorite } = useFavoritesStore();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleToggleFavorite = (product: typeof products[0], e: React.MouseEvent) => {
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  const loadProducts = async () => {
+    setIsLoading(true);
+    const data = await getProducts();
+    // Get first 3 products or featured products
+    setProducts(data.slice(0, 3));
+    setIsLoading(false);
+  };
+
+  const displayProducts: DisplayProduct[] = products.map((product) => {
+    const primaryImage = product.images?.find((img) => img.is_primary)?.image_url;
+    return {
+      id: parseInt(product.id.substring(0, 8), 16),
+      name: product.name,
+      description: product.description,
+      price: `$${product.price.toLocaleString("es-MX")} MXN`,
+      category: product.category?.name || "Joyería",
+      material: product.material || "Oro",
+      image: primaryImage || "https://images.unsplash.com/photo-1605100804763-247f67b3557e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+      slug: product.slug,
+    };
+  });
+
+  const handleToggleFavorite = (product: DisplayProduct, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
     if (isFavorite(product.id)) {
       removeFavorite(product.id);
     } else {
-      addFavorite(product);
+      addFavorite({
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        category: product.category,
+        material: product.material,
+        image: product.image,
+      });
     }
   };
 
-  const handleShare = async (product: typeof products[0], e: React.MouseEvent) => {
+  const handleShare = async (product: DisplayProduct, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
     const shareData = {
       title: `${product.name} - Oro Nacional`,
       text: `${product.description} - ${product.price}`,
-      url: `${window.location.origin}/product/${product.id}`,
+      url: `${window.location.origin}/product/${product.slug}`,
     };
 
     try {
@@ -74,6 +91,31 @@ const FeaturedCollection = () => {
       console.log("Error sharing:", err);
     }
   };
+
+  if (isLoading) {
+    return (
+      <section className="py-24 sm:py-32 bg-muted/30">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="flex justify-center items-center min-h-[400px]">
+            <Loader2 className="h-12 w-12 animate-spin text-[#D4AF37]" />
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (displayProducts.length === 0) {
+    return (
+      <section className="py-24 sm:py-32 bg-muted/30">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="flex justify-center items-center min-h-[400px]">
+            <p className="text-muted-foreground">No hay productos destacados disponibles en este momento.</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="py-24 sm:py-32 bg-muted/30">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -87,7 +129,7 @@ const FeaturedCollection = () => {
         </div>
 
         <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-8 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-3">
-          {products.map((product) => (
+          {displayProducts.map((product) => (
             <div
               key={product.id}
               className="group relative flex flex-col overflow-hidden rounded-2xl bg-card shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
@@ -137,7 +179,7 @@ const FeaturedCollection = () => {
                     size="sm"
                     className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white transition-all duration-300 hover:scale-105"
                   >
-                    <Link href="#">Ver detalles</Link>
+                    <Link href={`/product/${product.slug}`}>Ver detalles</Link>
                   </Button>
                 </div>
               </div>
