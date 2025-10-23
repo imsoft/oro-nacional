@@ -1,79 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
 import CatalogHeader from "@/components/catalog/catalog-header";
 import CategoryFilters from "@/components/catalog/category-filters";
 import ProductsGrid from "@/components/catalog/products-grid";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-
-const pulserasProducts = [
-  {
-    id: 4,
-    name: "Pulsera Tenis de Diamantes",
-    description: "Pulsera de oro blanco 18k con diamantes engastados",
-    price: "$25,500 MXN",
-    image:
-      "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    category: "Pulseras de Oro",
-    material: "Oro Blanco",
-  },
-  {
-    id: 8,
-    name: "Pulsera Eslabón Personalizada",
-    description: "Pulsera de oro amarillo 18k con opción de grabado",
-    price: "$11,200 MXN",
-    image:
-      "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    category: "Pulseras de Oro",
-    material: "Oro 18k",
-  },
-  {
-    id: 21,
-    name: "Brazalete Bangle Grueso",
-    description: "Brazalete rígido de oro amarillo 14k acabado martillado",
-    price: "$14,800 MXN",
-    image:
-      "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    category: "Pulseras de Oro",
-    material: "Oro 14k",
-  },
-  {
-    id: 22,
-    name: "Pulsera de Charms Personalizable",
-    description: "Pulsera de oro rosa 14k con charms intercambiables",
-    price: "$8,900 MXN",
-    image:
-      "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    category: "Pulseras de Oro",
-    material: "Oro Rosa",
-  },
-  {
-    id: 23,
-    name: "Pulsera Cadena Delgada",
-    description: "Pulsera delicada de oro blanco 18k diseño minimalista",
-    price: "$6,500 MXN",
-    image:
-      "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    category: "Pulseras de Oro",
-    material: "Oro Blanco",
-  },
-  {
-    id: 24,
-    name: "Brazalete Abierto con Diamantes",
-    description: "Brazalete abierto de oro 18k con diamantes en los extremos",
-    price: "$19,200 MXN",
-    image:
-      "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    category: "Pulseras de Oro",
-    material: "Oro 18k",
-  },
-];
+import { Loader2 } from "lucide-react";
+import { getProductsByCategory } from "@/lib/supabase/products";
+import type { Product } from "@/types/product";
 
 const PulserasPage = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  const loadProducts = async () => {
+    setIsLoading(true);
+    const data = await getProductsByCategory("pulseras");
+    setProducts(data);
+    setIsLoading(false);
+  };
+
+  const displayProducts = products.map((product) => {
+    const primaryImage = product.images?.find((img) => img.is_primary)?.image_url;
+    return {
+      id: parseInt(product.id.substring(0, 8), 16),
+      name: product.name,
+      description: product.description,
+      price: `$${product.price.toLocaleString("es-MX")} MXN`,
+      image: primaryImage || "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+      category: product.category?.name || "Pulseras",
+      material: product.material,
+    };
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -96,31 +62,45 @@ const PulserasPage = () => {
       </section>
 
       <main className="mx-auto max-w-7xl px-6 lg:px-8 py-12 lg:py-16">
-        <CatalogHeader
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
-          totalProducts={pulserasProducts.length}
-          onToggleMobileFilters={() => setMobileFiltersOpen(true)}
-        />
-
-        <div className="mt-8 lg:mt-12 flex flex-col lg:flex-row gap-8">
-          <div className="hidden lg:block">
-            <CategoryFilters category="pulseras" />
+        {isLoading ? (
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <Loader2 className="h-8 w-8 animate-spin text-[#D4AF37]" />
           </div>
+        ) : (
+          <>
+            <CatalogHeader
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              totalProducts={displayProducts.length}
+              onToggleMobileFilters={() => setMobileFiltersOpen(true)}
+            />
 
-          <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
-            <SheetContent side="left" className="w-[300px] overflow-y-auto">
-              <div className="py-6">
-                <h2 className="text-lg font-semibold mb-6">Filtros</h2>
+            <div className="mt-8 lg:mt-12 flex flex-col lg:flex-row gap-8">
+              <div className="hidden lg:block">
                 <CategoryFilters category="pulseras" />
               </div>
-            </SheetContent>
-          </Sheet>
 
-          <div className="flex-1">
-            <ProductsGrid products={pulserasProducts} viewMode={viewMode} />
-          </div>
-        </div>
+              <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
+                <SheetContent side="left" className="w-[300px] overflow-y-auto">
+                  <div className="py-6">
+                    <h2 className="text-lg font-semibold mb-6">Filtros</h2>
+                    <CategoryFilters category="pulseras" />
+                  </div>
+                </SheetContent>
+              </Sheet>
+
+              <div className="flex-1">
+                {displayProducts.length === 0 ? (
+                  <div className="text-center py-16">
+                    <p className="text-muted-foreground">No hay productos disponibles en esta categoría</p>
+                  </div>
+                ) : (
+                  <ProductsGrid products={displayProducts} viewMode={viewMode} />
+                )}
+              </div>
+            </div>
+          </>
+        )}
       </main>
 
       <Footer />

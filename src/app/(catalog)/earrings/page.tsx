@@ -1,79 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
 import CatalogHeader from "@/components/catalog/catalog-header";
 import CategoryFilters from "@/components/catalog/category-filters";
 import ProductsGrid from "@/components/catalog/products-grid";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-
-const aretesProducts = [
-  {
-    id: 3,
-    name: "Aretes de Oro con Perlas",
-    description: "Aretes de oro amarillo con perlas cultivadas AAA",
-    price: "$8,750 MXN",
-    image:
-      "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    category: "Aretes de Oro",
-    material: "Oro Amarillo",
-  },
-  {
-    id: 7,
-    name: "Aretes Tipo Argolla Grande",
-    description: "Aretes de oro rosa 14k diseño contemporáneo",
-    price: "$6,900 MXN",
-    image:
-      "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    category: "Aretes de Oro",
-    material: "Oro Rosa",
-  },
-  {
-    id: 17,
-    name: "Aretes de Botón con Diamantes",
-    description: "Aretes de botón en oro blanco 18k con diamantes",
-    price: "$11,500 MXN",
-    image:
-      "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    category: "Aretes de Oro",
-    material: "Oro Blanco",
-  },
-  {
-    id: 18,
-    name: "Aretes Colgantes Largos",
-    description: "Aretes colgantes de oro amarillo 14k con esmeraldas",
-    price: "$16,200 MXN",
-    image:
-      "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    category: "Aretes de Oro",
-    material: "Oro 14k",
-  },
-  {
-    id: 19,
-    name: "Ear Cuffs Modernos",
-    description: "Ear cuffs de oro rosa 14k diseño minimalista",
-    price: "$5,800 MXN",
-    image:
-      "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    category: "Aretes de Oro",
-    material: "Oro Rosa",
-  },
-  {
-    id: 20,
-    name: "Aretes Argolla Pequeña Clásicos",
-    description: "Aretes de argolla en oro 18k acabado pulido",
-    price: "$4,200 MXN",
-    image:
-      "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    category: "Aretes de Oro",
-    material: "Oro 18k",
-  },
-];
+import { Loader2 } from "lucide-react";
+import { getProductsByCategory } from "@/lib/supabase/products";
+import type { Product } from "@/types/product";
 
 const AretesPage = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  const loadProducts = async () => {
+    setIsLoading(true);
+    const data = await getProductsByCategory("aretes");
+    setProducts(data);
+    setIsLoading(false);
+  };
+
+  const displayProducts = products.map((product) => {
+    const primaryImage = product.images?.find((img) => img.is_primary)?.image_url;
+    return {
+      id: parseInt(product.id.substring(0, 8), 16),
+      name: product.name,
+      description: product.description,
+      price: `$${product.price.toLocaleString("es-MX")} MXN`,
+      image: primaryImage || "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+      category: product.category?.name || "Aretes",
+      material: product.material,
+    };
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -96,31 +62,45 @@ const AretesPage = () => {
       </section>
 
       <main className="mx-auto max-w-7xl px-6 lg:px-8 py-12 lg:py-16">
-        <CatalogHeader
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
-          totalProducts={aretesProducts.length}
-          onToggleMobileFilters={() => setMobileFiltersOpen(true)}
-        />
-
-        <div className="mt-8 lg:mt-12 flex flex-col lg:flex-row gap-8">
-          <div className="hidden lg:block">
-            <CategoryFilters category="aretes" />
+        {isLoading ? (
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <Loader2 className="h-8 w-8 animate-spin text-[#D4AF37]" />
           </div>
+        ) : (
+          <>
+            <CatalogHeader
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              totalProducts={displayProducts.length}
+              onToggleMobileFilters={() => setMobileFiltersOpen(true)}
+            />
 
-          <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
-            <SheetContent side="left" className="w-[300px] overflow-y-auto">
-              <div className="py-6">
-                <h2 className="text-lg font-semibold mb-6">Filtros</h2>
+            <div className="mt-8 lg:mt-12 flex flex-col lg:flex-row gap-8">
+              <div className="hidden lg:block">
                 <CategoryFilters category="aretes" />
               </div>
-            </SheetContent>
-          </Sheet>
 
-          <div className="flex-1">
-            <ProductsGrid products={aretesProducts} viewMode={viewMode} />
-          </div>
-        </div>
+              <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
+                <SheetContent side="left" className="w-[300px] overflow-y-auto">
+                  <div className="py-6">
+                    <h2 className="text-lg font-semibold mb-6">Filtros</h2>
+                    <CategoryFilters category="aretes" />
+                  </div>
+                </SheetContent>
+              </Sheet>
+
+              <div className="flex-1">
+                {displayProducts.length === 0 ? (
+                  <div className="text-center py-16">
+                    <p className="text-muted-foreground">No hay productos disponibles en esta categoría</p>
+                  </div>
+                ) : (
+                  <ProductsGrid products={displayProducts} viewMode={viewMode} />
+                )}
+              </div>
+            </div>
+          </>
+        )}
       </main>
 
       <Footer />
