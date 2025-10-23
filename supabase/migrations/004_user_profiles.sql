@@ -25,6 +25,12 @@ CREATE INDEX IF NOT EXISTS idx_user_addresses_default ON user_addresses(user_id,
 -- Enable Row Level Security
 ALTER TABLE user_addresses ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Users can view their own addresses" ON user_addresses;
+DROP POLICY IF EXISTS "Users can insert their own addresses" ON user_addresses;
+DROP POLICY IF EXISTS "Users can update their own addresses" ON user_addresses;
+DROP POLICY IF EXISTS "Users can delete their own addresses" ON user_addresses;
+
 -- RLS Policies for user_addresses
 -- Users can view their own addresses
 CREATE POLICY "Users can view their own addresses"
@@ -51,6 +57,9 @@ CREATE POLICY "Users can delete their own addresses"
   FOR DELETE
   USING (auth.uid() = user_id);
 
+-- Drop existing trigger if it exists
+DROP TRIGGER IF EXISTS update_user_addresses_updated_at ON user_addresses;
+
 -- Trigger to automatically update updated_at
 CREATE TRIGGER update_user_addresses_updated_at
   BEFORE UPDATE ON user_addresses
@@ -72,6 +81,9 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Drop existing trigger if it exists
+DROP TRIGGER IF EXISTS ensure_single_default_address_trigger ON user_addresses;
 
 -- Trigger to ensure only one default address
 CREATE TRIGGER ensure_single_default_address_trigger
