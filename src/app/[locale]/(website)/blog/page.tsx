@@ -46,7 +46,7 @@ const BlogPage = () => {
       <Navbar />
 
       {/* Hero */}
-      <section className="relative bg-gradient-to-b from-muted/50 to-background py-16 lg:py-20">
+      <section className="relative bg-gradient-to-b from-muted/50 to-background py-16 lg:py-20 pt-28 lg:pt-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8 text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#D4AF37]/10 mb-6">
             <BookOpen className="h-8 w-8 text-[#D4AF37]" />

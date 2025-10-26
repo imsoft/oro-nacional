@@ -10,7 +10,7 @@ const ContactoPage = () => {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-b from-muted/50 to-background py-16 lg:py-20">
+      <section className="relative bg-gradient-to-b from-muted/50 to-background py-16 lg:py-20 pt-28 lg:pt-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="text-center">
             <p className="text-sm font-semibold text-[#D4AF37] uppercase tracking-wide">

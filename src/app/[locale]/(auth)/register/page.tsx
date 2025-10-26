@@ -91,7 +91,7 @@ const RegistroPage = () => {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
-      <main className="flex-1 flex items-center justify-center px-6 py-12">
+      <main className="flex-1 flex items-center justify-center px-6 py-12 pt-28">
         <div className="w-full max-w-md">
           {/* Header */}
           <div className="text-center mb-8">

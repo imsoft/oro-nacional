@@ -42,7 +42,7 @@ const Navbar = () => {
   const favoriteCount = useFavoritesStore((state) => state.getFavoriteCount());
 
   return (
-    <header className="absolute inset-x-0 top-0 z-50 animate-[fade-in-down_0.8s_ease-out]">
+    <header className="fixed inset-x-0 top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 animate-[fade-in-down_0.8s_ease-out]">
       <nav
         aria-label="Global"
         className="flex items-center justify-between p-6 lg:px-8"

@@ -58,7 +58,7 @@ const CatalogoPage = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <main className="mx-auto max-w-7xl px-6 lg:px-8 py-12 lg:py-16">
+      <main className="mx-auto max-w-7xl px-6 lg:px-8 py-12 lg:py-16 pt-28 lg:pt-32">
         <CatalogHeader
           viewMode={viewMode}
           onViewModeChange={setViewMode}

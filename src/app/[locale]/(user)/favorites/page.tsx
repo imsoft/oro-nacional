@@ -23,7 +23,7 @@ const FavoritesPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background py-12">
+    <div className="min-h-screen bg-background py-12 pt-28">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-semibold text-foreground flex items-center gap-2">
