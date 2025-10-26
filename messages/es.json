@@ -12,10 +12,12 @@
     "cart": "Carrito",
     "login": "Iniciar Sesión",
     "register": "Registrarse",
-    "profile": "Perfil",
+    "createAccount": "Crear Cuenta",
+    "profile": "Mi Perfil",
     "favorites": "Favoritos",
     "myOrders": "Mis Pedidos",
-    "logout": "Cerrar Sesión"
+    "logout": "Cerrar Sesión",
+    "admin": "Panel de Administración"
   },
   "hero": {
     "badge": "Joyería elegante hecha en Jalisco - Colección Primavera 2025",
@@ -26,62 +28,40 @@
     "ctaSecondary": "Conocer más",
     "imageAlt": "Joyería elegante de oro en Jalisco - Anillos, collares, esclavas y aretes de Oro Nacional"
   },
-  "categories": {
-    "title": "Explora Nuestra Colección",
-    "subtitle": "Encuentra la joya perfecta para cada ocasión",
-    "rings": {
-      "title": "Anillos",
-      "description": "Diseños exclusivos en oro de 14k y 18k"
-    },
-    "necklaces": {
-      "title": "Collares",
-      "description": "Elegancia que perdura en el tiempo"
-    },
-    "bracelets": {
-      "title": "Esclavas",
-      "description": "Piezas únicas de artesanía jalisciense"
-    },
-    "earrings": {
-      "title": "Aretes",
-      "description": "El toque final de distinción"
-    },
-    "viewAll": "Ver todo"
+  "featuredCategories": {
+    "title": "Categorías de Joyería en Oro",
+    "subtitle": "Encuentra anillos, collares, aretes y pulseras de oro para cada ocasión especial",
+    "imageAlt": "{name} - Joyería fina en Guadalajara"
   },
   "benefits": {
-    "quality": {
-      "title": "Oro Auténtico",
-      "description": "Garantía de pureza en oro de 14k y 18k"
+    "title": "¿Por qué comprar joyería en Oro Nacional?",
+    "subtitle": "Tu joyería de confianza en Guadalajara con garantía, envíos seguros y tradición artesanal",
+    "certified": {
+      "title": "Oro Certificado",
+      "description": "Joyería de oro 14k y 18k con certificado de autenticidad garantizado"
     },
     "shipping": {
-      "title": "Envío Seguro",
-      "description": "Entrega protegida a toda la República Mexicana"
+      "title": "Envío Nacional Seguro",
+      "description": "Envío asegurado a toda la República Mexicana con rastreo en tiempo real"
     },
-    "craftsmanship": {
-      "title": "Artesanía Jalisciense",
-      "description": "Más de 30 años de tradición y excelencia"
+    "tradition": {
+      "title": "Tradición Jalisciense",
+      "description": "Más de 30 años de experiencia artesanal en joyería fina de Guadalajara"
     },
-    "support": {
-      "title": "Atención Personalizada",
-      "description": "Asesoría experta para tu joya perfecta"
+    "financing": {
+      "title": "Meses Sin Intereses",
+      "description": "Pagos flexibles, todas las tarjetas y planes a meses sin intereses"
     }
   },
   "cta": {
-    "title": "¿Listo para encontrar tu joya perfecta?",
-    "description": "Visita nuestro catálogo completo y descubre piezas únicas de joyería elaboradas con la tradición artesanal de Jalisco.",
-    "button": "Explorar Catálogo"
+    "title": "Joyería Personalizada de Oro - Diseños Únicos en Guadalajara",
+    "description": "¿Buscas un anillo de compromiso único o una pieza especial? Nuestros maestros joyeros artesanales crean joyas de oro personalizadas diseñadas exclusivamente para ti en Guadalajara, Jalisco.",
+    "primaryButton": "Solicitar Diseño Personalizado",
+    "secondaryButton": "Contactar Joyería",
+    "imageAlt": "Taller de joyería artesanal en Guadalajara - Diseños personalizados de oro"
   },
   "footer": {
-    "company": {
-      "title": "Oro Nacional",
-      "description": "Joyería elegante creada en el corazón de Jalisco. Más de 30 años diseñando piezas únicas con tradición artesanal."
-    },
-    "links": {
-      "title": "Enlaces",
-      "about": "Acerca de",
-      "contact": "Contacto",
-      "blog": "Blog",
-      "faq": "Preguntas Frecuentes"
-    },
+    "tagline": "Elegancia y tradición jalisciense desde 1990",
     "shop": {
       "title": "Tienda",
       "catalog": "Catálogo",
@@ -90,21 +70,44 @@
       "bracelets": "Esclavas",
       "earrings": "Aretes"
     },
-    "policies": {
-      "title": "Políticas",
+    "company": {
+      "title": "Empresa",
+      "about": "Nosotros",
+      "contact": "Contacto",
+      "blog": "Blog",
+      "catalog": "Catálogo"
+    },
+    "service": {
+      "title": "Servicio",
       "shipping": "Envíos",
       "warranty": "Garantía",
-      "care": "Cuidado de Joyas",
-      "terms": "Términos y Condiciones",
-      "privacy": "Privacidad"
+      "care": "Cuidados",
+      "faq": "FAQ"
+    },
+    "legal": {
+      "title": "Legal",
+      "privacy": "Política de privacidad",
+      "terms": "Términos y condiciones",
+      "cookies": "Política de cookies"
+    },
+    "contact": {
+      "title": "Contacto",
+      "phone": "Teléfono",
+      "email": "Email",
+      "address": "Dirección"
     },
     "newsletter": {
-      "title": "Mantente Informado",
-      "description": "Recibe noticias sobre nuevas colecciones y ofertas exclusivas.",
-      "placeholder": "Tu correo electrónico",
-      "button": "Suscribirse"
+      "title": "Suscríbete a nuestro newsletter",
+      "description": "Recibe las últimas noticias sobre joyería fina y ofertas exclusivas de Oro Nacional.",
+      "placeholder": "Ingresa tu email",
+      "button": "Suscribirse",
+      "success": "¡Gracias por suscribirte!",
+      "error": "Por favor ingresa un email válido"
     },
-    "rights": "Todos los derechos reservados"
+    "social": {
+      "follow": "Síguenos en redes sociales"
+    },
+    "copyright": "Todos los derechos reservados."
   },
   "common": {
     "loading": "Cargando...",
@@ -120,6 +123,20 @@
     "total": "Total",
     "subtotal": "Subtotal",
     "shipping": "Envío",
-    "tax": "IVA"
+    "tax": "IVA",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "sort": "Ordenar",
+    "clear": "Limpiar",
+    "apply": "Aplicar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "close": "Cerrar",
+    "back": "Volver",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "submit": "Enviar"
   }
 }

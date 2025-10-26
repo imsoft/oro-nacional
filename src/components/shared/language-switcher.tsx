@@ -9,7 +9,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Globe } from "lucide-react";
 
 const languages = [
   { code: 'es', name: 'Español', flag: '🇲🇽' },
@@ -33,12 +32,9 @@ export function LanguageSwitcher() {
         <Button
           variant="ghost"
           size="sm"
-          className="flex items-center gap-2 hover:bg-accent h-auto p-2"
+          className="flex items-center hover:bg-accent h-auto p-2 text-xl"
         >
-          <Globe className="h-4 w-4" />
-          <span className="text-sm font-semibold hidden sm:inline">
-            {currentLanguage.flag} {currentLanguage.code.toUpperCase()}
-          </span>
+          <span>{currentLanguage.flag}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -48,7 +44,7 @@ export function LanguageSwitcher() {
             onClick={() => handleLanguageChange(lang.code)}
             className={`cursor-pointer ${locale === lang.code ? 'bg-accent' : ''}`}
           >
-            <span className="mr-2">{lang.flag}</span>
+            <span className="mr-2 text-xl">{lang.flag}</span>
             <span>{lang.name}</span>
           </DropdownMenuItem>
         ))}

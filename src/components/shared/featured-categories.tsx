@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/routing';
 import { Loader2 } from "lucide-react";
 import { getFeaturedCategories } from "@/lib/supabase/products";
 import type { FeaturedCategory } from "@/types/product";
@@ -16,6 +17,7 @@ const categoryRoutes: Record<string, string> = {
 };
 
 const FeaturedCategories = () => {
+  const t = useTranslations('featuredCategories');
   const [categories, setCategories] = useState<FeaturedCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -48,10 +50,10 @@ const FeaturedCategories = () => {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-            Categorías de Joyería en Oro
+            {t('title')}
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Encuentra anillos, collares, aretes y pulseras de oro para cada ocasión especial
+            {t('subtitle')}
           </p>
         </div>
 
@@ -66,7 +68,7 @@ const FeaturedCategories = () => {
               >
                 <div className="relative aspect-square overflow-hidden">
                   <Image
-                    alt={`${category.name} - Joyería fina en Guadalajara`}
+                    alt={t('imageAlt', { name: category.name })}
                     src={category.image_url}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-110"
