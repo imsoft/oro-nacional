@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from "lucide-react";
 
 const navigation = {
@@ -37,10 +38,14 @@ const Footer = () => {
         <div className="xl:grid xl:grid-cols-3 xl:gap-8">
           <div className="space-y-8">
             <div>
-              <h3 className="text-2xl font-semibold text-foreground">
-                Oro Nacional
-              </h3>
-              <p className="mt-2 text-sm text-muted-foreground">
+              <Image
+                src="/logos/logo-oro-nacional.png"
+                alt="Logo Oro Nacional - Joyería Elegante en Jalisco"
+                width={180}
+                height={60}
+                className="h-12 w-auto"
+              />
+              <p className="mt-4 text-sm text-muted-foreground">
                 Elegancia y tradición jalisciense desde 1990
               </p>
             </div>

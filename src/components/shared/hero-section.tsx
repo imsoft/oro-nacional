@@ -1,9 +1,12 @@
 import Image from "next/image";
-import Link from "next/link";
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/routing';
 import Navbar from "@/components/shared/navbar";
 import { Button } from "@/components/ui/button";
 
 const HeroSection = () => {
+  const t = useTranslations('hero');
+
   return (
     <>
       <div className="bg-background min-h-screen flex flex-col">
@@ -11,8 +14,8 @@ const HeroSection = () => {
 
         <div className="relative isolate overflow-hidden flex-1 flex items-center">
           <Image
-            alt="Joyería fina de oro en Guadalajara - Anillos, collares y aretes de Oro Nacional"
-            src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?ixlib=rb-4.0.3&auto=format&fit=crop&w=2830&q=80"
+            alt={t('imageAlt')}
+            src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?ixlib=rb-4.0.3&auto=format&fit=crop&w=2830&q=80"
             fill
             priority
             className="absolute inset-0 -z-10 size-full object-cover animate-[scale-in_2s_ease-out_forwards] dark:brightness-50"
@@ -34,33 +37,32 @@ const HeroSection = () => {
             <div className="mx-auto max-w-3xl py-12 sm:py-16 lg:py-20">
               <div className="hidden sm:mb-8 sm:flex sm:justify-center animate-[fade-in-down_1s_ease-out]">
                 <div className="relative rounded-full px-3 py-1 text-sm/6 text-muted-foreground ring-1 ring-border hover:ring-border/80 transition-all duration-300 hover:scale-105">
-                  Nueva colección de anillos de oro primavera 2025.{" "}
+                  {t('badge')}{" "}
                   <Link
                     href="#"
                     className="font-semibold text-[#D4AF37] hover:text-[#B8941E]"
                   >
                     <span aria-hidden="true" className="absolute inset-0" />
-                    Ver colección <span aria-hidden="true">&rarr;</span>
+                    {t('badgeLink')} <span aria-hidden="true">&rarr;</span>
                   </Link>
                 </div>
               </div>
               <div className="text-center">
                 <h1 className="text-5xl font-semibold tracking-tight text-balance text-foreground sm:text-7xl animate-[fade-in-up_1s_ease-out_0.2s_both]">
-                  Joyería Fina en Guadalajara, Jalisco Oro Nacional
+                  {t('title')}
                 </h1>
                 <p className="mt-8 text-lg font-medium text-pretty text-muted-foreground sm:text-xl/8 animate-[fade-in-up_1s_ease-out_0.4s_both]">
-                  Descubre nuestra exclusiva colección de anillos de compromiso, collares, aretes y pulseras de oro de 14k y 18k.
-                  Más de 30 años de tradición artesanal jalisciense con envíos seguros a toda la República Mexicana.
+                  {t('description')}
                 </p>
                 <div className="mt-10 flex items-center justify-center gap-x-6 animate-[fade-in-up_1s_ease-out_0.6s_both]">
                   <Button asChild size="lg" className="bg-[#D4AF37] hover:bg-[#B8941E] text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl">
-                    <Link href="/catalog">Ver Catálogo de Joyería</Link>
+                    <Link href="/catalog">{t('ctaPrimary')}</Link>
                   </Button>
                   <Link
                     href="/catalog"
                     className="text-sm/6 font-semibold text-foreground transition-all duration-300 hover:scale-105 hover:text-[#D4AF37]"
                   >
-                    Conocer más <span aria-hidden="true">→</span>
+                    {t('ctaSecondary')} <span aria-hidden="true">→</span>
                   </Link>
                 </div>
               </div>

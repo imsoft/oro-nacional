@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import Image from "next/image";
 import { Menu, ShoppingCart, LogOut, Package, Settings, Heart, UserCircle } from "lucide-react";
+import { Link } from '@/i18n/routing';
+import { LanguageSwitcher } from './language-switcher';
 import {
   Sheet,
   SheetContent,
@@ -50,18 +51,12 @@ const Navbar = () => {
           <Link href="/" className="-m-1.5 p-1.5">
             <span className="sr-only">Oro Nacional</span>
             <Image
-              alt="Logo Oro Nacional"
-              src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600"
-              width={32}
-              height={32}
-              className="h-8 w-auto dark:hidden"
-            />
-            <Image
-              alt="Logo Oro Nacional"
-              src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500"
-              width={32}
-              height={32}
-              className="h-8 w-auto not-dark:hidden"
+              alt="Logo Oro Nacional - Joyería Elegante en Jalisco"
+              src="/logos/logo-oro-nacional.png"
+              width={120}
+              height={40}
+              className="h-10 w-auto"
+              priority
             />
           </Link>
         </div>
@@ -83,20 +78,14 @@ const Navbar = () => {
                 <Link href="/" className="-m-1.5 p-1.5" onClick={() => setIsOpen(false)}>
                   <span className="sr-only">Oro Nacional</span>
                   <Image
-                    alt="Logo Oro Nacional"
-                    src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600"
-                    width={32}
-                    height={32}
-                    className="h-8 w-auto dark:hidden"
-                  />
-                  <Image
-                    alt="Logo Oro Nacional"
-                    src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500"
-                    width={32}
-                    height={32}
-                    className="h-8 w-auto not-dark:hidden"
+                    alt="Logo Oro Nacional - Joyería Elegante en Jalisco"
+                    src="/logos/logo-oro-nacional.png"
+                    width={120}
+                    height={40}
+                    className="h-10 w-auto"
                   />
                 </Link>
+                <LanguageSwitcher />
               </div>
               <div className="flow-root">
                 <div className="-my-6 divide-y divide-border">
@@ -210,6 +199,9 @@ const Navbar = () => {
         </div>
         
         <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-6 lg:items-center">
+          {/* Language Switcher */}
+          <LanguageSwitcher />
+
           {/* Carrito */}
           <Link
             href="/cart"

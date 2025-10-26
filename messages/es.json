@@ -1,0 +1,125 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "catalog": "Catálogo",
+    "rings": "Anillos",
+    "necklaces": "Collares",
+    "bracelets": "Esclavas",
+    "earrings": "Aretes",
+    "about": "Nosotros",
+    "contact": "Contacto",
+    "blog": "Blog",
+    "cart": "Carrito",
+    "login": "Iniciar Sesión",
+    "register": "Registrarse",
+    "profile": "Perfil",
+    "favorites": "Favoritos",
+    "myOrders": "Mis Pedidos",
+    "logout": "Cerrar Sesión"
+  },
+  "hero": {
+    "badge": "Joyería elegante hecha en Jalisco - Colección Primavera 2025",
+    "badgeLink": "Ver colección",
+    "title": "Joyería Elegante en el Corazón de Jalisco",
+    "description": "Descubre joyería elegante diseñada en Guadalajara, Jalisco. Anillos de compromiso, collares exclusivos, esclavas y aretes de oro de 14k y 18k. Más de 30 años creando piezas únicas con la tradición artesanal jalisciense. Envíos seguros a toda la República Mexicana.",
+    "ctaPrimary": "Ver Joyería Elegante",
+    "ctaSecondary": "Conocer más",
+    "imageAlt": "Joyería elegante de oro en Jalisco - Anillos, collares, esclavas y aretes de Oro Nacional"
+  },
+  "categories": {
+    "title": "Explora Nuestra Colección",
+    "subtitle": "Encuentra la joya perfecta para cada ocasión",
+    "rings": {
+      "title": "Anillos",
+      "description": "Diseños exclusivos en oro de 14k y 18k"
+    },
+    "necklaces": {
+      "title": "Collares",
+      "description": "Elegancia que perdura en el tiempo"
+    },
+    "bracelets": {
+      "title": "Esclavas",
+      "description": "Piezas únicas de artesanía jalisciense"
+    },
+    "earrings": {
+      "title": "Aretes",
+      "description": "El toque final de distinción"
+    },
+    "viewAll": "Ver todo"
+  },
+  "benefits": {
+    "quality": {
+      "title": "Oro Auténtico",
+      "description": "Garantía de pureza en oro de 14k y 18k"
+    },
+    "shipping": {
+      "title": "Envío Seguro",
+      "description": "Entrega protegida a toda la República Mexicana"
+    },
+    "craftsmanship": {
+      "title": "Artesanía Jalisciense",
+      "description": "Más de 30 años de tradición y excelencia"
+    },
+    "support": {
+      "title": "Atención Personalizada",
+      "description": "Asesoría experta para tu joya perfecta"
+    }
+  },
+  "cta": {
+    "title": "¿Listo para encontrar tu joya perfecta?",
+    "description": "Visita nuestro catálogo completo y descubre piezas únicas de joyería elaboradas con la tradición artesanal de Jalisco.",
+    "button": "Explorar Catálogo"
+  },
+  "footer": {
+    "company": {
+      "title": "Oro Nacional",
+      "description": "Joyería elegante creada en el corazón de Jalisco. Más de 30 años diseñando piezas únicas con tradición artesanal."
+    },
+    "links": {
+      "title": "Enlaces",
+      "about": "Acerca de",
+      "contact": "Contacto",
+      "blog": "Blog",
+      "faq": "Preguntas Frecuentes"
+    },
+    "shop": {
+      "title": "Tienda",
+      "catalog": "Catálogo",
+      "rings": "Anillos",
+      "necklaces": "Collares",
+      "bracelets": "Esclavas",
+      "earrings": "Aretes"
+    },
+    "policies": {
+      "title": "Políticas",
+      "shipping": "Envíos",
+      "warranty": "Garantía",
+      "care": "Cuidado de Joyas",
+      "terms": "Términos y Condiciones",
+      "privacy": "Privacidad"
+    },
+    "newsletter": {
+      "title": "Mantente Informado",
+      "description": "Recibe noticias sobre nuevas colecciones y ofertas exclusivas.",
+      "placeholder": "Tu correo electrónico",
+      "button": "Suscribirse"
+    },
+    "rights": "Todos los derechos reservados"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "viewMore": "Ver más",
+    "learnMore": "Conocer más",
+    "addToCart": "Agregar al Carrito",
+    "buyNow": "Comprar Ahora",
+    "outOfStock": "Agotado",
+    "inStock": "Disponible",
+    "price": "Precio",
+    "total": "Total",
+    "subtotal": "Subtotal",
+    "shipping": "Envío",
+    "tax": "IVA"
+  }
+}

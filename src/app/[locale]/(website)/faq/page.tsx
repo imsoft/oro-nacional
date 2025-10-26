@@ -1,4 +1,5 @@
 import { HelpCircle, Search } from "lucide-react";
+import { Link } from '@/i18n/routing';
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
 
@@ -229,12 +230,12 @@ const PreguntasFrecuentesPage = () => {
                 <span className="mr-2">💬</span>
                 WhatsApp
               </a>
-              <a
+              <Link
                 href="/contact"
                 className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-[#D4AF37] hover:bg-[#B8941E] text-white font-medium transition-colors"
               >
                 Formulario de Contacto
-              </a>
+              </Link>
               <a
                 href="tel:+523312345678"
                 className="inline-flex items-center justify-center px-6 py-3 rounded-lg border-2 border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white font-medium transition-colors"

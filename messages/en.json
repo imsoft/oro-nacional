@@ -1,0 +1,125 @@
+{
+  "nav": {
+    "home": "Home",
+    "catalog": "Catalog",
+    "rings": "Rings",
+    "necklaces": "Necklaces",
+    "bracelets": "Bracelets",
+    "earrings": "Earrings",
+    "about": "About Us",
+    "contact": "Contact",
+    "blog": "Blog",
+    "cart": "Cart",
+    "login": "Sign In",
+    "register": "Sign Up",
+    "profile": "Profile",
+    "favorites": "Favorites",
+    "myOrders": "My Orders",
+    "logout": "Log Out"
+  },
+  "hero": {
+    "badge": "Elegant Jewelry Crafted in Jalisco - Spring 2025 Collection",
+    "badgeLink": "View collection",
+    "title": "Elegant Jewelry from the Heart of Jalisco",
+    "description": "Discover elegant jewelry designed in Guadalajara, Jalisco. Engagement rings, exclusive necklaces, bracelets, and earrings in 14k and 18k gold. Over 30 years creating unique pieces with Jalisco's artisan tradition. Secure shipping throughout Mexico.",
+    "ctaPrimary": "View Elegant Jewelry",
+    "ctaSecondary": "Learn more",
+    "imageAlt": "Elegant gold jewelry from Jalisco - Rings, necklaces, bracelets and earrings from Oro Nacional"
+  },
+  "categories": {
+    "title": "Explore Our Collection",
+    "subtitle": "Find the perfect jewel for every occasion",
+    "rings": {
+      "title": "Rings",
+      "description": "Exclusive designs in 14k and 18k gold"
+    },
+    "necklaces": {
+      "title": "Necklaces",
+      "description": "Elegance that stands the test of time"
+    },
+    "bracelets": {
+      "title": "Bracelets",
+      "description": "Unique pieces of Jalisco craftsmanship"
+    },
+    "earrings": {
+      "title": "Earrings",
+      "description": "The final touch of distinction"
+    },
+    "viewAll": "View all"
+  },
+  "benefits": {
+    "quality": {
+      "title": "Authentic Gold",
+      "description": "Guaranteed purity in 14k and 18k gold"
+    },
+    "shipping": {
+      "title": "Secure Shipping",
+      "description": "Protected delivery throughout Mexico"
+    },
+    "craftsmanship": {
+      "title": "Jalisco Craftsmanship",
+      "description": "Over 30 years of tradition and excellence"
+    },
+    "support": {
+      "title": "Personalized Service",
+      "description": "Expert guidance for your perfect jewel"
+    }
+  },
+  "cta": {
+    "title": "Ready to find your perfect jewel?",
+    "description": "Visit our complete catalog and discover unique jewelry pieces crafted with Jalisco's artisan tradition.",
+    "button": "Explore Catalog"
+  },
+  "footer": {
+    "company": {
+      "title": "Oro Nacional",
+      "description": "Elegant jewelry created in the heart of Jalisco. Over 30 years designing unique pieces with artisan tradition."
+    },
+    "links": {
+      "title": "Links",
+      "about": "About",
+      "contact": "Contact",
+      "blog": "Blog",
+      "faq": "FAQ"
+    },
+    "shop": {
+      "title": "Shop",
+      "catalog": "Catalog",
+      "rings": "Rings",
+      "necklaces": "Necklaces",
+      "bracelets": "Bracelets",
+      "earrings": "Earrings"
+    },
+    "policies": {
+      "title": "Policies",
+      "shipping": "Shipping",
+      "warranty": "Warranty",
+      "care": "Jewelry Care",
+      "terms": "Terms & Conditions",
+      "privacy": "Privacy"
+    },
+    "newsletter": {
+      "title": "Stay Informed",
+      "description": "Receive news about new collections and exclusive offers.",
+      "placeholder": "Your email address",
+      "button": "Subscribe"
+    },
+    "rights": "All rights reserved"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "viewMore": "View more",
+    "learnMore": "Learn more",
+    "addToCart": "Add to Cart",
+    "buyNow": "Buy Now",
+    "outOfStock": "Out of Stock",
+    "inStock": "In Stock",
+    "price": "Price",
+    "total": "Total",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "tax": "Tax"
+  }
+}

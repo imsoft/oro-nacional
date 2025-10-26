@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Link } from '@/i18n/routing';
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
 import Breadcrumbs from "@/components/shared/breadcrumbs";
@@ -78,12 +79,12 @@ export default function ProductPage({ params }: ProductPageProps) {
           <p className="mt-4 text-muted-foreground">
             El producto que buscas no existe o ha sido eliminado.
           </p>
-          <a
+          <Link
             href="/catalog"
             className="mt-8 inline-block rounded-md bg-[#D4AF37] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#B8941E] transition-colors"
           >
             Volver al Catálogo
-          </a>
+          </Link>
         </div>
         <Footer />
       </div>
