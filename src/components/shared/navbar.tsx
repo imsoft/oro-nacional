@@ -73,22 +73,24 @@ const Navbar = () => {
                 <Menu className="size-6" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-full sm:max-w-sm">
-              <div className="flex items-center justify-between mb-6">
-                <Link href="/" className="-m-1.5 p-1.5" onClick={() => setIsOpen(false)}>
+            <SheetContent side="right" className="w-full sm:max-w-sm p-6">
+              <div className="flex flex-col gap-4 mb-8">
+                <div className="flex items-center justify-end">
+                  <LanguageSwitcher />
+                </div>
+                <Link href="/" className="flex justify-center" onClick={() => setIsOpen(false)}>
                   <span className="sr-only">Oro Nacional</span>
                   <Image
                     alt="Logo Oro Nacional - Joyería Elegante en Jalisco"
                     src="/logos/logo-oro-nacional.png"
-                    width={180}
-                    height={60}
-                    className="h-12 w-auto"
+                    width={220}
+                    height={73}
+                    className="h-16 w-auto"
                   />
                 </Link>
-                <LanguageSwitcher />
               </div>
               <div className="flow-root">
-                <div className="-my-6 divide-y divide-border">
+                <div className="divide-y divide-border">
                   <div className="space-y-2 py-6">
                     {navigation.map((item) => (
                       <Link
