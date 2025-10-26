@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso Directo - Oro Nacional</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            padding: 40px 20px;
+            text-align: center;
+            border-bottom: 4px solid #D4AF37;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #D4AF37;
+            margin: 0;
+            letter-spacing: 2px;
+        }
+        .logo-subtitle {
+            color: #ffffff;
+            font-size: 12px;
+            margin-top: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 24px;
+            color: #1a1a1a;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .message {
+            color: #4a4a4a;
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+        .cta-button {
+            display: inline-block;
+            padding: 16px 40px;
+            background-color: #D4AF37;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            text-align: center;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+        }
+        .cta-button:hover {
+            background-color: #B8941E;
+        }
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .alternative-link {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid #D4AF37;
+        }
+        .alternative-link p {
+            color: #6a6a6a;
+            font-size: 14px;
+            margin: 0 0 10px 0;
+        }
+        .alternative-link a {
+            color: #D4AF37;
+            word-break: break-all;
+            font-size: 13px;
+        }
+        .footer {
+            background-color: #1a1a1a;
+            color: #ffffff;
+            padding: 30px 20px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .footer-links {
+            margin: 20px 0;
+        }
+        .footer-links a {
+            color: #D4AF37;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 13px;
+        }
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+        .divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #D4AF37, transparent);
+            margin: 30px 0;
+        }
+        .info-box {
+            background-color: #f0f9ff;
+            border-left: 4px solid #3b82f6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .info-box p {
+            margin: 0;
+            color: #1e40af;
+            font-size: 14px;
+        }
+        .security-notice {
+            background-color: #fff9e6;
+            border: 1px solid #D4AF37;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 30px;
+        }
+        .security-notice p {
+            margin: 0;
+            color: #6a6a6a;
+            font-size: 13px;
+        }
+        .security-notice strong {
+            color: #B8941E;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="logo">ORO NACIONAL</h1>
+            <p class="logo-subtitle">Joyería Elegante en el Corazón de Jalisco</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <h2 class="greeting">Tu Enlace de Acceso Directo ✨</h2>
+
+            <p class="message">
+                Has solicitado acceder a tu cuenta de Oro Nacional sin contraseña. Utiliza el enlace mágico a continuación para iniciar sesión de forma rápida y segura.
+            </p>
+
+            <div class="info-box">
+                <p>
+                    <strong>🔐 Inicio de sesión sin contraseña:</strong> Este enlace te permitirá acceder a tu cuenta de forma segura sin necesidad de recordar tu contraseña.
+                </p>
+            </div>
+
+            <div class="button-container">
+                <a href="{{ .ConfirmationURL }}" class="cta-button">Iniciar Sesión Ahora</a>
+            </div>
+
+            <div class="divider"></div>
+
+            <p class="message" style="font-size: 15px;">
+                <strong>¿Qué puedes hacer en tu cuenta?</strong>
+            </p>
+            <ul style="color: #4a4a4a; font-size: 15px; line-height: 1.8;">
+                <li>Ver y gestionar tus pedidos</li>
+                <li>Actualizar tu información de perfil</li>
+                <li>Administrar tus direcciones de envío</li>
+                <li>Revisar tu lista de favoritos</li>
+                <li>Acceder a ofertas exclusivas</li>
+            </ul>
+
+            <!-- Alternative Link -->
+            <div class="alternative-link">
+                <p><strong>¿El botón no funciona?</strong></p>
+                <p>Copia y pega el siguiente enlace en tu navegador:</p>
+                <a href="{{ .ConfirmationURL }}">{{ .ConfirmationURL }}</a>
+            </div>
+
+            <!-- Security Notice -->
+            <div class="security-notice">
+                <p>
+                    <strong>🔒 Nota de Seguridad:</strong> Este enlace expirará en <strong>15 minutos</strong> y solo puede usarse una vez. Si no solicitaste este acceso, puedes ignorar este correo de forma segura y tu cuenta permanecerá protegida.
+                </p>
+            </div>
+
+            <div class="divider"></div>
+
+            <p class="message" style="font-size: 14px; color: #6a6a6a;">
+                <strong>💡 Consejo:</strong> Si prefieres iniciar sesión con contraseña, siempre puedes hacerlo desde nuestra página de inicio de sesión usando tu correo electrónico y contraseña habitual.
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p style="margin: 0 0 10px 0; color: #D4AF37; font-weight: 600;">ORO NACIONAL</p>
+            <p style="margin: 0 0 20px 0; color: #a0a0a0; font-size: 13px;">
+                Joyería Elegante en el Corazón de Jalisco
+            </p>
+
+            <div class="footer-links">
+                <a href="{{ .SiteURL }}">Inicio</a>
+                <a href="{{ .SiteURL }}/catalog">Catálogo</a>
+                <a href="{{ .SiteURL }}/contact">Contacto</a>
+                <a href="{{ .SiteURL }}/faq">Ayuda</a>
+            </div>
+
+            <div style="margin: 20px 0; height: 1px; background-color: #333;"></div>
+
+            <p style="color: #a0a0a0; font-size: 12px; margin: 10px 0;">
+                📍 Guadalajara, Jalisco, México
+            </p>
+            <p style="color: #a0a0a0; font-size: 12px; margin: 10px 0;">
+                📞 +52 33 1234 5678 | 📧 contacto@oronacional.com
+            </p>
+
+            <p style="color: #666; font-size: 11px; margin-top: 20px;">
+                © 2025 Oro Nacional. Todos los derechos reservados.
+            </p>
+
+            <p style="color: #666; font-size: 11px; margin-top: 15px;">
+                Si tienes problemas accediendo a tu cuenta, contáctanos a través de
+                <a href="{{ .SiteURL }}/contact" style="color: #D4AF37;">nuestro formulario de contacto</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

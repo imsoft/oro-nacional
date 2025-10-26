@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invitación a Oro Nacional</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            padding: 40px 20px;
+            text-align: center;
+            border-bottom: 4px solid #D4AF37;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #D4AF37;
+            margin: 0;
+            letter-spacing: 2px;
+        }
+        .logo-subtitle {
+            color: #ffffff;
+            font-size: 12px;
+            margin-top: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 24px;
+            color: #1a1a1a;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .message {
+            color: #4a4a4a;
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+        .cta-button {
+            display: inline-block;
+            padding: 16px 40px;
+            background-color: #D4AF37;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            text-align: center;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+        }
+        .cta-button:hover {
+            background-color: #B8941E;
+        }
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .alternative-link {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid #D4AF37;
+        }
+        .alternative-link p {
+            color: #6a6a6a;
+            font-size: 14px;
+            margin: 0 0 10px 0;
+        }
+        .alternative-link a {
+            color: #D4AF37;
+            word-break: break-all;
+            font-size: 13px;
+        }
+        .footer {
+            background-color: #1a1a1a;
+            color: #ffffff;
+            padding: 30px 20px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .footer-links {
+            margin: 20px 0;
+        }
+        .footer-links a {
+            color: #D4AF37;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 13px;
+        }
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+        .divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #D4AF37, transparent);
+            margin: 30px 0;
+        }
+        .highlight-box {
+            background: linear-gradient(135deg, #fff9e6 0%, #fffbf0 100%);
+            border: 2px solid #D4AF37;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        .highlight-box h3 {
+            color: #1a1a1a;
+            margin: 0 0 15px 0;
+            font-size: 20px;
+        }
+        .highlight-box p {
+            color: #4a4a4a;
+            margin: 0;
+            font-size: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="logo">ORO NACIONAL</h1>
+            <p class="logo-subtitle">Joyería Elegante en el Corazón de Jalisco</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <h2 class="greeting">¡Has sido invitado! 🎉</h2>
+
+            <p class="message">
+                Has recibido una invitación especial para unirte a <strong>Oro Nacional</strong>, la joyería de más alta calidad en Guadalajara, Jalisco.
+            </p>
+
+            <div class="highlight-box">
+                <h3>🌟 Acceso Exclusivo</h3>
+                <p>
+                    Como miembro invitado, disfrutarás de beneficios especiales y acceso anticipado a nuestras colecciones de joyería fina.
+                </p>
+            </div>
+
+            <p class="message">
+                Para aceptar tu invitación y crear tu cuenta, haz clic en el botón a continuación:
+            </p>
+
+            <div class="button-container">
+                <a href="{{ .ConfirmationURL }}" class="cta-button">Aceptar Invitación</a>
+            </div>
+
+            <div class="divider"></div>
+
+            <p class="message" style="font-size: 15px;">
+                <strong>Beneficios exclusivos para ti:</strong>
+            </p>
+            <ul style="color: #4a4a4a; font-size: 15px; line-height: 1.8;">
+                <li>✨ Descuento especial de bienvenida</li>
+                <li>🔔 Acceso anticipado a nuevas colecciones</li>
+                <li>💎 Asesoría personalizada con nuestros expertos</li>
+                <li>🚚 Envío gratuito en tu primera compra</li>
+                <li>🎁 Programa de puntos y recompensas</li>
+            </ul>
+
+            <!-- Alternative Link -->
+            <div class="alternative-link">
+                <p><strong>¿El botón no funciona?</strong></p>
+                <p>Copia y pega el siguiente enlace en tu navegador:</p>
+                <a href="{{ .ConfirmationURL }}">{{ .ConfirmationURL }}</a>
+            </div>
+
+            <p class="message" style="margin-top: 30px; font-size: 14px; color: #6a6a6a;">
+                Esta invitación expirará en 7 días. No dejes pasar esta oportunidad de formar parte de nuestra exclusiva comunidad de amantes de la joyería fina.
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p style="margin: 0 0 10px 0; color: #D4AF37; font-weight: 600;">ORO NACIONAL</p>
+            <p style="margin: 0 0 20px 0; color: #a0a0a0; font-size: 13px;">
+                Joyería Elegante en el Corazón de Jalisco
+            </p>
+
+            <div class="footer-links">
+                <a href="{{ .SiteURL }}">Inicio</a>
+                <a href="{{ .SiteURL }}/catalog">Catálogo</a>
+                <a href="{{ .SiteURL }}/about">Nosotros</a>
+                <a href="{{ .SiteURL }}/contact">Contacto</a>
+            </div>
+
+            <div style="margin: 20px 0; height: 1px; background-color: #333;"></div>
+
+            <p style="color: #a0a0a0; font-size: 12px; margin: 10px 0;">
+                📍 Guadalajara, Jalisco, México
+            </p>
+            <p style="color: #a0a0a0; font-size: 12px; margin: 10px 0;">
+                📞 +52 33 1234 5678 | 📧 contacto@oronacional.com
+            </p>
+
+            <p style="color: #666; font-size: 11px; margin-top: 20px;">
+                © 2025 Oro Nacional. Todos los derechos reservados.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
