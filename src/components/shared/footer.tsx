@@ -41,9 +41,9 @@ const Footer = () => {
               <Image
                 src="/logos/logo-oro-nacional.png"
                 alt="Logo Oro Nacional - Joyería Elegante en Jalisco"
-                width={180}
-                height={60}
-                className="h-12 w-auto"
+                width={240}
+                height={80}
+                className="h-16 w-auto md:h-20"
               />
               <p className="mt-4 text-sm text-muted-foreground">
                 Elegancia y tradición jalisciense desde 1990
