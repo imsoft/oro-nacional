@@ -21,6 +21,9 @@ interface ProductInfoProps {
     };
     sizes?: string[];
     hasEngraving?: boolean;
+    stock?: number;
+    weight?: number;
+    slug?: string;
   };
 }
 
@@ -47,6 +50,23 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
     } catch (err) {
       console.log("Error sharing:", err);
     }
+  };
+
+  const handleWhatsApp = () => {
+    const message = `¡Hola! Me interesa este producto: ${product.name} - ${product.price}`;
+    const whatsappUrl = `https://wa.me/523312345678?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+  const handleAddToCart = () => {
+    // TODO: Implementar lógica del carrito
+    console.log('Agregando al carrito:', {
+      product: product.name,
+      size: selectedSize,
+      engraving: engravingText,
+      price: product.price
+    });
+    alert('¡Producto agregado al carrito!');
   };
 
   return (
@@ -129,19 +149,37 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
           <Button
             size="lg"
             className="w-full bg-[#D4AF37] hover:bg-[#B8941E] text-white text-base font-semibold py-6 transition-all duration-300 hover:scale-[1.02]"
+            onClick={handleAddToCart}
+            disabled={product.stock === 0}
           >
             <ShoppingCart className="mr-2 h-5 w-5" />
-            Agregar al Carrito
+            {product.stock === 0 ? 'Agotado' : 'Agregar al Carrito'}
           </Button>
           <Button
             size="lg"
             variant="outline"
             className="w-full border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white text-base font-semibold py-6 transition-all duration-300"
+            onClick={handleWhatsApp}
           >
             <MessageCircle className="mr-2 h-5 w-5" />
             Contactar por WhatsApp
           </Button>
         </div>
+
+        {/* Información de stock */}
+        {product.stock !== undefined && (
+          <div className="text-center">
+            {product.stock > 0 ? (
+              <p className="text-sm text-green-600 font-medium">
+                ✓ Disponible ({product.stock} en stock)
+              </p>
+            ) : (
+              <p className="text-sm text-red-600 font-medium">
+                ✗ Agotado - Contacta para disponibilidad
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Botones secundarios */}
         <div className="flex gap-3">

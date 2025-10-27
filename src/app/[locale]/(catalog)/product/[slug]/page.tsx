@@ -7,6 +7,7 @@ import Footer from "@/components/shared/footer";
 import Breadcrumbs from "@/components/shared/breadcrumbs";
 import ProductGallery from "@/components/product/product-gallery";
 import ProductInfo from "@/components/product/product-info";
+import ProductDetails from "@/components/product/product-details";
 import RelatedProducts from "@/components/product/related-products";
 import { Loader2 } from "lucide-react";
 import { getProductBySlug, getProductsByCategory } from "@/lib/supabase/products";
@@ -92,22 +93,28 @@ export default function ProductPage({ params }: ProductPageProps) {
   }
 
   // Transform product for compatibility with existing components
-  const productImages = product.images
-    .sort((a, b) => {
-      if (a.is_primary) return -1;
-      if (b.is_primary) return 1;
-      return a.display_order - b.display_order;
-    })
-    .map((img) => img.image_url);
+  const productImages = product.images && product.images.length > 0
+    ? product.images
+        .sort((a, b) => {
+          if (a.is_primary) return -1;
+          if (b.is_primary) return 1;
+          return a.display_order - b.display_order;
+        })
+        .map((img) => img.image_url)
+    : [];
 
-  const productSpecs = product.specifications
-    .sort((a, b) => a.display_order - b.display_order)
-    .reduce((acc, spec) => {
-      acc[spec.spec_key] = spec.spec_value;
-      return acc;
-    }, {} as Record<string, string>);
+  const productSpecs = product.specifications && product.specifications.length > 0
+    ? product.specifications
+        .sort((a, b) => a.display_order - b.display_order)
+        .reduce((acc, spec) => {
+          acc[spec.spec_key] = spec.spec_value;
+          return acc;
+        }, {} as Record<string, string>)
+    : {};
 
-  const productSizes = product.sizes.map((s) => s.size);
+  const productSizes = product.sizes && product.sizes.length > 0
+    ? product.sizes.map((s) => s.size)
+    : [];
 
   const transformedProduct = {
     id: parseInt(product.id.substring(0, 8), 16),
@@ -121,6 +128,8 @@ export default function ProductPage({ params }: ProductPageProps) {
     sizes: productSizes,
     hasEngraving: product.has_engraving,
     stock: product.stock,
+    weight: product.weight,
+    slug: product.slug,
   };
 
   // Transform related products for compatibility
@@ -168,6 +177,11 @@ export default function ProductPage({ params }: ProductPageProps) {
 
             {/* Información del producto */}
             <ProductInfo product={transformedProduct} />
+          </div>
+
+          {/* Detalles adicionales del producto */}
+          <div className="mt-12">
+            <ProductDetails product={transformedProduct} />
           </div>
         </div>
       </main>

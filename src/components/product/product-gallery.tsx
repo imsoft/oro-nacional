@@ -13,6 +13,21 @@ interface ProductGalleryProps {
 const ProductGallery = ({ images, productName }: ProductGalleryProps) => {
   const [selectedImage, setSelectedImage] = useState(0);
 
+  // Si no hay imágenes, mostrar placeholder
+  if (!images || images.length === 0) {
+    return (
+      <div className="space-y-4">
+        <div className="relative aspect-square overflow-hidden rounded-2xl bg-muted flex items-center justify-center">
+          <div className="text-center text-muted-foreground">
+            <div className="text-6xl mb-4">📷</div>
+            <p className="text-lg font-medium">Imagen no disponible</p>
+            <p className="text-sm">Próximamente</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const nextImage = () => {
     setSelectedImage((prev) => (prev + 1) % images.length);
   };
