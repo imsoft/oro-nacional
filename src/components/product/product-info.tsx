@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useCartStore } from "@/stores/cart-store";
 
 interface ProductInfoProps {
   product: {
@@ -22,12 +23,14 @@ interface ProductInfoProps {
     stock?: number;
     weight?: number;
     slug?: string;
+    images?: string[];
   };
 }
 
 const ProductInfo = ({ product }: ProductInfoProps) => {
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || "");
   const [isFavorite, setIsFavorite] = useState(false);
+  const { addItem } = useCartStore();
 
   const handleShare = async () => {
     const shareData = {
@@ -56,12 +59,19 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
   };
 
   const handleAddToCart = () => {
-    // TODO: Implementar lógica del carrito
-    console.log('Agregando al carrito:', {
-      product: product.name,
-      size: selectedSize,
-      price: product.price
+    // Convertir el precio de string a number
+    const priceNumber = parseFloat(product.price.replace(/[^0-9.-]+/g, ""));
+    
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: priceNumber,
+      image: product.images?.[0] || "/placeholder-product.jpg",
+      material: product.material,
+      size: selectedSize || undefined,
     });
+    
+    // Mostrar confirmación
     alert('¡Producto agregado al carrito!');
   };
 
