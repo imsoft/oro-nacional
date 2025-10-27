@@ -77,9 +77,12 @@ const ConstructionPage = () => {
                         <h4 className="text-xl font-semibold text-foreground mb-4">Información de Contacto</h4>
                         
                         <div className="space-y-3">
-                          <div className="flex items-center space-x-3 text-muted-foreground hover:text-[#D4AF37] transition-colors">
+                          <div 
+                            className="flex items-center space-x-3 text-muted-foreground hover:text-[#D4AF37] transition-colors cursor-pointer"
+                            onClick={() => window.open('https://wa.me/523326363714', '_blank')}
+                          >
                             <Phone className="w-5 h-5 text-[#D4AF37]" />
-                            <span>+52 (55) 1234-5678</span>
+                            <span>3326363714</span>
                           </div>
                           
                           <div className="flex items-center space-x-3 text-muted-foreground hover:text-[#D4AF37] transition-colors">
