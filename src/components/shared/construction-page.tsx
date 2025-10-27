@@ -79,13 +79,20 @@ const ConstructionPage = () => {
                         <div className="space-y-3">
                           <div 
                             className="flex items-center space-x-3 text-muted-foreground hover:text-[#D4AF37] transition-colors cursor-pointer"
-                            onClick={() => window.open('https://wa.me/523326363714', '_blank')}
+                            onClick={() => window.open('https://wa.me/523326363714?text=Hola%2C%20me%20interesa%20conocer%20más%20sobre%20sus%20joyas%20de%20oro.%20¿Podrían%20ayudarme%3F', '_blank')}
                           >
                             <Phone className="w-5 h-5 text-[#D4AF37]" />
                             <span>3326363714</span>
                           </div>
                           
-                          <div className="flex items-center space-x-3 text-muted-foreground hover:text-[#D4AF37] transition-colors">
+                          <div 
+                            className="flex items-center space-x-3 text-muted-foreground hover:text-[#D4AF37] transition-colors cursor-pointer"
+                            onClick={() => {
+                              const subject = encodeURIComponent('Consulta sobre joyería de oro - Oro Nacional');
+                              const body = encodeURIComponent('Hola,\n\nMe interesa conocer más sobre sus joyas de oro artesanales. ¿Podrían enviarme información sobre sus productos y precios?\n\nGracias por su atención.\n\nSaludos cordiales,');
+                              window.open(`mailto:hola@oronacional.com?subject=${subject}&body=${body}`, '_blank');
+                            }}
+                          >
                             <Mail className="w-5 h-5 text-[#D4AF37]" />
                             <span>hola@oronacional.com</span>
                           </div>
