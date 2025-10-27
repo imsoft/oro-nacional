@@ -12,6 +12,7 @@ interface ProductGalleryProps {
 
 const ProductGallery = ({ images, productName }: ProductGalleryProps) => {
   const [selectedImage, setSelectedImage] = useState(0);
+  const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
 
   // Si no hay imágenes, mostrar placeholder
   if (!images || images.length === 0) {
@@ -28,12 +29,34 @@ const ProductGallery = ({ images, productName }: ProductGalleryProps) => {
     );
   }
 
+  // Filtrar imágenes que han fallado
+  const validImages = images.filter((_, index) => !imageErrors.has(index));
+  
+  // Si todas las imágenes han fallado, mostrar placeholder
+  if (validImages.length === 0) {
+    return (
+      <div className="space-y-4">
+        <div className="relative aspect-square overflow-hidden rounded-2xl bg-muted flex items-center justify-center">
+          <div className="text-center text-muted-foreground">
+            <div className="text-6xl mb-4">📷</div>
+            <p className="text-lg font-medium">Imagen no disponible</p>
+            <p className="text-sm">Error al cargar la imagen</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const nextImage = () => {
-    setSelectedImage((prev) => (prev + 1) % images.length);
+    setSelectedImage((prev) => (prev + 1) % validImages.length);
   };
 
   const prevImage = () => {
-    setSelectedImage((prev) => (prev - 1 + images.length) % images.length);
+    setSelectedImage((prev) => (prev - 1 + validImages.length) % validImages.length);
+  };
+
+  const handleImageError = (index: number) => {
+    setImageErrors(prev => new Set([...prev, index]));
   };
 
   return (
@@ -41,15 +64,16 @@ const ProductGallery = ({ images, productName }: ProductGalleryProps) => {
       {/* Imagen principal */}
       <div className="relative aspect-square overflow-hidden rounded-2xl bg-muted">
         <Image
-          src={images[selectedImage]}
+          src={validImages[selectedImage]}
           alt={`${productName} - Vista ${selectedImage + 1}`}
           fill
           className="object-cover"
           priority
+          onError={() => handleImageError(selectedImage)}
         />
 
         {/* Botones de navegación */}
-        {images.length > 1 && (
+        {validImages.length > 1 && (
           <>
             <Button
               variant="outline"
@@ -71,9 +95,9 @@ const ProductGallery = ({ images, productName }: ProductGalleryProps) => {
         )}
 
         {/* Indicador de imagen */}
-        {images.length > 1 && (
+        {validImages.length > 1 && (
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-            {images.map((_, index) => (
+            {validImages.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setSelectedImage(index)}
@@ -90,9 +114,9 @@ const ProductGallery = ({ images, productName }: ProductGalleryProps) => {
       </div>
 
       {/* Miniaturas */}
-      {images.length > 1 && (
+      {validImages.length > 1 && (
         <div className="grid grid-cols-4 gap-4">
-          {images.map((image, index) => (
+          {validImages.map((image, index) => (
             <button
               key={index}
               onClick={() => setSelectedImage(index)}
@@ -107,6 +131,7 @@ const ProductGallery = ({ images, productName }: ProductGalleryProps) => {
                 alt={`${productName} - Miniatura ${index + 1}`}
                 fill
                 className="object-cover"
+                onError={() => handleImageError(index)}
               />
             </button>
           ))}
