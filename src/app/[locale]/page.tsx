@@ -1,4 +1,4 @@
-import ConstructionPage from "@/components/shared/construction-page-v2";
+import ConstructionPage from "@/components/shared/construction-page";
 
 const Home = () => {
   return <ConstructionPage />;
