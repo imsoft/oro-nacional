@@ -260,7 +260,7 @@ export default function NuevoProducto() {
         <div className="rounded-lg bg-card border border-border p-6">
           <h2 className="text-xl font-semibold mb-4">Información Básica</h2>
           <div className="space-y-4">
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="name">
                 Nombre del Producto <span className="text-red-500">*</span>
               </Label>
@@ -273,7 +273,7 @@ export default function NuevoProducto() {
               />
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="description">
                 Descripción <span className="text-red-500">*</span>
               </Label>
@@ -288,7 +288,7 @@ export default function NuevoProducto() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="category">Categoría</Label>
                 <Select value={categoryId} onValueChange={setCategoryId}>
                   <SelectTrigger>
@@ -304,7 +304,7 @@ export default function NuevoProducto() {
                 </Select>
               </div>
 
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="material">
                   Material <span className="text-red-500">*</span>
                 </Label>
@@ -319,7 +319,7 @@ export default function NuevoProducto() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="price">
                   Precio (MXN) <span className="text-red-500">*</span>
                 </Label>
@@ -335,7 +335,7 @@ export default function NuevoProducto() {
                 />
               </div>
 
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="stock">
                   Stock <span className="text-red-500">*</span>
                 </Label>
@@ -350,7 +350,7 @@ export default function NuevoProducto() {
                 />
               </div>
 
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="weight">Peso (gramos)</Label>
                 <Input
                   id="weight"
@@ -372,7 +372,7 @@ export default function NuevoProducto() {
           <h2 className="text-xl font-semibold mb-4">Imágenes</h2>
 
           <div className="space-y-4">
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="images">Subir Imágenes</Label>
               <div className="mt-2">
                 <label

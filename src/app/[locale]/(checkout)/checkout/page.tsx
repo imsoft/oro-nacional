@@ -217,7 +217,7 @@ const CheckoutPage = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="md:col-span-2">
+                  <div className="md:col-span-2 space-y-2">
                     <Label htmlFor="fullName">Nombre Completo *</Label>
                     <Input
                       id="fullName"
@@ -228,7 +228,7 @@ const CheckoutPage = () => {
                     />
                   </div>
 
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="email">Correo Electrónico *</Label>
                     <Input
                       id="email"
@@ -240,7 +240,7 @@ const CheckoutPage = () => {
                     />
                   </div>
 
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="phone">Teléfono *</Label>
                     <Input
                       id="phone"
@@ -252,7 +252,7 @@ const CheckoutPage = () => {
                     />
                   </div>
 
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="street">Calle *</Label>
                     <Input
                       id="street"
@@ -263,7 +263,7 @@ const CheckoutPage = () => {
                     />
                   </div>
 
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="number">Número *</Label>
                     <Input
                       id="number"
@@ -274,7 +274,7 @@ const CheckoutPage = () => {
                     />
                   </div>
 
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="colony">Colonia *</Label>
                     <Input
                       id="colony"
@@ -285,7 +285,7 @@ const CheckoutPage = () => {
                     />
                   </div>
 
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="city">Ciudad *</Label>
                     <Input
                       id="city"
@@ -296,7 +296,7 @@ const CheckoutPage = () => {
                     />
                   </div>
 
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="state">Estado *</Label>
                     <Input
                       id="state"
@@ -307,7 +307,7 @@ const CheckoutPage = () => {
                     />
                   </div>
 
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="zipCode">Código Postal *</Label>
                     <Input
                       id="zipCode"
@@ -337,7 +337,7 @@ const CheckoutPage = () => {
                   </TabsList>
 
                   <TabsContent value="card" className="space-y-4 mt-6">
-                    <div>
+                    <div className="space-y-2">
                       <Label htmlFor="cardNumber">Número de Tarjeta *</Label>
                       <Input
                         id="cardNumber"
@@ -348,7 +348,7 @@ const CheckoutPage = () => {
                       />
                     </div>
 
-                    <div>
+                    <div className="space-y-2">
                       <Label htmlFor="cardName">Nombre en la Tarjeta *</Label>
                       <Input
                         id="cardName"
@@ -359,7 +359,7 @@ const CheckoutPage = () => {
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                      <div>
+                      <div className="space-y-2">
                         <Label htmlFor="expiryDate">Fecha de Vencimiento *</Label>
                         <Input
                           id="expiryDate"
@@ -369,7 +369,7 @@ const CheckoutPage = () => {
                           maxLength={5}
                         />
                       </div>
-                      <div>
+                      <div className="space-y-2">
                         <Label htmlFor="cvv">CVV *</Label>
                         <Input
                           id="cvv"
