@@ -10,7 +10,7 @@ import { getProducts } from "@/lib/supabase/products";
 import type { Product } from "@/types/product";
 
 interface DisplayProduct {
-  id: number;
+  id: string;
   name: string;
   description: string;
   price: string;
@@ -40,7 +40,7 @@ const FeaturedCollection = () => {
   const displayProducts: DisplayProduct[] = products.map((product) => {
     const primaryImage = product.images?.find((img) => img.is_primary)?.image_url;
     return {
-      id: parseInt(product.id.substring(0, 8), 16),
+      id: product.id,
       name: product.name,
       description: product.description,
       price: `$${product.price.toLocaleString("es-MX")} MXN`,
@@ -66,6 +66,7 @@ const FeaturedCollection = () => {
         category: product.category,
         material: product.material,
         image: product.image,
+        slug: product.slug,
       });
     }
   };

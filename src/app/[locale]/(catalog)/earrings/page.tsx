@@ -31,13 +31,14 @@ const AretesPage = () => {
   const displayProducts = products.map((product) => {
     const primaryImage = product.images?.find((img) => img.is_primary)?.image_url;
     return {
-      id: parseInt(product.id.substring(0, 8), 16),
+      id: product.id,
       name: product.name,
       description: product.description,
       price: `$${product.price.toLocaleString("es-MX")} MXN`,
       image: primaryImage || "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
       category: product.category?.name || "Aretes",
       material: product.material,
+      slug: product.slug,
     };
   });
 

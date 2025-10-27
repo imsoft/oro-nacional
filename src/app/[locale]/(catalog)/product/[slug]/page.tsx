@@ -117,7 +117,7 @@ export default function ProductPage({ params }: ProductPageProps) {
     : [];
 
   const transformedProduct = {
-    id: parseInt(product.id.substring(0, 8), 16),
+    id: product.id,
     name: product.name,
     price: `$${product.price.toLocaleString("es-MX")} MXN`,
     category: product.category?.name || "Sin categoría",
@@ -135,7 +135,7 @@ export default function ProductPage({ params }: ProductPageProps) {
   const transformedRelated = relatedProducts.map((p) => {
     const primaryImage = p.images?.find((img) => img.is_primary)?.image_url;
     return {
-      id: parseInt(p.id.substring(0, 8), 16),
+      id: p.id,
       name: p.name,
       description: p.description,
       price: `$${p.price.toLocaleString("es-MX")} MXN`,

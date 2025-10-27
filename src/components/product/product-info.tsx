@@ -10,7 +10,7 @@ import { useCartStore } from "@/stores/cart-store";
 
 interface ProductInfoProps {
   product: {
-    id: number;
+    id: string;
     name: string;
     price: string;
     category: string;
@@ -69,6 +69,7 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
       image: product.images?.[0] || "/placeholder-product.jpg",
       material: product.material,
       size: selectedSize || undefined,
+      slug: product.slug || "",
     });
     
     // Mostrar confirmación

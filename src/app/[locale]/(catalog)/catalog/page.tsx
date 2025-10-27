@@ -44,13 +44,14 @@ const CatalogoPage = () => {
   const displayProducts = products.map((product) => {
     const primaryImage = product.images?.find((img) => img.is_primary)?.image_url;
     return {
-      id: parseInt(product.id.substring(0, 8), 16), // Convert UUID to number for compatibility
+      id: product.id,
       name: product.name,
       description: product.description,
       price: `$${product.price.toLocaleString("es-MX")} MXN`,
       image: primaryImage || "https://via.placeholder.com/600x600?text=Sin+Imagen",
       category: product.category?.name || "Sin categoría",
       material: product.material,
+      slug: product.slug,
     };
   });
 

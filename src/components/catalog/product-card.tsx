@@ -7,13 +7,14 @@ import { Button } from "@/components/ui/button";
 import { useFavoritesStore } from "@/stores/favorites-store";
 
 interface ProductCardProps {
-  id: number;
+  id: string;
   name: string;
   description: string;
   price: string;
   image: string;
   category: string;
   material: string;
+  slug: string;
 }
 
 const ProductCard = ({
@@ -24,6 +25,7 @@ const ProductCard = ({
   image,
   category,
   material,
+  slug,
 }: ProductCardProps) => {
   const { addFavorite, removeFavorite, isFavorite } = useFavoritesStore();
   const favorite = isFavorite(id);
@@ -43,6 +45,7 @@ const ProductCard = ({
         category,
         material,
         description,
+        slug,
       });
     }
   };
@@ -54,7 +57,7 @@ const ProductCard = ({
     const shareData = {
       title: `${name} - Oro Nacional`,
       text: `${description} - ${price}`,
-      url: `${window.location.origin}/product/${id}`,
+      url: `${window.location.origin}/product/${slug}`,
     };
 
     try {
@@ -73,7 +76,7 @@ const ProductCard = ({
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-2xl bg-card shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
       <div className="relative aspect-square overflow-hidden bg-muted">
-        <Link href={`/product/${id}`}>
+        <Link href={`/product/${slug}`}>
           <Image
             alt={`${name} - Oro Nacional Guadalajara`}
             src={image}
@@ -113,7 +116,7 @@ const ProductCard = ({
             {category}
           </span>
         </div>
-        <Link href={`/product/${id}`}>
+        <Link href={`/product/${slug}`}>
           <h3 className="text-lg font-semibold text-foreground group-hover:text-[#D4AF37] transition-colors">
             {name}
           </h3>
@@ -128,7 +131,7 @@ const ProductCard = ({
             size="sm"
             className="bg-[#D4AF37] hover:bg-[#B8941E] text-white transition-all duration-300 hover:scale-105"
           >
-            <Link href={`/product/${id}`}>Ver detalles</Link>
+            <Link href={`/product/${slug}`}>Ver detalles</Link>
           </Button>
         </div>
       </div>

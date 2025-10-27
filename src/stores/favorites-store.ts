@@ -2,20 +2,21 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
 export interface FavoriteItem {
-  id: number;
+  id: string;
   name: string;
   price: string;
   image: string;
   category: string;
   material: string;
   description: string;
+  slug: string;
 }
 
 interface FavoritesStore {
   items: FavoriteItem[];
   addFavorite: (item: FavoriteItem) => void;
-  removeFavorite: (id: number) => void;
-  isFavorite: (id: number) => boolean;
+  removeFavorite: (id: string) => void;
+  isFavorite: (id: string) => boolean;
   getFavoriteCount: () => number;
 }
 

@@ -16,7 +16,7 @@ const CartItem = ({ item }: CartItemProps) => {
   return (
     <div className="flex gap-4 py-6 border-b border-border last:border-0">
       {/* Imagen */}
-      <Link href={`/product/${item.id}`} className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
+      <Link href={`/product/${item.slug}`} className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
         <Image
           src={item.image}
           alt={item.name}
@@ -30,7 +30,7 @@ const CartItem = ({ item }: CartItemProps) => {
         <div className="flex justify-between">
           <div className="flex-1">
             <Link
-              href={`/product/${item.id}`}
+              href={`/product/${item.slug}`}
               className="font-semibold text-foreground hover:text-[#D4AF37] transition-colors"
             >
               {item.name}

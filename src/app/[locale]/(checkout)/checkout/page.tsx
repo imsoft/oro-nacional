@@ -118,7 +118,7 @@ const CheckoutPage = () => {
         shipping_country: "México",
         payment_method: paymentMethodMap[paymentMethod],
         items: items.map((item) => ({
-          product_id: item.id.toString(),
+          product_id: item.id,
           product_name: item.name,
           product_slug: "",
           product_sku: undefined,

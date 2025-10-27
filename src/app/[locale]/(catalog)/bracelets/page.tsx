@@ -31,13 +31,14 @@ const PulserasPage = () => {
   const displayProducts = products.map((product) => {
     const primaryImage = product.images?.find((img) => img.is_primary)?.image_url;
     return {
-      id: parseInt(product.id.substring(0, 8), 16),
+      id: product.id,
       name: product.name,
       description: product.description,
       price: `$${product.price.toLocaleString("es-MX")} MXN`,
       image: primaryImage || "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
       category: product.category?.name || "Pulseras",
       material: product.material,
+      slug: product.slug,
     };
   });
 

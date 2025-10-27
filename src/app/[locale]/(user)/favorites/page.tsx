@@ -19,6 +19,7 @@ const FavoritesPage = () => {
       price: priceNumber,
       image: item.image,
       material: item.material,
+      slug: item.slug,
     });
   };
 
