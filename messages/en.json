@@ -138,5 +138,62 @@
     "next": "Next",
     "previous": "Previous",
     "submit": "Submit"
+  },
+  "admin": {
+    "title": "Admin Panel",
+    "products": {
+      "title": "Products",
+      "newProduct": "New Product",
+      "editProduct": "Edit Product",
+      "productName": "Product Name",
+      "description": "Description",
+      "material": "Material",
+      "category": "Category",
+      "price": "Price",
+      "stock": "Stock",
+      "weight": "Weight (grams)",
+      "hasEngraving": "Available for engraving",
+      "isActive": "Active product",
+      "specifications": "Specifications",
+      "addSpecification": "Add Specification",
+      "specificationName": "Specification name",
+      "specificationValue": "Specification value",
+      "sizes": "Available Sizes",
+      "addSize": "Add Size",
+      "size": "Size",
+      "preview": "Preview",
+      "saveProduct": "Save Product",
+      "saving": "Saving..."
+    },
+    "blog": {
+      "title": "Blog",
+      "newPost": "New Post",
+      "editPost": "Edit Post",
+      "postTitle": "Post Title",
+      "excerpt": "Excerpt",
+      "content": "Content",
+      "category": "Category",
+      "status": "Status",
+      "draft": "Draft",
+      "published": "Published",
+      "tags": "Tags",
+      "availableTags": "Available Tags",
+      "selectedTags": "Selected Tags",
+      "createNewTag": "Create New Tag",
+      "tagName": "Tag name",
+      "createTag": "Create Tag",
+      "preview": "Preview",
+      "savePost": "Save Post",
+      "saving": "Saving..."
+    },
+    "multilingual": {
+      "spanish": "Español",
+      "english": "English",
+      "complete": "Complete",
+      "partial": "Partial",
+      "preview": "Preview",
+      "edit": "Edit",
+      "required": "This field is required in both languages"
+    }
   }
 }

@@ -138,5 +138,62 @@
     "next": "Siguiente",
     "previous": "Anterior",
     "submit": "Enviar"
+  },
+  "admin": {
+    "title": "Panel de Administración",
+    "products": {
+      "title": "Productos",
+      "newProduct": "Nuevo Producto",
+      "editProduct": "Editar Producto",
+      "productName": "Nombre del Producto",
+      "description": "Descripción",
+      "material": "Material",
+      "category": "Categoría",
+      "price": "Precio",
+      "stock": "Stock",
+      "weight": "Peso (gramos)",
+      "hasEngraving": "Disponible para grabado",
+      "isActive": "Producto activo",
+      "specifications": "Especificaciones",
+      "addSpecification": "Agregar Especificación",
+      "specificationName": "Nombre de la especificación",
+      "specificationValue": "Valor de la especificación",
+      "sizes": "Tallas Disponibles",
+      "addSize": "Agregar Talla",
+      "size": "Talla",
+      "preview": "Vista Previa",
+      "saveProduct": "Guardar Producto",
+      "saving": "Guardando..."
+    },
+    "blog": {
+      "title": "Blog",
+      "newPost": "Nuevo Post",
+      "editPost": "Editar Post",
+      "postTitle": "Título del Post",
+      "excerpt": "Resumen/Excerpt",
+      "content": "Contenido",
+      "category": "Categoría",
+      "status": "Estado",
+      "draft": "Borrador",
+      "published": "Publicado",
+      "tags": "Etiquetas",
+      "availableTags": "Etiquetas Disponibles",
+      "selectedTags": "Etiquetas Seleccionadas",
+      "createNewTag": "Crear Nueva Etiqueta",
+      "tagName": "Nombre de la etiqueta",
+      "createTag": "Crear Etiqueta",
+      "preview": "Vista Previa",
+      "savePost": "Guardar Post",
+      "saving": "Guardando..."
+    },
+    "multilingual": {
+      "spanish": "Español",
+      "english": "English",
+      "complete": "Completo",
+      "partial": "Parcial",
+      "preview": "Vista previa",
+      "edit": "Editar",
+      "required": "Este campo es requerido en ambos idiomas"
+    }
   }
 }
