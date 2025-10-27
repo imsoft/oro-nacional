@@ -2,16 +2,12 @@ import { useTranslations } from 'next-intl';
 import { Clock, Mail, Phone, MapPin, Instagram, Facebook, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import Navbar from "@/components/shared/navbar";
-import Footer from "@/components/shared/footer";
 
 const ConstructionPage = () => {
   const t = useTranslations();
 
   return (
     <div className="bg-background min-h-screen flex flex-col">
-      <Navbar />
-      
       <div className="relative isolate overflow-hidden flex-1 flex items-center">
         {/* Fondo con imagen */}
         <div className="absolute inset-0 -z-10">
@@ -88,7 +84,7 @@ const ConstructionPage = () => {
                           
                           <div className="flex items-center space-x-3 text-muted-foreground hover:text-[#D4AF37] transition-colors">
                             <Mail className="w-5 h-5 text-[#D4AF37]" />
-                            <span>contacto@oronacional.com</span>
+                            <span>hola@oronacional.com</span>
                           </div>
                           
                           <div className="flex items-center space-x-3 text-muted-foreground hover:text-[#D4AF37] transition-colors">
@@ -152,8 +148,6 @@ const ConstructionPage = () => {
           />
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 };
