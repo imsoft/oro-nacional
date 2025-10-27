@@ -23,10 +23,10 @@ const CarritoPage = () => {
               <ShoppingBag className="h-12 w-12 text-muted-foreground" />
             </div>
             <h1 className="text-3xl font-semibold text-foreground mb-4">
-              Tu Carrito está Vacío
+              Tu Lista está Vacía
             </h1>
             <p className="text-muted-foreground mb-8">
-              Parece que aún no has agregado ninguna joya a tu carrito.
+              Parece que aún no has agregado ninguna joya a tu lista.
               Explora nuestro catálogo y encuentra la pieza perfecta.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -64,11 +64,11 @@ const CarritoPage = () => {
             Continuar Comprando
           </Link>
           <h1 className="text-3xl font-semibold text-foreground">
-            Carrito de Compras
+            Lista de Compras
           </h1>
           <p className="mt-2 text-muted-foreground">
             {items.length} {items.length === 1 ? "producto" : "productos"} en tu
-            carrito
+            lista
           </p>
         </div>
 
@@ -87,7 +87,7 @@ const CarritoPage = () => {
                   onClick={clearCart}
                   className="text-red-600 hover:text-red-700 hover:bg-red-50"
                 >
-                  Vaciar Carrito
+                  Vaciar Lista
                 </Button>
               </div>
 
