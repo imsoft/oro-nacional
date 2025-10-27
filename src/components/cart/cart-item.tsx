@@ -41,11 +41,6 @@ const CartItem = ({ item }: CartItemProps) => {
                 Talla: {item.size}
               </p>
             )}
-            {item.engraving && (
-              <p className="mt-1 text-xs text-muted-foreground">
-                Grabado: &quot;{item.engraving}&quot;
-              </p>
-            )}
           </div>
 
           {/* Precio */}

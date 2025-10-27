@@ -69,7 +69,6 @@ export default function EditarProducto({ params }: ProductPageProps) {
   const [stock, setStock] = useState("");
   const [material, setMaterial] = useState("");
   const [weight, setWeight] = useState("");
-  const [hasEngraving, setHasEngraving] = useState(false);
   const [isActive, setIsActive] = useState(true);
 
   // Images
@@ -109,7 +108,6 @@ export default function EditarProducto({ params }: ProductPageProps) {
     setStock(productData.stock.toString());
     setMaterial(productData.material);
     setWeight(productData.weight?.toString() || "");
-    setHasEngraving(productData.has_engraving);
     setIsActive(productData.is_active);
 
     // Set images
@@ -281,7 +279,7 @@ export default function EditarProducto({ params }: ProductPageProps) {
         stock: parseInt(stock),
         material,
         weight: weight ? parseFloat(weight) : null,
-        has_engraving: hasEngraving,
+        has_engraving: false,
         is_active: isActive,
       });
 
@@ -492,19 +490,6 @@ export default function EditarProducto({ params }: ProductPageProps) {
             </div>
 
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="hasEngraving"
-                  checked={hasEngraving}
-                  onChange={(e) => setHasEngraving(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300"
-                />
-                <Label htmlFor="hasEngraving" className="font-normal">
-                  Permite grabado personalizado
-                </Label>
-              </div>
-
               <div className="flex items-center space-x-2">
                 <input
                   type="checkbox"

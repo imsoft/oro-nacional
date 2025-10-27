@@ -49,7 +49,6 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel }: Pro
     price: 0,
     stock: 0,
     weight: 0,
-    has_engraving: false,
     is_active: true,
     specifications: [],
     sizes: []
@@ -96,7 +95,6 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel }: Pro
         price: formData.price,
         stock: formData.stock,
         weight: formData.weight || undefined,
-        has_engraving: formData.has_engraving,
         is_active: formData.is_active,
         specifications: formData.specifications.map(spec => ({
           spec_key: spec.spec_key,
@@ -365,17 +363,6 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel }: Pro
             </div>
           </div>
 
-          <div className="flex items-center space-x-2 mt-4">
-            <Checkbox
-              id="has_engraving"
-              checked={formData.has_engraving}
-              onCheckedChange={(checked) => {
-                // Para campos no multilingües, necesitamos una solución temporal
-                console.log('Updating has_engraving:', checked);
-              }}
-            />
-            <Label htmlFor="has_engraving">Disponible para grabado</Label>
-          </div>
 
           <div className="flex items-center space-x-2 mt-2">
             <Checkbox

@@ -414,7 +414,6 @@ export async function createProduct(
         price: productData.price,
         stock: productData.stock,
         weight: productData.weight,
-        has_engraving: productData.has_engraving,
         is_active: productData.is_active,
       })
       .select()

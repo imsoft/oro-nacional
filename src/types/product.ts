@@ -58,7 +58,6 @@ export interface Product {
   stock: number;
   material: string;
   weight?: number;
-  has_engraving: boolean;
   is_active: boolean;
   created_at: string;
   updated_at: string;

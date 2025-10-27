@@ -40,7 +40,6 @@ export default function NuevoProducto() {
   const [stock, setStock] = useState("");
   const [material, setMaterial] = useState("");
   const [weight, setWeight] = useState("");
-  const [hasEngraving, setHasEngraving] = useState(false);
 
   // Images
   const [images, setImages] = useState<ProductImage[]>([]);
@@ -154,7 +153,7 @@ export default function NuevoProducto() {
           stock: parseInt(stock),
           material,
           weight: weight ? parseFloat(weight) : null,
-          has_engraving: hasEngraving,
+          has_engraving: false,
           is_active: true,
         })
         .select()
@@ -365,18 +364,6 @@ export default function NuevoProducto() {
               </div>
             </div>
 
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="hasEngraving"
-                checked={hasEngraving}
-                onChange={(e) => setHasEngraving(e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300"
-              />
-              <Label htmlFor="hasEngraving" className="font-normal">
-                Permite grabado personalizado
-              </Label>
-            </div>
           </div>
         </div>
 

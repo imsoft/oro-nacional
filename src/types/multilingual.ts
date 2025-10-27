@@ -28,7 +28,6 @@ export interface MultilingualProduct {
   price: number;
   stock: number;
   weight?: number;
-  has_engraving: boolean;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -131,7 +130,6 @@ export interface CreateMultilingualProductData {
   price: number;
   stock: number;
   weight?: number;
-  has_engraving: boolean;
   is_active: boolean;
   specifications?: Array<{
     spec_key: MultilingualText;
@@ -193,7 +191,6 @@ export interface ProductFormData {
   price: number;
   stock: number;
   weight?: number;
-  has_engraving: boolean;
   is_active: boolean;
   specifications: Array<{
     spec_key: MultilingualFormData;

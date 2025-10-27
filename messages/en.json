@@ -152,7 +152,6 @@
       "price": "Price",
       "stock": "Stock",
       "weight": "Weight (grams)",
-      "hasEngraving": "Available for engraving",
       "isActive": "Active product",
       "specifications": "Specifications",
       "addSpecification": "Add Specification",

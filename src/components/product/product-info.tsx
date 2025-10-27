@@ -5,7 +5,6 @@ import { Heart, Share2, ShoppingCart, MessageCircle, Shield, Truck, Award } from
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ProductInfoProps {
@@ -20,7 +19,6 @@ interface ProductInfoProps {
       [key: string]: string;
     };
     sizes?: string[];
-    hasEngraving?: boolean;
     stock?: number;
     weight?: number;
     slug?: string;
@@ -29,7 +27,6 @@ interface ProductInfoProps {
 
 const ProductInfo = ({ product }: ProductInfoProps) => {
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || "");
-  const [engravingText, setEngravingText] = useState("");
   const [isFavorite, setIsFavorite] = useState(false);
 
   const handleShare = async () => {
@@ -63,7 +60,6 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
     console.log('Agregando al carrito:', {
       product: product.name,
       size: selectedSize,
-      engraving: engravingText,
       price: product.price
     });
     alert('¡Producto agregado al carrito!');
@@ -123,26 +119,6 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
           </div>
         )}
 
-        {/* Opción de grabado */}
-        {product.hasEngraving && (
-          <div>
-            <Label htmlFor="engraving" className="text-base font-semibold">
-              Grabado personalizado (opcional)
-            </Label>
-            <Input
-              id="engraving"
-              type="text"
-              placeholder="Ej: A & M 2025"
-              value={engravingText}
-              onChange={(e) => setEngravingText(e.target.value)}
-              maxLength={20}
-              className="mt-2"
-            />
-            <p className="mt-1 text-xs text-muted-foreground">
-              Máximo 20 caracteres. El grabado puede tomar 5-7 días adicionales.
-            </p>
-          </div>
-        )}
 
         {/* Botones de acción */}
         <div className="space-y-3">

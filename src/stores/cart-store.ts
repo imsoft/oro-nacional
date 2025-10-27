@@ -8,7 +8,6 @@ export interface CartItem {
   image: string;
   quantity: number;
   size?: string;
-  engraving?: string;
   material: string;
 }
 

@@ -126,7 +126,6 @@ export default function ProductPage({ params }: ProductPageProps) {
     images: productImages,
     specifications: productSpecs,
     sizes: productSizes,
-    hasEngraving: product.has_engraving,
     stock: product.stock,
     weight: product.weight,
     slug: product.slug,
