@@ -1,5 +1,5 @@
 import { useTranslations } from 'next-intl';
-import { Clock, Mail, Phone, MapPin, Instagram, Facebook, Sparkles } from 'lucide-react';
+import { Clock, Mail, Phone, MapPin, Instagram, Facebook, Gem } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
@@ -46,7 +46,7 @@ const ConstructionPage = () => {
               {/* Logo/Icono */}
               <div className="mb-8 animate-[fade-in-up_1s_ease-out_0.2s_both]">
                 <div className="w-20 h-20 mx-auto bg-gradient-to-br from-[#D4AF37] to-[#FFD700] rounded-full flex items-center justify-center shadow-lg">
-                  <Sparkles className="w-10 h-10 text-black" />
+                  <Gem className="w-10 h-10 text-black" />
                 </div>
               </div>
 
@@ -89,7 +89,7 @@ const ConstructionPage = () => {
                           
                           <div className="flex items-center space-x-3 text-muted-foreground hover:text-[#D4AF37] transition-colors">
                             <MapPin className="w-5 h-5 text-[#D4AF37]" />
-                            <span>Ciudad de México, México</span>
+                            <span>Guadalajara, Jalisco</span>
                           </div>
                         </div>
                       </div>
@@ -102,17 +102,19 @@ const ConstructionPage = () => {
                           <Button 
                             variant="outline" 
                             className="w-full justify-start border-border text-muted-foreground hover:bg-[#D4AF37]/10 hover:text-[#D4AF37] hover:border-[#D4AF37]/50 transition-all"
+                            onClick={() => window.open('https://www.instagram.com/nacionaloro/', '_blank')}
                           >
                             <Instagram className="w-5 h-5 mr-3" />
-                            @oronacional_mx
+                            @nacionaloro
                           </Button>
                           
                           <Button 
                             variant="outline" 
                             className="w-full justify-start border-border text-muted-foreground hover:bg-[#D4AF37]/10 hover:text-[#D4AF37] hover:border-[#D4AF37]/50 transition-all"
+                            onClick={() => window.open('https://www.facebook.com/profile.php?id=61579417826319', '_blank')}
                           >
                             <Facebook className="w-5 h-5 mr-3" />
-                            Oro Nacional México
+                            Oro Nacional
                           </Button>
                         </div>
                       </div>
@@ -126,7 +128,7 @@ const ConstructionPage = () => {
                 <div className="inline-flex items-center px-6 py-3 bg-[#D4AF37]/10 border border-[#D4AF37]/30 rounded-full">
                   <Clock className="w-5 h-5 text-[#D4AF37] mr-2 animate-pulse" />
                   <span className="text-[#D4AF37] font-medium">
-                    Lanzamiento Próximo - Diciembre 2024
+                    Lanzamiento Próximo - Diciembre 2025
                   </span>
                 </div>
               </div>
