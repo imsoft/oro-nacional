@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useAuthStore } from "@/stores/auth-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,6 +52,7 @@ import type { ContactMessage, MessageStatus, ContactMessageStats } from "@/types
 
 const MensajesPage = () => {
   const router = useRouter();
+  const t = useTranslations('admin.messages');
   const { isAuthenticated, isAdmin } = useAuthStore();
   const [isLoading, setIsLoading] = useState(true);
   const [messages, setMessages] = useState<ContactMessage[]>([]);
@@ -146,7 +148,7 @@ const MensajesPage = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar este mensaje?")) return;
+    if (!confirm(t('deleteConfirm'))) return;
 
     const result = await deleteContactMessage(id);
     if (result.success) {
@@ -179,10 +181,10 @@ const MensajesPage = () => {
     return (
       <Badge className={`${variant.color} flex items-center gap-1`}>
         {variant.icon}
-        {status === "pending" && "Pendiente"}
-        {status === "read" && "Leído"}
-        {status === "replied" && "Respondido"}
-        {status === "archived" && "Archivado"}
+        {status === "pending" && t('pending')}
+        {status === "read" && t('read')}
+        {status === "replied" && t('replied')}
+        {status === "archived" && t('archived')}
       </Badge>
     );
   };
@@ -212,9 +214,9 @@ const MensajesPage = () => {
   return (
     <div className="container mx-auto py-10">
       <div className="mb-8">
-        <h1 className="text-3xl font-semibold text-foreground">Mensajes de Contacto</h1>
+        <h1 className="text-3xl font-semibold text-foreground">{t('title')}</h1>
         <p className="text-muted-foreground mt-2">
-          Gestiona los mensajes recibidos desde el formulario de contacto
+          {t('subtitle')}
         </p>
       </div>
 
@@ -223,7 +225,7 @@ const MensajesPage = () => {
         <div className="bg-card p-4 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Total</p>
+              <p className="text-sm text-muted-foreground">{t('total')}</p>
               <p className="text-2xl font-semibold">{stats.total}</p>
             </div>
             <Mail className="h-8 w-8 text-muted-foreground" />
@@ -233,7 +235,7 @@ const MensajesPage = () => {
         <div className="bg-card p-4 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Pendientes</p>
+              <p className="text-sm text-muted-foreground">{t('pending')}</p>
               <p className="text-2xl font-semibold text-yellow-600">{stats.pending}</p>
             </div>
             <Clock className="h-8 w-8 text-yellow-600" />
@@ -243,7 +245,7 @@ const MensajesPage = () => {
         <div className="bg-card p-4 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Leídos</p>
+              <p className="text-sm text-muted-foreground">{t('read')}</p>
               <p className="text-2xl font-semibold text-blue-600">{stats.read}</p>
             </div>
             <Eye className="h-8 w-8 text-blue-600" />
@@ -253,7 +255,7 @@ const MensajesPage = () => {
         <div className="bg-card p-4 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Respondidos</p>
+              <p className="text-sm text-muted-foreground">{t('replied')}</p>
               <p className="text-2xl font-semibold text-green-600">{stats.replied}</p>
             </div>
             <CheckCircle className="h-8 w-8 text-green-600" />
@@ -263,7 +265,7 @@ const MensajesPage = () => {
         <div className="bg-card p-4 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Archivados</p>
+              <p className="text-sm text-muted-foreground">{t('archived')}</p>
               <p className="text-2xl font-semibold text-gray-600">{stats.archived}</p>
             </div>
             <Archive className="h-8 w-8 text-gray-600" />
@@ -276,7 +278,7 @@ const MensajesPage = () => {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por nombre, email, asunto o mensaje..."
+            placeholder={t('searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -285,14 +287,14 @@ const MensajesPage = () => {
 
         <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as MessageStatus | "all")}>
           <SelectTrigger className="w-full sm:w-[200px]">
-            <SelectValue placeholder="Filtrar por estado" />
+            <SelectValue placeholder={t('filterByStatus')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            <SelectItem value="pending">Pendientes</SelectItem>
-            <SelectItem value="read">Leídos</SelectItem>
-            <SelectItem value="replied">Respondidos</SelectItem>
-            <SelectItem value="archived">Archivados</SelectItem>
+            <SelectItem value="all">{t('allStatuses')}</SelectItem>
+            <SelectItem value="pending">{t('pending')}</SelectItem>
+            <SelectItem value="read">{t('read')}</SelectItem>
+            <SelectItem value="replied">{t('replied')}</SelectItem>
+            <SelectItem value="archived">{t('archived')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -302,12 +304,12 @@ const MensajesPage = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Fecha</TableHead>
-              <TableHead>Nombre</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Asunto</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
+              <TableHead>{t('dateColumn')}</TableHead>
+              <TableHead>{t('nameColumn')}</TableHead>
+              <TableHead>{t('emailColumn')}</TableHead>
+              <TableHead>{t('subjectColumn')}</TableHead>
+              <TableHead>{t('statusColumn')}</TableHead>
+              <TableHead className="text-right">{t('actionsColumn')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -315,7 +317,7 @@ const MensajesPage = () => {
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                   <MessageSquare className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                  No se encontraron mensajes
+                  {t('noMessagesFound')}
                 </TableCell>
               </TableRow>
             ) : (
@@ -348,7 +350,7 @@ const MensajesPage = () => {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Detalles del Mensaje</DialogTitle>
+            <DialogTitle>{t('messageDetails')}</DialogTitle>
             <DialogDescription>
               {selectedMessage && formatDate(selectedMessage.created_at)}
             </DialogDescription>
@@ -359,28 +361,28 @@ const MensajesPage = () => {
               {/* Contact Info */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm font-semibold">Nombre</Label>
+                  <Label className="text-sm font-semibold">{t('nameLabel')}</Label>
                   <p className="text-sm">{selectedMessage.name}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-semibold">Email</Label>
+                  <Label className="text-sm font-semibold">{t('emailLabel')}</Label>
                   <p className="text-sm">{selectedMessage.email}</p>
                 </div>
                 {selectedMessage.phone && (
                   <div>
-                    <Label className="text-sm font-semibold">Teléfono</Label>
+                    <Label className="text-sm font-semibold">{t('phoneLabel')}</Label>
                     <p className="text-sm">{selectedMessage.phone}</p>
                   </div>
                 )}
                 <div>
-                  <Label className="text-sm font-semibold">Asunto</Label>
+                  <Label className="text-sm font-semibold">{t('subjectLabel')}</Label>
                   <p className="text-sm">{selectedMessage.subject}</p>
                 </div>
               </div>
 
               {/* Message */}
               <div>
-                <Label className="text-sm font-semibold">Mensaje</Label>
+                <Label className="text-sm font-semibold">{t('messageLabel')}</Label>
                 <div className="mt-2 p-4 bg-muted rounded-lg">
                   <p className="text-sm whitespace-pre-wrap">{selectedMessage.message}</p>
                 </div>
@@ -388,7 +390,7 @@ const MensajesPage = () => {
 
               {/* Status */}
               <div>
-                <Label className="text-sm font-semibold mb-2 block">Estado</Label>
+                <Label className="text-sm font-semibold mb-2 block">{t('statusLabel')}</Label>
                 <Select
                   value={selectedMessage.status}
                   onValueChange={(value) =>
@@ -399,21 +401,21 @@ const MensajesPage = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pending">Pendiente</SelectItem>
-                    <SelectItem value="read">Leído</SelectItem>
-                    <SelectItem value="replied">Respondido</SelectItem>
-                    <SelectItem value="archived">Archivado</SelectItem>
+                    <SelectItem value="pending">{t('pending')}</SelectItem>
+                    <SelectItem value="read">{t('read')}</SelectItem>
+                    <SelectItem value="replied">{t('replied')}</SelectItem>
+                    <SelectItem value="archived">{t('archived')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               {/* Admin Notes */}
               <div>
-                <Label className="text-sm font-semibold mb-2 block">Notas Internas</Label>
+                <Label className="text-sm font-semibold mb-2 block">{t('internalNotes')}</Label>
                 <Textarea
                   value={adminNotes}
                   onChange={(e) => setAdminNotes(e.target.value)}
-                  placeholder="Agregar notas internas (no visibles para el cliente)..."
+                  placeholder={t('internalNotesPlaceholder')}
                   rows={4}
                 />
                 <Button
@@ -421,7 +423,7 @@ const MensajesPage = () => {
                   className="mt-2 bg-[#D4AF37] hover:bg-[#B8941E]"
                   size="sm"
                 >
-                  Guardar Notas
+                  {t('saveNotes')}
                 </Button>
               </div>
 
@@ -432,10 +434,10 @@ const MensajesPage = () => {
                   onClick={() => handleDelete(selectedMessage.id)}
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Eliminar
+                  {t('delete')}
                 </Button>
                 <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cerrar
+                  {t('close')}
                 </Button>
               </div>
             </div>

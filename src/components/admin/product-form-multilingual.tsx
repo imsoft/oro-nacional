@@ -170,7 +170,7 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel }: Pro
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Vista Previa del Producto</h2>
+          <h2 className="text-2xl font-bold">{t('productForm.previewTitle')}</h2>
           <div className="flex items-center gap-2">
             <LanguageToggle 
               currentLocale={previewLocale} 
@@ -189,22 +189,22 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel }: Pro
           <div className="space-y-4">
             <div>
               <h3 className="text-xl font-semibold">
-                {formData.name[previewLocale] || "Sin nombre"}
+                {formData.name[previewLocale] || t('productForm.noName')}
               </h3>
               <p className="text-gray-600">
-                {formData.material[previewLocale] || "Sin material"}
+                {formData.material[previewLocale] || t('productForm.noMaterial')}
               </p>
             </div>
             
             <div>
-              <h4 className="font-medium mb-2">Descripción:</h4>
+              <h4 className="font-medium mb-2">{t('productForm.description')}</h4>
               <p className="text-sm text-gray-700">
-                {formData.description[previewLocale] || "Sin descripción"}
+                {formData.description[previewLocale] || t('productForm.noDescription')}
               </p>
             </div>
 
             <div>
-              <h4 className="font-medium mb-2">Precio:</h4>
+              <h4 className="font-medium mb-2">{t('productForm.price')}</h4>
               <p className="text-lg font-semibold text-green-600">
                 ${formData.price.toLocaleString()}
               </p>
@@ -212,7 +212,7 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel }: Pro
 
             {formData.specifications.length > 0 && (
               <div>
-                <h4 className="font-medium mb-2">Especificaciones:</h4>
+                <h4 className="font-medium mb-2">{t('productForm.specifications')}</h4>
                 <ul className="space-y-1">
                   {formData.specifications.map((spec, index) => (
                     <li key={index} className="text-sm">
@@ -225,11 +225,11 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel }: Pro
 
             {formData.sizes.length > 0 && (
               <div>
-                <h4 className="font-medium mb-2">Tallas Disponibles:</h4>
+                <h4 className="font-medium mb-2">{t('productForm.availableSizes')}</h4>
                 <div className="flex flex-wrap gap-2">
                   {formData.sizes.map((size, index) => (
                     <span key={index} className="px-2 py-1 bg-gray-200 rounded text-sm">
-                      {size.size} ({size.stock} disponibles)
+                      {size.size} ({size.stock} {t('productForm.available')})
                     </span>
                   ))}
                 </div>
@@ -245,7 +245,7 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel }: Pro
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">
-          {productId ? "Editar Producto" : "Nuevo Producto"}
+          {productId ? t('productForm.editProduct') : t('productForm.newProduct')}
         </h2>
         <div className="flex items-center gap-2">
           <LanguageToggle 
@@ -258,16 +258,16 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel }: Pro
             disabled={!formData.name.es || !formData.name.en}
           >
             <Eye className="w-4 h-4 mr-2" />
-            Vista Previa
+            {t('productForm.preview')}
           </Button>
         </div>
       </div>
 
       <MultilingualForm onSubmit={handleSubmit}>
-        <MultilingualCard title="Información Básica">
+        <MultilingualCard title={t('productForm.basicInfo')}>
           <div className="space-y-4">
             <MultilingualInput
-              label="Nombre del Producto"
+              label={t('productForm.productName')}
               value={formData.name}
               onChange={(value) => updateField("name", value)}
               placeholder={{ es: "Ej: Anillo de Compromiso", en: "Ex: Engagement Ring" }}
@@ -275,7 +275,7 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel }: Pro
             />
 
             <MultilingualInput
-              label="Descripción"
+              label={t('productForm.description')}
               value={formData.description}
               onChange={(value) => updateField("description", value)}
               placeholder={{ 
@@ -287,7 +287,7 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel }: Pro
             />
 
             <MultilingualInput
-              label="Material"
+              label={t('productForm.material')}
               value={formData.material}
               onChange={(value) => updateField("material", value)}
               placeholder={{ es: "Ej: Oro 18k", en: "Ex: 18k Gold" }}
@@ -296,10 +296,10 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel }: Pro
           </div>
         </MultilingualCard>
 
-        <MultilingualCard title="Detalles del Producto">
+        <MultilingualCard title={t('productForm.productDetails')}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="category">Categoría</Label>
+              <Label htmlFor="category">{t('productForm.category')}</Label>
               <Select 
                 value={formData.category_id} 
                 onValueChange={(value) => {
@@ -308,7 +308,7 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel }: Pro
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar categoría" />
+                  <SelectValue placeholder={t('productForm.selectCategory')} />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((category) => (
@@ -321,7 +321,7 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel }: Pro
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="price">Precio (MXN)</Label>
+              <Label htmlFor="price">{t('productForm.priceLabel')}</Label>
               <Input
                 id="price"
                 type="number"
@@ -335,7 +335,7 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel }: Pro
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="stock">Stock</Label>
+              <Label htmlFor="stock">{t('productForm.stock')}</Label>
               <Input
                 id="stock"
                 type="number"
@@ -349,7 +349,7 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel }: Pro
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="weight">Peso (gramos)</Label>
+              <Label htmlFor="weight">{t('productForm.weight')}</Label>
               <Input
                 id="weight"
                 type="number"
@@ -373,16 +373,16 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel }: Pro
                 console.log('Updating is_active:', checked);
               }}
             />
-            <Label htmlFor="is_active">Producto activo</Label>
+            <Label htmlFor="is_active">{t('productForm.activeProduct')}</Label>
           </div>
         </MultilingualCard>
 
-        <MultilingualCard title="Especificaciones">
+        <MultilingualCard title={t('productForm.specifications')}>
           <div className="space-y-4">
             {formData.specifications.map((spec, index) => (
               <div key={index} className="border rounded-lg p-4 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-medium">Especificación {index + 1}</h4>
+                  <h4 className="font-medium">{t('productForm.specification')} {index + 1}</h4>
                   <Button
                     type="button"
                     variant="outline"
@@ -394,14 +394,14 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel }: Pro
                 </div>
 
                 <MultilingualInput
-                  label="Nombre de la especificación"
+                  label={t('productForm.specName')}
                   value={spec.spec_key}
                   onChange={(value) => updateSpecification(index, "spec_key", value)}
                   placeholder={{ es: "Ej: Quilates", en: "Ex: Carats" }}
                 />
 
                 <MultilingualInput
-                  label="Valor de la especificación"
+                  label={t('productForm.specValue')}
                   value={spec.spec_value}
                   onChange={(value) => updateSpecification(index, "spec_value", value)}
                   placeholder={{ es: "Ej: 0.5ct", en: "Ex: 0.5ct" }}
@@ -416,17 +416,17 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel }: Pro
               className="w-full"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Agregar Especificación
+              {t('productForm.addSpecification')}
             </Button>
           </div>
         </MultilingualCard>
 
-        <MultilingualCard title="Tallas Disponibles">
+        <MultilingualCard title={t('productForm.availableSizesTitle')}>
           <div className="space-y-4">
             {formData.sizes.map((size, index) => (
               <div key={index} className="flex items-center gap-4 border rounded-lg p-4">
                 <div className="flex-1">
-                  <Label htmlFor={`size-${index}`}>Talla</Label>
+                  <Label htmlFor={`size-${index}`}>{t('productForm.size')}</Label>
                   <Input
                     id={`size-${index}`}
                     value={size.size}
@@ -435,7 +435,7 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel }: Pro
                   />
                 </div>
                 <div className="flex-1">
-                  <Label htmlFor={`stock-${index}`}>Stock</Label>
+                  <Label htmlFor={`stock-${index}`}>{t('productForm.stock')}</Label>
                   <Input
                     id={`stock-${index}`}
                     type="number"
@@ -462,7 +462,7 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel }: Pro
               className="w-full"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Agregar Talla
+              {t('productForm.addSize')}
             </Button>
           </div>
         </MultilingualCard>
@@ -472,12 +472,12 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel }: Pro
         <div className="flex items-center justify-end gap-4">
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel}>
-              Cancelar
+              {t('productForm.cancel')}
             </Button>
           )}
           <Button type="submit" disabled={isLoading}>
             <Save className="w-4 h-4 mr-2" />
-            {isLoading ? "Guardando..." : "Guardar Producto"}
+            {isLoading ? t('admin.products.saving') : t('admin.products.saveProduct')}
           </Button>
         </div>
       </MultilingualForm>

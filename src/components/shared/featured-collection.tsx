@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ interface DisplayProduct {
 }
 
 const FeaturedCollection = () => {
+  const t = useTranslations("common");
   const { addFavorite, removeFavorite, isFavorite } = useFavoritesStore();
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -146,14 +148,14 @@ const FeaturedCollection = () => {
                   <button
                     onClick={(e) => handleShare(product, e)}
                     className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm transition-all duration-300 hover:bg-white hover:scale-110"
-                    aria-label="Compartir producto"
+                    aria-label={t('shareProduct')}
                   >
                     <Share2 className="h-5 w-5 text-gray-700" />
                   </button>
                   <button
                     onClick={(e) => handleToggleFavorite(product, e)}
                     className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm transition-all duration-300 hover:bg-white hover:scale-110"
-                    aria-label={isFavorite(product.id) ? "Quitar de favoritos" : "Agregar a favoritos"}
+                    aria-label={isFavorite(product.id) ? t('removeFromFavorites') : t('addToFavorites')}
                   >
                     <Heart
                       className={`h-5 w-5 transition-colors ${

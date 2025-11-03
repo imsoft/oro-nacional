@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Heart, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useFavoritesStore } from "@/stores/favorites-store";
@@ -27,6 +28,7 @@ const ProductCard = ({
   material,
   slug,
 }: ProductCardProps) => {
+  const t = useTranslations("common");
   const { addFavorite, removeFavorite, isFavorite } = useFavoritesStore();
   const favorite = isFavorite(id);
 
@@ -88,14 +90,14 @@ const ProductCard = ({
           <button
             onClick={handleShare}
             className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm transition-all duration-300 hover:bg-white hover:scale-110"
-            aria-label="Compartir producto"
+            aria-label={t('shareProduct')}
           >
             <Share2 className="h-5 w-5 text-gray-700" />
           </button>
           <button
             onClick={handleToggleFavorite}
             className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm transition-all duration-300 hover:bg-white hover:scale-110"
-            aria-label={favorite ? "Quitar de favoritos" : "Agregar a favoritos"}
+            aria-label={favorite ? t('removeFromFavorites') : t('addToFavorites')}
           >
             <Heart
               className={`h-5 w-5 transition-colors ${

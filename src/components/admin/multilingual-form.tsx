@@ -55,13 +55,13 @@ export function MultilingualInput({
           {isComplete && (
             <Badge variant="secondary" className="text-green-600 bg-green-50">
               <CheckCircle className="w-3 h-3 mr-1" />
-              Completo
+              {t('multilingual.complete')}
             </Badge>
           )}
           {isPartial && !isComplete && (
             <Badge variant="secondary" className="text-yellow-600 bg-yellow-50">
               <AlertCircle className="w-3 h-3 mr-1" />
-              Parcial
+              {t('multilingual.partial')}
             </Badge>
           )}
         </div>
@@ -71,14 +71,14 @@ export function MultilingualInput({
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="es" className="flex items-center gap-2">
             <Globe className="w-4 h-4" />
-            Español
+            {t('multilingual.spanish')}
             {value.es.trim() !== "" && (
               <CheckCircle className="w-3 h-3 text-green-600" />
             )}
           </TabsTrigger>
           <TabsTrigger value="en" className="flex items-center gap-2">
             <Globe className="w-4 h-4" />
-            English
+            {t('multilingual.english')}
             {value.en.trim() !== "" && (
               <CheckCircle className="w-3 h-3 text-green-600" />
             )}
@@ -166,9 +166,10 @@ interface LanguageToggleProps {
 }
 
 export function LanguageToggle({ currentLocale, onLocaleChange, className = "" }: LanguageToggleProps) {
+  const t = useTranslations("admin");
   return (
     <div className={`flex items-center gap-2 ${className}`}>
-      <span className="text-sm text-gray-600">Vista previa:</span>
+      <span className="text-sm text-gray-600">{t('multilingual.preview')}:</span>
       <Tabs value={currentLocale} onValueChange={(value) => onLocaleChange(value as Locale)}>
         <TabsList>
           <TabsTrigger value="es">ES</TabsTrigger>
@@ -186,12 +187,13 @@ interface MultilingualPreviewProps {
 }
 
 export function MultilingualPreview({ locale, children, className = "" }: MultilingualPreviewProps) {
+  const t = useTranslations("admin");
   return (
     <div className={`border rounded-lg p-4 bg-gray-50 ${className}`}>
       <div className="flex items-center gap-2 mb-3">
         <Globe className="w-4 h-4" />
         <span className="text-sm font-medium">
-          Vista previa - {locale === "es" ? "Español" : "English"}
+          {t('multilingual.preview')} - {locale === "es" ? t('multilingual.spanish') : t('multilingual.english')}
         </span>
       </div>
       {children}
@@ -203,6 +205,7 @@ export function MultilingualPreview({ locale, children, className = "" }: Multil
 export function useMultilingualForm<T>(
   initialData: T
 ) {
+  const t = useTranslations("admin");
   const [formData, setFormData] = useState<T>(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -229,7 +232,7 @@ export function useMultilingualForm<T>(
       const value = formData[field] as MultilingualFormData;
       if (value && typeof value === 'object' && 'es' in value && 'en' in value) {
         if (!value.es.trim() || !value.en.trim()) {
-          newErrors[field as string] = "Este campo es requerido en ambos idiomas";
+          newErrors[field as string] = t('multilingual.required');
           isValid = false;
         }
       }

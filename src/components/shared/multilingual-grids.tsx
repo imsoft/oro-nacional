@@ -59,13 +59,10 @@ export function MultilingualProductGrid() {
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-3xl font-bold mb-4">
-          {locale === "es" ? "Nuestros Productos" : "Our Products"}
+          {t('ourProducts')}
         </h2>
         <p className="text-gray-600 max-w-2xl mx-auto">
-          {locale === "es" 
-            ? "Descubre nuestra colección de joyería fina en oro, diseñada y fabricada en Guadalajara, Jalisco."
-            : "Discover our collection of fine gold jewelry, designed and crafted in Guadalajara, Jalisco."
-          }
+          {t('ourProductsDescription')}
         </p>
       </div>
 
@@ -84,7 +81,7 @@ export function MultilingualProductGrid() {
                 ) : (
                   <div className="w-full h-full bg-gray-200 flex items-center justify-center">
                     <span className="text-gray-400">
-                      {locale === "es" ? "Sin imagen" : "No image"}
+                      {t('noImage')}
                     </span>
                   </div>
                 )}
@@ -116,15 +113,15 @@ export function MultilingualProductGrid() {
                   </p>
                   <p className="text-sm text-gray-500">
                     {product.stock > 0 
-                      ? `${product.stock} ${locale === "es" ? "disponibles" : "available"}`
-                      : locale === "es" ? "Agotado" : "Out of stock"
+                      ? `${product.stock} ${t('available')}`
+                      : t('outOfStock')
                     }
                   </p>
                 </div>
                 
                 <Button asChild>
                   <Link href={`/product/${product.slug}`}>
-                    {locale === "es" ? "Ver detalles" : "View details"}
+                    {t('viewDetails')}
                   </Link>
                 </Button>
               </div>
@@ -136,7 +133,7 @@ export function MultilingualProductGrid() {
       <div className="text-center">
         <Button asChild size="lg">
           <Link href="/catalog">
-            {locale === "es" ? "Ver todos los productos" : "View all products"}
+            {t('viewAllProducts')}
           </Link>
         </Button>
       </div>
@@ -191,13 +188,10 @@ export function MultilingualBlogGrid() {
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-3xl font-bold mb-4">
-          {locale === "es" ? "Últimas Noticias" : "Latest News"}
+          {t('latestNews')}
         </h2>
         <p className="text-gray-600 max-w-2xl mx-auto">
-          {locale === "es" 
-            ? "Mantente al día con las últimas tendencias en joyería y consejos de cuidado."
-            : "Stay up to date with the latest jewelry trends and care tips."
-          }
+          {t('latestNewsDescription')}
         </p>
       </div>
 
@@ -247,12 +241,12 @@ export function MultilingualBlogGrid() {
                     : ""
                   }
                 </span>
-                <span>{post.views} {locale === "es" ? "vistas" : "views"}</span>
+                <span>{post.views} {t('views')}</span>
               </div>
               
               <Button asChild className="w-full mt-4">
                 <Link href={`/blog/${post.slug}`}>
-                  {locale === "es" ? "Leer más" : "Read more"}
+                  {t('readMore')}
                 </Link>
               </Button>
             </CardContent>
@@ -263,7 +257,7 @@ export function MultilingualBlogGrid() {
       <div className="text-center">
         <Button asChild size="lg">
           <Link href="/blog">
-            {locale === "es" ? "Ver todos los posts" : "View all posts"}
+            {t('viewAllPosts')}
           </Link>
         </Button>
       </div>

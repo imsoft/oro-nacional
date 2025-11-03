@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Plus, Pencil, Trash2, Search, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,7 @@ import { getAllProducts, softDeleteProduct } from "@/lib/supabase/products";
 import type { ProductListItem } from "@/types/product";
 
 export default function ProductosAdmin() {
+  const t = useTranslations('admin.products');
   const [searchTerm, setSearchTerm] = useState("");
   const [products, setProducts] = useState<ProductListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -54,7 +56,7 @@ export default function ProductosAdmin() {
       setProductToDelete(null);
     } catch (error) {
       console.error("Error deleting product:", error);
-      alert("Error al eliminar el producto. Por favor intenta de nuevo.");
+      alert(t('deleteError'));
     } finally {
       setIsDeleting(false);
     }
@@ -77,9 +79,9 @@ export default function ProductosAdmin() {
       {/* Header */}
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Productos</h1>
+          <h1 className="text-3xl font-bold text-foreground">{t('title')}</h1>
           <p className="mt-2 text-muted-foreground">
-            Gestiona tu catálogo de productos
+            {t('subtitle')}
           </p>
         </div>
         <Button
@@ -87,7 +89,7 @@ export default function ProductosAdmin() {
           onClick={() => window.location.href = '/admin/productos/nuevo'}
         >
           <Plus className="mr-2 h-5 w-5" />
-          Nuevo Producto
+          {t('newProduct')}
         </Button>
       </div>
 
@@ -96,7 +98,7 @@ export default function ProductosAdmin() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
-            placeholder="Buscar productos..."
+            placeholder={t('searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -111,22 +113,22 @@ export default function ProductosAdmin() {
             <thead className="bg-muted">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Producto
+                  {t('productColumn')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Categoría
+                  {t('category')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Precio
+                  {t('price')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Stock
+                  {t('stock')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Material
+                  {t('material')}
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Acciones
+                  {t('actionsColumn')}
                 </th>
               </tr>
             </thead>
@@ -135,8 +137,8 @@ export default function ProductosAdmin() {
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
                     {searchTerm
-                      ? "No se encontraron productos que coincidan con la búsqueda"
-                      : "No hay productos registrados. Crea tu primer producto."}
+                      ? t('noProductsFound')
+                      : t('noProducts')}
                   </td>
                 </tr>
               ) : (
@@ -154,7 +156,7 @@ export default function ProductosAdmin() {
                           />
                         ) : (
                           <div className="h-12 w-12 flex items-center justify-center text-muted-foreground text-xs">
-                            Sin imagen
+                            {t('noImage')}
                           </div>
                         )}
                       </div>
@@ -167,7 +169,7 @@ export default function ProductosAdmin() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="text-sm text-muted-foreground">
-                      {product.category_name || "Sin categoría"}
+                      {product.category_name || t('noCategory')}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -183,7 +185,7 @@ export default function ProductosAdmin() {
                           : "bg-green-100 text-green-800"
                       }`}
                     >
-                      {product.stock} unidades
+                      {product.stock} {t('units')}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
@@ -220,13 +222,13 @@ export default function ProductosAdmin() {
       {/* Stats */}
       <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-3">
         <div className="rounded-lg bg-card border border-border p-6">
-          <div className="text-sm text-muted-foreground">Total Productos</div>
+          <div className="text-sm text-muted-foreground">{t('totalProducts')}</div>
           <div className="mt-2 text-3xl font-bold text-foreground">
             {products.length}
           </div>
         </div>
         <div className="rounded-lg bg-card border border-border p-6">
-          <div className="text-sm text-muted-foreground">Valor Inventario</div>
+          <div className="text-sm text-muted-foreground">{t('inventoryValue')}</div>
           <div className="mt-2 text-3xl font-bold text-[#D4AF37]">
             $
             {products
@@ -235,7 +237,7 @@ export default function ProductosAdmin() {
           </div>
         </div>
         <div className="rounded-lg bg-card border border-border p-6">
-          <div className="text-sm text-muted-foreground">Stock Bajo</div>
+          <div className="text-sm text-muted-foreground">{t('lowStock')}</div>
           <div className="mt-2 text-3xl font-bold text-red-600">
             {products.filter((p) => p.stock < 10).length}
           </div>
@@ -250,11 +252,11 @@ export default function ProductosAdmin() {
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
                 <Trash2 className="h-5 w-5 text-red-600" />
               </div>
-              Eliminar Producto
+              {t('deleteProduct')}
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-3 pt-3">
               <p>
-                ¿Estás seguro de que deseas eliminar el producto{" "}
+                {t('deleteConfirm')}{" "}
                 <span className="font-semibold text-foreground">
                   {productToDelete?.name}
                 </span>
@@ -262,15 +264,14 @@ export default function ProductosAdmin() {
               </p>
               <div className="rounded-lg bg-amber-50 border border-amber-200 p-3">
                 <p className="text-sm text-amber-800">
-                  <strong>Nota:</strong> El producto se desactivará y ya no aparecerá en el catálogo público.
-                  Los datos se conservarán en el sistema.
+                  {t('deleteWarning')}
                 </p>
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>
-              Cancelar
+              {t('cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
@@ -280,12 +281,12 @@ export default function ProductosAdmin() {
               {isDeleting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Eliminando...
+                  {t('deleting')}
                 </>
               ) : (
                 <>
                   <Trash2 className="mr-2 h-4 w-4" />
-                  Eliminar Producto
+                  {t('deleteProduct')}
                 </>
               )}
             </AlertDialogAction>

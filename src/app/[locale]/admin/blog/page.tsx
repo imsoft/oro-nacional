@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Plus, Pencil, Trash2, Search, Eye, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,7 @@ import { getAllBlogPosts, deleteBlogPost } from "@/lib/supabase/blog";
 import type { BlogPostListItem } from "@/types/blog";
 
 export default function BlogAdmin() {
+  const t = useTranslations('admin.blog');
   const [searchTerm, setSearchTerm] = useState("");
   const [posts, setPosts] = useState<BlogPostListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -63,11 +65,11 @@ export default function BlogAdmin() {
         setDeleteDialogOpen(false);
         setPostToDelete(null);
       } else {
-        alert("Error al eliminar el post. Por favor intenta de nuevo.");
+        alert(t('deleteError'));
       }
     } catch (error) {
       console.error("Error deleting post:", error);
-      alert("Error al eliminar el post. Por favor intenta de nuevo.");
+      alert(t('deleteError'));
     } finally {
       setIsDeleting(false);
     }
@@ -82,15 +84,15 @@ export default function BlogAdmin() {
       {/* Header */}
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Blog</h1>
+          <h1 className="text-3xl font-bold text-foreground">{t('title')}</h1>
           <p className="mt-2 text-muted-foreground">
-            Gestiona tus publicaciones de blog
+            {t('subtitle')}
           </p>
         </div>
         <Link href="/admin/blog/nuevo">
           <Button className="bg-[#D4AF37] hover:bg-[#B8941E] text-white">
             <Plus className="mr-2 h-5 w-5" />
-            Nueva Publicación
+            {t('newPost')}
           </Button>
         </Link>
       </div>
@@ -100,7 +102,7 @@ export default function BlogAdmin() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
-            placeholder="Buscar publicaciones..."
+            placeholder={t('searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -118,8 +120,8 @@ export default function BlogAdmin() {
           <div className="text-center py-12">
             <p className="text-muted-foreground">
               {searchTerm
-                ? "No se encontraron posts con ese término de búsqueda"
-                : "No hay posts aún. ¡Crea tu primer post!"}
+                ? t('noPostsFound')
+                : t('noPosts')}
             </p>
           </div>
         ) : (
@@ -128,25 +130,25 @@ export default function BlogAdmin() {
               <thead className="bg-muted">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Título
+                    {t('titleColumn')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Categoría
+                    {t('categoryColumn')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Autor
+                    {t('authorColumn')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Fecha
+                    {t('dateColumn')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Estado
+                    {t('statusColumn')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Vistas
+                    {t('viewsColumn')}
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Acciones
+                    {t('actionsColumn')}
                   </th>
                 </tr>
               </thead>
@@ -160,12 +162,12 @@ export default function BlogAdmin() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm text-muted-foreground">
-                        {post.category_name || "Sin categoría"}
+                        {post.category_name || t('noCategory')}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm text-muted-foreground">
-                        {post.author_name || "Anónimo"}
+                        {post.author_name || t('anonymous')}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -181,7 +183,7 @@ export default function BlogAdmin() {
                             : "bg-yellow-100 text-yellow-800"
                         }`}
                       >
-                        {post.status === "published" ? "Publicado" : "Borrador"}
+                        {post.status === "published" ? t('published') : t('draft')}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -222,25 +224,25 @@ export default function BlogAdmin() {
       {/* Stats */}
       <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-4">
         <div className="rounded-lg bg-card border border-border p-6">
-          <div className="text-sm text-muted-foreground">Total Posts</div>
+          <div className="text-sm text-muted-foreground">{t('totalPosts')}</div>
           <div className="mt-2 text-3xl font-bold text-foreground">
             {posts.length}
           </div>
         </div>
         <div className="rounded-lg bg-card border border-border p-6">
-          <div className="text-sm text-muted-foreground">Publicados</div>
+          <div className="text-sm text-muted-foreground">{t('published')}</div>
           <div className="mt-2 text-3xl font-bold text-green-600">
             {posts.filter((p) => p.status === "published").length}
           </div>
         </div>
         <div className="rounded-lg bg-card border border-border p-6">
-          <div className="text-sm text-muted-foreground">Borradores</div>
+          <div className="text-sm text-muted-foreground">{t('drafts')}</div>
           <div className="mt-2 text-3xl font-bold text-yellow-600">
             {posts.filter((p) => p.status === "draft").length}
           </div>
         </div>
         <div className="rounded-lg bg-card border border-border p-6">
-          <div className="text-sm text-muted-foreground">Vistas Totales</div>
+          <div className="text-sm text-muted-foreground">{t('totalViews')}</div>
           <div className="mt-2 text-3xl font-bold text-[#D4AF37]">
             {posts.reduce((sum, p) => sum + p.views, 0)}
           </div>
@@ -255,11 +257,11 @@ export default function BlogAdmin() {
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
                 <Trash2 className="h-5 w-5 text-red-600" />
               </div>
-              Eliminar Post
+              {t('deletePost')}
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-3 pt-3">
               <p>
-                ¿Estás seguro de que deseas eliminar el post{" "}
+                {t('deleteConfirm')}{" "}
                 <span className="font-semibold text-foreground">
                   {postToDelete?.title}
                 </span>
@@ -267,23 +269,21 @@ export default function BlogAdmin() {
               </p>
               <div className="rounded-lg bg-red-50 border border-red-200 p-3">
                 <p className="text-sm text-red-800">
-                  <strong>Advertencia:</strong> Esta acción eliminará permanentemente el
-                  post, incluyendo todos sus comentarios, imágenes y metadata. Esta
-                  acción no se puede deshacer.
+                  {t('deleteWarning')}
                 </p>
               </div>
               {postToDelete && (
                 <div className="rounded-lg bg-muted p-3 text-sm">
                   <div className="grid grid-cols-2 gap-2">
-                    <div className="text-muted-foreground">Categoría:</div>
+                    <div className="text-muted-foreground">{t('categoryLabel')}</div>
                     <div className="font-medium">
-                      {postToDelete.category_name || "Sin categoría"}
+                      {postToDelete.category_name || t('noCategory')}
                     </div>
-                    <div className="text-muted-foreground">Estado:</div>
+                    <div className="text-muted-foreground">{t('statusLabel')}</div>
                     <div className="font-medium">
-                      {postToDelete.status === "published" ? "Publicado" : "Borrador"}
+                      {postToDelete.status === "published" ? t('published') : t('draft')}
                     </div>
-                    <div className="text-muted-foreground">Vistas:</div>
+                    <div className="text-muted-foreground">{t('viewsLabel')}</div>
                     <div className="font-medium">{postToDelete.views}</div>
                   </div>
                 </div>
@@ -291,7 +291,7 @@ export default function BlogAdmin() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>{t('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               disabled={isDeleting}
@@ -300,12 +300,12 @@ export default function BlogAdmin() {
               {isDeleting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Eliminando...
+                  {t('deleting')}
                 </>
               ) : (
                 <>
                   <Trash2 className="mr-2 h-4 w-4" />
-                  Eliminar Post
+                  {t('deletePost')}
                 </>
               )}
             </AlertDialogAction>

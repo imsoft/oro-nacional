@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import {
   LayoutDashboard,
   Package,
@@ -16,16 +17,6 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
-
-const navigation = [
-  { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { name: "Productos", href: "/admin/productos", icon: Package },
-  { name: "Blog", href: "/admin/blog", icon: FileText },
-  { name: "Pedidos", href: "/admin/pedidos", icon: ShoppingCart },
-  { name: "Usuarios", href: "/admin/usuarios", icon: Users },
-  { name: "Configuración", href: "/admin/configuracion", icon: Settings },
-];
 
 export default function AdminLayout({
   children,
@@ -35,6 +26,16 @@ export default function AdminLayout({
   const router = useRouter();
   const { isAdmin, isAuthenticated, user, logout } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const t = useTranslations('admin.navigation');
+
+  const navigation = [
+    { name: t('dashboard'), href: "/admin", icon: LayoutDashboard },
+    { name: t('products'), href: "/admin/productos", icon: Package },
+    { name: t('blog'), href: "/admin/blog", icon: FileText },
+    { name: t('orders'), href: "/admin/pedidos", icon: ShoppingCart },
+    { name: t('users'), href: "/admin/usuarios", icon: Users },
+    { name: t('settings'), href: "/admin/configuracion", icon: Settings },
+  ];
 
   useEffect(() => {
     if (!isAuthenticated || !isAdmin) {

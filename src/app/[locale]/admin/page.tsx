@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import {
   Package,
   ShoppingCart,
@@ -13,6 +14,7 @@ import { getDashboardData } from "@/lib/supabase/dashboard";
 import type { DashboardData } from "@/types/dashboard";
 
 export default function AdminDashboard() {
+  const t = useTranslations('admin.dashboard');
   const [data, setData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -38,39 +40,39 @@ export default function AdminDashboard() {
   if (!data) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">Error al cargar los datos del dashboard</p>
+        <p className="text-muted-foreground">{t('errorLoading')}</p>
       </div>
     );
   }
 
   const stats = [
     {
-      name: "Ventas Totales",
+      name: t('totalSales'),
       value: `$${data.stats.sales.total_sales.toLocaleString("es-MX")} MXN`,
       change: `${data.stats.sales.growth_percentage >= 0 ? "+" : ""}${data.stats.sales.growth_percentage.toFixed(1)}%`,
       changeType: data.stats.sales.growth_percentage >= 0 ? "positive" : "negative",
       icon: DollarSign,
     },
     {
-      name: "Pedidos",
+      name: t('orders'),
       value: data.stats.orders.total_orders.toString(),
       change: `${data.stats.orders.growth_percentage >= 0 ? "+" : ""}${data.stats.orders.growth_percentage.toFixed(1)}%`,
       changeType: data.stats.orders.growth_percentage >= 0 ? "positive" : "negative",
       icon: ShoppingCart,
     },
     {
-      name: "Productos",
+      name: t('products'),
       value: data.stats.products.total_products.toString(),
       change: data.stats.products.new_products_this_month > 0
-        ? `+${data.stats.products.new_products_this_month} nuevos`
-        : "Sin nuevos",
+        ? `+${data.stats.products.new_products_this_month} ${t('newProducts')}`
+        : t('noNewProducts'),
       changeType: "neutral",
       icon: Package,
     },
     {
-      name: "Inventario Bajo",
+      name: t('lowStock'),
       value: data.stats.products.low_stock_products.toString(),
-      change: "productos con poco stock",
+      change: t('productsWithLowStock'),
       changeType: data.stats.products.low_stock_products > 5 ? "negative" : "neutral",
       icon: FileText,
     },
@@ -78,9 +80,9 @@ export default function AdminDashboard() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+        <h1 className="text-3xl font-bold text-foreground">{t('title')}</h1>
         <p className="mt-2 text-muted-foreground">
-          Resumen general de tu tienda
+          {t('subtitle')}
         </p>
       </div>
 
@@ -133,7 +135,7 @@ export default function AdminDashboard() {
       <div className="rounded-lg bg-card border border-border shadow-sm">
         <div className="px-6 py-5 border-b border-border">
           <h2 className="text-lg font-semibold text-foreground">
-            Pedidos Recientes
+            {t('recentOrders')}
           </h2>
         </div>
         <div className="overflow-hidden">
@@ -141,19 +143,19 @@ export default function AdminDashboard() {
             <thead className="bg-muted">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  ID Pedido
+                  {t('orderId')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Cliente
+                  {t('customer')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Producto
+                  {t('product')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Monto
+                  {t('amount')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Estado
+                  {t('status')}
                 </th>
               </tr>
             </thead>
@@ -168,7 +170,7 @@ export default function AdminDashboard() {
                       {order.customer_name}
                     </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground max-w-xs truncate">
-                      Pedido #{order.order_number}
+                      {t('orders')} #{order.order_number}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                       ${order.total.toLocaleString("es-MX")} MXN
@@ -176,16 +178,18 @@ export default function AdminDashboard() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
-                          order.status === "Entregado"
+                          order.status === "Entregado" || order.status === "Delivered"
                             ? "bg-green-100 text-green-800"
-                            : order.status === "Enviado"
+                            : order.status === "Enviado" || order.status === "Shipped"
                             ? "bg-blue-100 text-blue-800"
-                            : order.status === "Procesando"
+                            : order.status === "Procesando" || order.status === "Processing"
                             ? "bg-yellow-100 text-yellow-800"
                             : "bg-gray-100 text-gray-800"
                         }`}
                       >
-                        {order.status}
+                        {order.status === "Entregado" ? t('delivered') :
+                         order.status === "Enviado" ? t('shipped') :
+                         order.status === "Procesando" ? t('processing') : order.status}
                       </span>
                     </td>
                   </tr>
@@ -193,7 +197,7 @@ export default function AdminDashboard() {
               ) : (
                 <tr>
                   <td colSpan={5} className="px-6 py-8 text-center text-sm text-muted-foreground">
-                    No hay pedidos recientes
+                    {t('noRecentOrders')}
                   </td>
                 </tr>
               )}
@@ -211,7 +215,7 @@ export default function AdminDashboard() {
             </div>
             <div>
               <h3 className="text-lg font-semibold text-foreground">
-                Productos Activos
+                {t('activeProducts')}
               </h3>
               <p className="text-2xl font-bold text-[#D4AF37]">
                 {data.stats.products.active_products}
@@ -227,7 +231,7 @@ export default function AdminDashboard() {
             </div>
             <div>
               <h3 className="text-lg font-semibold text-foreground">
-                Inventario Bajo
+                {t('lowStock')}
               </h3>
               <p className={`text-2xl font-bold ${data.stats.products.low_stock_products > 5 ? "text-red-600" : "text-green-600"}`}>
                 {data.stats.products.low_stock_products}
@@ -243,7 +247,7 @@ export default function AdminDashboard() {
             </div>
             <div>
               <h3 className="text-lg font-semibold text-foreground">
-                Ventas del Mes
+                {t('currentMonthSales')}
               </h3>
               <p className="text-2xl font-bold text-green-600">
                 ${data.stats.sales.current_month_sales.toLocaleString("es-MX")}

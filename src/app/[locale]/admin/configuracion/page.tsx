@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Save, Store, Mail, MapPin, Phone, Globe, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,7 @@ import {
 } from "@/components/ui/select";
 
 export default function ConfiguracionAdmin() {
+  const t = useTranslations('admin.settings');
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async () => {
@@ -29,9 +31,9 @@ export default function ConfiguracionAdmin() {
       {/* Header */}
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Configuración</h1>
+          <h1 className="text-3xl font-bold text-foreground">{t('title')}</h1>
           <p className="mt-2 text-muted-foreground">
-            Administra la configuración de tu tienda
+            {t('subtitle')}
           </p>
         </div>
         <Button
@@ -40,7 +42,7 @@ export default function ConfiguracionAdmin() {
           className="bg-[#D4AF37] hover:bg-[#B8941E] text-white"
         >
           <Save className="mr-2 h-5 w-5" />
-          {isSaving ? "Guardando..." : "Guardar Cambios"}
+          {isSaving ? t('saving') : t('saveChanges')}
         </Button>
       </div>
 
@@ -52,22 +54,22 @@ export default function ConfiguracionAdmin() {
               <Store className="h-5 w-5 text-[#D4AF37]" />
             </div>
             <h2 className="text-xl font-semibold text-foreground">
-              Información de la Tienda
+              {t('storeInfo.title')}
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="storeName">Nombre de la Tienda</Label>
+              <Label htmlFor="storeName">{t('storeInfo.storeName')}</Label>
               <Input
                 id="storeName"
                 defaultValue="Oro Nacional"
-                placeholder="Nombre de tu tienda"
+                placeholder={t('storeInfo.storeNamePlaceholder')}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="storeEmail">Email de Contacto</Label>
+              <Label htmlFor="storeEmail">{t('storeInfo.contactEmail')}</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -80,7 +82,7 @@ export default function ConfiguracionAdmin() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="storePhone">Teléfono</Label>
+              <Label htmlFor="storePhone">{t('storeInfo.phone')}</Label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -93,7 +95,7 @@ export default function ConfiguracionAdmin() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="storeWebsite">Sitio Web</Label>
+              <Label htmlFor="storeWebsite">{t('storeInfo.website')}</Label>
               <div className="relative">
                 <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -106,7 +108,7 @@ export default function ConfiguracionAdmin() {
             </div>
 
             <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="storeAddress">Dirección</Label>
+              <Label htmlFor="storeAddress">{t('storeInfo.address')}</Label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Textarea
@@ -119,7 +121,7 @@ export default function ConfiguracionAdmin() {
             </div>
 
             <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="storeDescription">Descripción</Label>
+              <Label htmlFor="storeDescription">{t('storeInfo.description')}</Label>
               <Textarea
                 id="storeDescription"
                 defaultValue="Elegancia y tradición jalisciense desde 1990. Especialistas en joyería fina de oro."
@@ -136,50 +138,50 @@ export default function ConfiguracionAdmin() {
               <MapPin className="h-5 w-5 text-[#D4AF37]" />
             </div>
             <h2 className="text-xl font-semibold text-foreground">
-              Configuración de Envío
+              {t('shipping.title')}
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="freeShipping">Envío Gratis Desde</Label>
+              <Label htmlFor="freeShipping">{t('shipping.freeShippingFrom')}</Label>
               <Input
                 id="freeShipping"
                 type="number"
                 defaultValue="3000"
-                placeholder="Monto mínimo"
+                placeholder={t('shipping.freeShippingPlaceholder')}
               />
               <p className="text-xs text-muted-foreground">
-                Monto en MXN para envío gratis
+                {t('shipping.freeShippingHelp')}
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="shippingCost">Costo de Envío Estándar</Label>
+              <Label htmlFor="shippingCost">{t('shipping.standardShippingCost')}</Label>
               <Input
                 id="shippingCost"
                 type="number"
                 defaultValue="0"
-                placeholder="Costo en MXN"
+                placeholder={t('shipping.shippingCostPlaceholder')}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="expressShipping">Envío Express</Label>
+              <Label htmlFor="expressShipping">{t('shipping.expressShipping')}</Label>
               <Input
                 id="expressShipping"
                 type="number"
                 defaultValue="200"
-                placeholder="Costo en MXN"
+                placeholder={t('shipping.expressCostPlaceholder')}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="deliveryTime">Tiempo de Entrega (días)</Label>
+              <Label htmlFor="deliveryTime">{t('shipping.deliveryTime')}</Label>
               <Input
                 id="deliveryTime"
                 defaultValue="3-5"
-                placeholder="Ej: 3-5"
+                placeholder={t('shipping.deliveryTimePlaceholder')}
               />
             </div>
           </div>
@@ -192,7 +194,7 @@ export default function ConfiguracionAdmin() {
               <CreditCard className="h-5 w-5 text-[#D4AF37]" />
             </div>
             <h2 className="text-xl font-semibold text-foreground">
-              Métodos de Pago
+              {t('payments.title')}
             </h2>
           </div>
 
@@ -203,12 +205,12 @@ export default function ConfiguracionAdmin() {
                   <CreditCard className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
-                  <p className="font-medium text-foreground">Tarjetas de Crédito/Débito</p>
-                  <p className="text-sm text-muted-foreground">Visa, Mastercard, American Express</p>
+                  <p className="font-medium text-foreground">{t('payments.creditDebitCards')}</p>
+                  <p className="text-sm text-muted-foreground">{t('payments.creditCardsDescription')}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-green-600 font-medium">Activo</span>
+                <span className="text-sm text-green-600 font-medium">{t('payments.active')}</span>
                 <div className="h-6 w-11 rounded-full bg-green-600 relative">
                   <div className="h-5 w-5 rounded-full bg-white absolute right-0.5 top-0.5"></div>
                 </div>
@@ -221,12 +223,12 @@ export default function ConfiguracionAdmin() {
                   <span className="text-xl">🏦</span>
                 </div>
                 <div>
-                  <p className="font-medium text-foreground">Transferencia Bancaria</p>
-                  <p className="text-sm text-muted-foreground">BBVA, Santander, etc.</p>
+                  <p className="font-medium text-foreground">{t('payments.bankTransfer')}</p>
+                  <p className="text-sm text-muted-foreground">{t('payments.bankTransferDescription')}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-green-600 font-medium">Activo</span>
+                <span className="text-sm text-green-600 font-medium">{t('payments.active')}</span>
                 <div className="h-6 w-11 rounded-full bg-green-600 relative">
                   <div className="h-5 w-5 rounded-full bg-white absolute right-0.5 top-0.5"></div>
                 </div>
@@ -239,12 +241,12 @@ export default function ConfiguracionAdmin() {
                   <span className="text-xl">💰</span>
                 </div>
                 <div>
-                  <p className="font-medium text-foreground">Efectivo Contra Entrega</p>
-                  <p className="text-sm text-muted-foreground">Pago al recibir el producto</p>
+                  <p className="font-medium text-foreground">{t('payments.cashOnDelivery')}</p>
+                  <p className="text-sm text-muted-foreground">{t('payments.cashOnDeliveryDescription')}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-green-600 font-medium">Activo</span>
+                <span className="text-sm text-green-600 font-medium">{t('payments.active')}</span>
                 <div className="h-6 w-11 rounded-full bg-green-600 relative">
                   <div className="h-5 w-5 rounded-full bg-white absolute right-0.5 top-0.5"></div>
                 </div>
@@ -260,61 +262,61 @@ export default function ConfiguracionAdmin() {
               <Globe className="h-5 w-5 text-[#D4AF37]" />
             </div>
             <h2 className="text-xl font-semibold text-foreground">
-              Configuración Regional
+              {t('regional.title')}
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="currency">Moneda</Label>
+              <Label htmlFor="currency">{t('regional.currency')}</Label>
               <Select defaultValue="MXN">
                 <SelectTrigger id="currency">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="MXN">MXN - Peso Mexicano</SelectItem>
-                  <SelectItem value="USD">USD - Dólar</SelectItem>
-                  <SelectItem value="EUR">EUR - Euro</SelectItem>
+                  <SelectItem value="MXN">{t('regional.currencyMXN')}</SelectItem>
+                  <SelectItem value="USD">{t('regional.currencyUSD')}</SelectItem>
+                  <SelectItem value="EUR">{t('regional.currencyEUR')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="timezone">Zona Horaria</Label>
+              <Label htmlFor="timezone">{t('regional.timezone')}</Label>
               <Select defaultValue="America/Mexico_City">
                 <SelectTrigger id="timezone">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="America/Mexico_City">Ciudad de México (GMT-6)</SelectItem>
-                  <SelectItem value="America/Tijuana">Tijuana (GMT-8)</SelectItem>
-                  <SelectItem value="America/Cancun">Cancún (GMT-5)</SelectItem>
+                  <SelectItem value="America/Mexico_City">{t('regional.timezoneMexicoCity')}</SelectItem>
+                  <SelectItem value="America/Tijuana">{t('regional.timezoneTijuana')}</SelectItem>
+                  <SelectItem value="America/Cancun">{t('regional.timezoneCancun')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="language">Idioma</Label>
+              <Label htmlFor="language">{t('regional.language')}</Label>
               <Select defaultValue="es">
                 <SelectTrigger id="language">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="es">Español</SelectItem>
-                  <SelectItem value="en">English</SelectItem>
+                  <SelectItem value="es">{t('regional.languageEs')}</SelectItem>
+                  <SelectItem value="en">{t('regional.languageEn')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="country">País</Label>
+              <Label htmlFor="country">{t('regional.country')}</Label>
               <Select defaultValue="MX">
                 <SelectTrigger id="country">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="MX">México</SelectItem>
-                  <SelectItem value="US">Estados Unidos</SelectItem>
+                  <SelectItem value="MX">{t('regional.countryMX')}</SelectItem>
+                  <SelectItem value="US">{t('regional.countryUS')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -330,7 +332,7 @@ export default function ConfiguracionAdmin() {
             className="bg-[#D4AF37] hover:bg-[#B8941E] text-white"
           >
             <Save className="mr-2 h-5 w-5" />
-            {isSaving ? "Guardando..." : "Guardar Todos los Cambios"}
+            {isSaving ? t('saving') : t('saveAllChanges')}
           </Button>
         </div>
       </div>

@@ -1,34 +1,38 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from "lucide-react";
 
-const navigation = {
-  tienda: [
-    { name: "Anillos", href: "/rings" },
-    { name: "Collares", href: "/necklaces" },
-    { name: "Aretes", href: "/earrings" },
-    { name: "Pulseras", href: "/bracelets" },
-  ],
-  empresa: [
-    { name: "Nosotros", href: "/about" },
-    { name: "Contacto", href: "/contact" },
-    { name: "Blog", href: "/blog" },
-    { name: "Catálogo", href: "/catalog" },
-  ],
-  servicio: [
-    { name: "Envíos", href: "/shipping" },
-    { name: "Garantía", href: "/warranty" },
-    { name: "Cuidados", href: "/care" },
-    { name: "FAQ", href: "/faq" },
-  ],
-  legal: [
-    { name: "Política de privacidad", href: "/privacy" },
-    { name: "Términos y condiciones", href: "/terms" },
-    { name: "Política de cookies", href: "/privacy#cookies" },
-  ],
-};
-
 const Footer = () => {
+  const t = useTranslations("footer");
+  
+  const navigation = {
+    tienda: [
+      { name: t("shop.rings"), href: "/rings" },
+      { name: t("shop.necklaces"), href: "/necklaces" },
+      { name: t("shop.earrings"), href: "/earrings" },
+      { name: t("shop.bracelets"), href: "/bracelets" },
+    ],
+    empresa: [
+      { name: t("company.about"), href: "/about" },
+      { name: t("company.contact"), href: "/contact" },
+      { name: t("company.blog"), href: "/blog" },
+      { name: t("company.catalog"), href: "/catalog" },
+    ],
+    servicio: [
+      { name: t("service.shipping"), href: "/shipping" },
+      { name: t("service.warranty"), href: "/warranty" },
+      { name: t("service.care"), href: "/care" },
+      { name: t("service.faq"), href: "/faq" },
+    ],
+    legal: [
+      { name: t("legal.privacy"), href: "/privacy" },
+      { name: t("legal.terms"), href: "/terms" },
+      { name: t("legal.cookies"), href: "/privacy#cookies" },
+    ],
+  };
   return (
     <footer className="bg-muted" aria-labelledby="footer-heading">
       <h2 id="footer-heading" className="sr-only">
@@ -46,7 +50,7 @@ const Footer = () => {
                 className="h-16 w-auto md:h-20"
               />
               <p className="mt-4 text-sm text-muted-foreground">
-                Elegancia y tradición jalisciense desde 1990
+                {t("tagline")}
               </p>
             </div>
             <div className="flex space-x-6">
@@ -98,7 +102,7 @@ const Footer = () => {
             <div className="md:grid md:grid-cols-2 md:gap-8">
               <div>
                 <h3 className="text-sm font-semibold text-foreground">
-                  Tienda
+                  {t("shop.title")}
                 </h3>
                 <ul role="list" className="mt-6 space-y-4">
                   {navigation.tienda.map((item) => (
@@ -115,7 +119,7 @@ const Footer = () => {
               </div>
               <div className="mt-10 md:mt-0">
                 <h3 className="text-sm font-semibold text-foreground">
-                  Empresa
+                  {t("company.title")}
                 </h3>
                 <ul role="list" className="mt-6 space-y-4">
                   {navigation.empresa.map((item) => (
@@ -134,7 +138,7 @@ const Footer = () => {
             <div className="md:grid md:grid-cols-2 md:gap-8">
               <div>
                 <h3 className="text-sm font-semibold text-foreground">
-                  Servicio al cliente
+                  {t("service.title")}
                 </h3>
                 <ul role="list" className="mt-6 space-y-4">
                   {navigation.servicio.map((item) => (
@@ -150,7 +154,7 @@ const Footer = () => {
                 </ul>
               </div>
               <div className="mt-10 md:mt-0">
-                <h3 className="text-sm font-semibold text-foreground">Legal</h3>
+                <h3 className="text-sm font-semibold text-foreground">{t("legal.title")}</h3>
                 <ul role="list" className="mt-6 space-y-4">
                   {navigation.legal.map((item) => (
                     <li key={item.name}>
@@ -169,8 +173,7 @@ const Footer = () => {
         </div>
         <div className="mt-16 border-t border-border pt-8 sm:mt-20 lg:mt-24">
           <p className="text-xs text-muted-foreground text-center">
-            &copy; {new Date().getFullYear()} Oro Nacional. Todos los derechos
-            reservados.
+            &copy; {new Date().getFullYear()} Oro Nacional. {t("copyright")}
           </p>
         </div>
       </div>

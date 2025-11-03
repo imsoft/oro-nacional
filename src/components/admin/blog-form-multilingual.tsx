@@ -155,7 +155,7 @@ export function BlogPostForm({ postId, initialData, onSuccess, onCancel }: BlogP
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Vista Previa del Post</h2>
+          <h2 className="text-2xl font-bold">{t('blog.preview')}</h2>
           <div className="flex items-center gap-2">
             <LanguageToggle 
               currentLocale={previewLocale} 
@@ -174,7 +174,7 @@ export function BlogPostForm({ postId, initialData, onSuccess, onCancel }: BlogP
           <article className="space-y-6">
             <header>
               <h1 className="text-3xl font-bold mb-4">
-                {formData.title[previewLocale] || "Sin título"}
+                {formData.title[previewLocale] || t('blog.noTitle')}
               </h1>
               
               {formData.excerpt[previewLocale] && (
@@ -184,10 +184,10 @@ export function BlogPostForm({ postId, initialData, onSuccess, onCancel }: BlogP
               )}
 
               <div className="flex items-center gap-4 text-sm text-gray-500">
-                <span>Estado: {formData.status === "published" ? "Publicado" : "Borrador"}</span>
+                <span>{t('blog.statusLabel')} {formData.status === "published" ? t('blog.published') : t('blog.draft')}</span>
                 {formData.category_id && (
                   <span>
-                    Categoría: {categories.find(c => c.id === formData.category_id)?.name[previewLocale]}
+                    {t('blog.categoryLabel')} {categories.find(c => c.id === formData.category_id)?.name[previewLocale]}
                   </span>
                 )}
               </div>
@@ -197,13 +197,13 @@ export function BlogPostForm({ postId, initialData, onSuccess, onCancel }: BlogP
 
             <div className="prose max-w-none">
               <div dangerouslySetInnerHTML={{ 
-                __html: formData.content[previewLocale]?.replace(/\n/g, '<br>') || "Sin contenido" 
+                __html: formData.content[previewLocale]?.replace(/\n/g, '<br>') || t('blog.noContent') 
               }} />
             </div>
 
             {selectedTags.length > 0 && (
               <div>
-                <h3 className="font-medium mb-2">Etiquetas:</h3>
+                <h3 className="font-medium mb-2">{t('blog.tags')}:</h3>
                 <div className="flex flex-wrap gap-2">
                   {selectedTags.map(tagId => {
                     const tag = tags.find(t => t.id === tagId);
@@ -226,7 +226,7 @@ export function BlogPostForm({ postId, initialData, onSuccess, onCancel }: BlogP
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">
-          {postId ? "Editar Post" : "Nuevo Post"}
+          {postId ? t('blog.editPost') : t('blog.newPost')}
         </h2>
         <div className="flex items-center gap-2">
           <LanguageToggle 
@@ -239,16 +239,16 @@ export function BlogPostForm({ postId, initialData, onSuccess, onCancel }: BlogP
             disabled={!formData.title.es || !formData.title.en}
           >
             <Eye className="w-4 h-4 mr-2" />
-            Vista Previa
+            {t('blog.preview')}
           </Button>
         </div>
       </div>
 
       <MultilingualForm onSubmit={handleSubmit}>
-        <MultilingualCard title="Información Básica">
+        <MultilingualCard title={t('blog.basicInfo')}>
           <div className="space-y-4">
             <MultilingualInput
-              label="Título del Post"
+              label={t('blog.postTitle')}
               value={formData.title}
               onChange={(value) => updateField("title", value)}
               placeholder={{ 
@@ -259,7 +259,7 @@ export function BlogPostForm({ postId, initialData, onSuccess, onCancel }: BlogP
             />
 
             <MultilingualInput
-              label="Resumen/Excerpt"
+              label={t('blog.excerpt')}
               value={formData.excerpt}
               onChange={(value) => updateField("excerpt", value)}
               placeholder={{ 
@@ -270,7 +270,7 @@ export function BlogPostForm({ postId, initialData, onSuccess, onCancel }: BlogP
             />
 
             <MultilingualInput
-              label="Contenido"
+              label={t('blog.content')}
               value={formData.content}
               onChange={(value) => updateField("content", value)}
               placeholder={{ 
@@ -283,10 +283,10 @@ export function BlogPostForm({ postId, initialData, onSuccess, onCancel }: BlogP
           </div>
         </MultilingualCard>
 
-        <MultilingualCard title="Configuración">
+        <MultilingualCard title={t('blog.settings')}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="category">Categoría</Label>
+              <Label htmlFor="category">{t('blog.category')}</Label>
               <Select 
                 value={formData.category_id} 
                 onValueChange={(value) => {
@@ -295,7 +295,7 @@ export function BlogPostForm({ postId, initialData, onSuccess, onCancel }: BlogP
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar categoría" />
+                  <SelectValue placeholder={t('blog.selectCategory')} />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((category) => (
@@ -308,7 +308,7 @@ export function BlogPostForm({ postId, initialData, onSuccess, onCancel }: BlogP
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="status">Estado</Label>
+              <Label htmlFor="status">{t('blog.status')}</Label>
               <Select 
                 value={formData.status} 
                 onValueChange={(value) => {
@@ -320,18 +320,18 @@ export function BlogPostForm({ postId, initialData, onSuccess, onCancel }: BlogP
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="draft">Borrador</SelectItem>
-                  <SelectItem value="published">Publicado</SelectItem>
+                  <SelectItem value="draft">{t('blog.draft')}</SelectItem>
+                  <SelectItem value="published">{t('blog.published')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
         </MultilingualCard>
 
-        <MultilingualCard title="Etiquetas">
+        <MultilingualCard title={t('blog.tags')}>
           <div className="space-y-4">
             <div>
-              <Label>Etiquetas Disponibles</Label>
+              <Label>{t('blog.availableTags')}</Label>
               <div className="flex flex-wrap gap-2 mt-2">
                 {tags.map((tag) => (
                   <Badge
@@ -350,7 +350,7 @@ export function BlogPostForm({ postId, initialData, onSuccess, onCancel }: BlogP
             </div>
 
             <div>
-              <Label>Etiquetas Seleccionadas</Label>
+              <Label>{t('blog.selectedTags')}</Label>
               <div className="flex flex-wrap gap-2 mt-2">
                 {selectedTags.map(tagId => {
                   const tag = tags.find(t => t.id === tagId);
@@ -365,10 +365,10 @@ export function BlogPostForm({ postId, initialData, onSuccess, onCancel }: BlogP
 
             {/* TODO: Implementar creación de nuevas etiquetas */}
             <div className="border-t pt-4">
-              <Label>Crear Nueva Etiqueta</Label>
+              <Label>{t('blog.createNewTag')}</Label>
               <div className="mt-2">
                 <MultilingualInput
-                  label="Nombre de la etiqueta"
+                  label={t('blog.tagName')}
                   value={{ es: "", en: "" }}
                   onChange={(value) => {
                     // TODO: Implementar creación de etiqueta
@@ -386,7 +386,7 @@ export function BlogPostForm({ postId, initialData, onSuccess, onCancel }: BlogP
                   }}
                 >
                   <Plus className="w-4 h-4 mr-2" />
-                  Crear Etiqueta
+                  {t('blog.createTag')}
                 </Button>
               </div>
             </div>
@@ -398,12 +398,12 @@ export function BlogPostForm({ postId, initialData, onSuccess, onCancel }: BlogP
         <div className="flex items-center justify-end gap-4">
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
           )}
           <Button type="submit" disabled={isLoading}>
             <Save className="w-4 h-4 mr-2" />
-            {isLoading ? "Guardando..." : "Guardar Post"}
+            {isLoading ? t('blog.saving') : t('blog.savePost')}
           </Button>
         </div>
       </MultilingualForm>
