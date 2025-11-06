@@ -759,3 +759,41 @@ export async function updateCategory(
     throw error;
   }
 }
+
+/**
+ * Eliminar una categoría de producto
+ */
+export async function deleteProductCategory(categoryId: string) {
+  try {
+    // Verificar si hay productos usando esta categoría
+    const { data: products, error: checkError } = await supabase
+      .from("products")
+      .select("id")
+      .eq("category_id", categoryId)
+      .limit(1);
+
+    if (checkError) {
+      console.error("Error checking products:", checkError);
+      throw checkError;
+    }
+
+    if (products && products.length > 0) {
+      throw new Error("Cannot delete category: there are products using this category");
+    }
+
+    const { error } = await supabase
+      .from("product_categories")
+      .delete()
+      .eq("id", categoryId);
+
+    if (error) {
+      console.error("Error deleting product category:", error);
+      throw error;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error in deleteProductCategory:", error);
+    throw error;
+  }
+}
