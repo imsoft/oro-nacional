@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Menu, ShoppingCart, LogOut, Package, Settings, Heart, UserCircle } from "lucide-react";
 import { Link } from '@/i18n/routing';
 import { LanguageSwitcher } from './language-switcher';
@@ -28,18 +29,19 @@ import { useAuthStore } from "@/stores/auth-store";
 import { useCartStore } from "@/stores/cart-store";
 import { useFavoritesStore } from "@/stores/favorites-store";
 
-const navigation = [
-  { name: "Catálogo", href: "/catalog" },
-  { name: "Nosotros", href: "/about" },
-  { name: "Blog", href: "/blog" },
-  { name: "Contacto", href: "/contact" },
-];
-
 const Navbar = () => {
+  const t = useTranslations("nav");
   const [isOpen, setIsOpen] = useState(false);
   const { user, isAuthenticated, isAdmin, logout } = useAuthStore();
   const itemCount = useCartStore((state) => state.getItemCount());
   const favoriteCount = useFavoritesStore((state) => state.getFavoriteCount());
+
+  const navigation = [
+    { name: t("catalog"), href: "/catalog" },
+    { name: t("about"), href: "/about" },
+    { name: t("blog"), href: "/blog" },
+    { name: t("contact"), href: "/contact" },
+  ];
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 animate-[fade-in-down_0.8s_ease-out]">
@@ -49,7 +51,7 @@ const Navbar = () => {
       >
         <div className="flex lg:flex-1">
           <Link href="/" className="-m-1.5 p-1.5">
-            <span className="sr-only">Oro Nacional</span>
+            <span className="sr-only">{t("companyName")}</span>
             <Image
               alt="Logo Oro Nacional - Joyería Elegante en Jalisco"
               src="/logos/logo-oro-nacional.png"
@@ -69,7 +71,7 @@ const Navbar = () => {
                 size="icon"
                 className="text-muted-foreground"
               >
-                <span className="sr-only">Open main menu</span>
+                <span className="sr-only">{t("openMenu")}</span>
                 <Menu className="size-6" />
               </Button>
             </SheetTrigger>
@@ -79,7 +81,7 @@ const Navbar = () => {
                   <LanguageSwitcher />
                 </div>
                 <Link href="/" className="flex justify-center" onClick={() => setIsOpen(false)}>
-                  <span className="sr-only">Oro Nacional</span>
+                  <span className="sr-only">{t("companyName")}</span>
                   <Image
                     alt="Logo Oro Nacional - Joyería Elegante en Jalisco"
                     src="/logos/logo-oro-nacional.png"
@@ -109,7 +111,7 @@ const Navbar = () => {
                       onClick={() => setIsOpen(false)}
                       className="-mx-3 flex items-center justify-between rounded-lg px-3 py-2.5 text-base font-semibold text-foreground hover:bg-accent"
                     >
-                      <span>Carrito</span>
+                      <span>{t("cart")}</span>
                       {itemCount > 0 && (
                         <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-[#D4AF37] rounded-full">
                           {itemCount}
@@ -124,7 +126,7 @@ const Navbar = () => {
                             onClick={() => setIsOpen(false)}
                             className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold text-[#D4AF37] hover:bg-accent"
                           >
-                            Panel de Administración
+                            {t("admin")}
                           </Link>
                         )}
                         <Link
@@ -132,21 +134,21 @@ const Navbar = () => {
                           onClick={() => setIsOpen(false)}
                           className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold text-foreground hover:bg-accent"
                         >
-                          Mi Perfil
+                          {t("profile")}
                         </Link>
                         <Link
                           href="/my-orders"
                           onClick={() => setIsOpen(false)}
                           className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold text-foreground hover:bg-accent"
                         >
-                          Mis Pedidos
+                          {t("myOrders")}
                         </Link>
                         <Link
                           href="/favorites"
                           onClick={() => setIsOpen(false)}
                           className="-mx-3 flex items-center justify-between rounded-lg px-3 py-2.5 text-base font-semibold text-foreground hover:bg-accent"
                         >
-                          <span>Favoritos</span>
+                          <span>{t("favorites")}</span>
                           {favoriteCount > 0 && (
                             <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-[#D4AF37] rounded-full">
                               {favoriteCount}
@@ -160,7 +162,7 @@ const Navbar = () => {
                           }}
                           className="-mx-3 w-full text-left block rounded-lg px-3 py-2.5 text-base font-semibold text-red-600 hover:bg-accent"
                         >
-                          Cerrar Sesión
+                          {t("logout")}
                         </button>
                       </>
                     ) : (
@@ -170,14 +172,14 @@ const Navbar = () => {
                           onClick={() => setIsOpen(false)}
                           className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold text-foreground hover:bg-accent"
                         >
-                          Iniciar Sesión
+                          {t("login")}
                         </Link>
                         <Link
                           href="/register"
                           onClick={() => setIsOpen(false)}
                           className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold text-[#D4AF37] hover:bg-accent"
                         >
-                          Crear Cuenta
+                          {t("createAccount")}
                         </Link>
                       </>
                     )}
@@ -210,7 +212,7 @@ const Navbar = () => {
             className="relative text-sm/6 font-semibold text-foreground hover:text-[#D4AF37] transition-colors flex items-center gap-2"
           >
             <ShoppingCart className="h-5 w-5" />
-            <span>Carrito</span>
+            <span>{t("cart")}</span>
             {itemCount > 0 && (
               <span className="absolute -top-2 -right-2 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-[#D4AF37] rounded-full">
                 {itemCount}
@@ -260,7 +262,7 @@ const Navbar = () => {
                     <DropdownMenuItem asChild>
                       <Link href="/admin" className="flex items-center cursor-pointer">
                         <Settings className="mr-2 h-4 w-4" />
-                        <span>Panel de Administración</span>
+                        <span>{t("admin")}</span>
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -269,20 +271,20 @@ const Navbar = () => {
                 <DropdownMenuItem asChild>
                   <Link href="/profile" className="flex items-center cursor-pointer">
                     <UserCircle className="mr-2 h-4 w-4" />
-                    <span>Mi Perfil</span>
+                    <span>{t("profile")}</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/my-orders" className="flex items-center cursor-pointer">
                     <Package className="mr-2 h-4 w-4" />
-                    <span>Mis Pedidos</span>
+                    <span>{t("myOrders")}</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/favorites" className="flex items-center cursor-pointer">
                     <Heart className="mr-2 h-4 w-4" />
                     <span className="flex items-center justify-between w-full">
-                      Favoritos
+                      {t("favorites")}
                       {favoriteCount > 0 && (
                         <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-[#D4AF37] rounded-full">
                           {favoriteCount}
@@ -297,7 +299,7 @@ const Navbar = () => {
                   className="text-red-600 focus:text-red-600 cursor-pointer"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
-                  <span>Cerrar Sesión</span>
+                  <span>{t("logout")}</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -307,13 +309,13 @@ const Navbar = () => {
                 href="/login"
                 className="text-sm/6 font-semibold text-foreground hover:text-[#D4AF37] transition-colors"
               >
-                Iniciar Sesión
+                {t("login")}
               </Link>
               <Link
                 href="/register"
                 className="rounded-md bg-[#D4AF37] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#B8941E] transition-colors"
               >
-                Crear Cuenta
+                {t("createAccount")}
               </Link>
             </div>
           )}

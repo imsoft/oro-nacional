@@ -1,30 +1,33 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const CatalogFilters = () => {
+  const t = useTranslations("catalog");
+
   const categories = [
-    { id: "anillos", label: "Anillos de Oro" },
-    { id: "collares", label: "Collares de Oro" },
-    { id: "aretes", label: "Aretes de Oro" },
-    { id: "pulseras", label: "Pulseras de Oro" },
+    { id: "anillos", label: t("categoryRings") },
+    { id: "collares", label: t("categoryNecklaces") },
+    { id: "aretes", label: t("categoryEarrings") },
+    { id: "pulseras", label: t("categoryBracelets") },
   ];
 
   const materials = [
-    { id: "oro-14k", label: "Oro 14k" },
-    { id: "oro-18k", label: "Oro 18k" },
-    { id: "oro-blanco", label: "Oro Blanco" },
-    { id: "oro-amarillo", label: "Oro Amarillo" },
-    { id: "oro-rosa", label: "Oro Rosa" },
+    { id: "oro-14k", label: t("material14k") },
+    { id: "oro-18k", label: t("material18k") },
+    { id: "oro-blanco", label: t("materialWhite") },
+    { id: "oro-amarillo", label: t("materialYellow") },
+    { id: "oro-rosa", label: t("materialRose") },
   ];
 
   return (
     <aside className="w-full lg:w-64 space-y-8">
       <div className="rounded-2xl bg-card p-6 shadow-sm">
         <h3 className="text-lg font-semibold text-foreground mb-4">
-          Categorías
+          {t("categories")}
         </h3>
         <div className="space-y-3">
           {categories.map((category) => (
@@ -43,7 +46,7 @@ const CatalogFilters = () => {
 
       <div className="rounded-2xl bg-card p-6 shadow-sm">
         <h3 className="text-lg font-semibold text-foreground mb-4">
-          Material
+          {t("material")}
         </h3>
         <div className="space-y-3">
           {materials.map((material) => (
@@ -62,7 +65,7 @@ const CatalogFilters = () => {
 
       <div className="rounded-2xl bg-card p-6 shadow-sm">
         <h3 className="text-lg font-semibold text-foreground mb-4">
-          Rango de Precio
+          {t("priceRange")}
         </h3>
         <div className="space-y-4">
           <Slider
@@ -80,10 +83,10 @@ const CatalogFilters = () => {
 
       <div className="rounded-2xl bg-card p-6 shadow-sm">
         <button className="w-full bg-[#D4AF37] hover:bg-[#B8941E] text-white font-medium py-2 px-4 rounded-lg transition-colors duration-300">
-          Aplicar Filtros
+          {t("applyFilters")}
         </button>
         <button className="w-full mt-2 text-sm text-muted-foreground hover:text-foreground transition-colors duration-300">
-          Limpiar filtros
+          {t("clearFilters")}
         </button>
       </div>
     </aside>

@@ -1,59 +1,57 @@
+"use client";
+
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Shield, Award, CheckCircle2, FileCheck, Infinity, Star } from "lucide-react";
 
-const certifications = [
-  {
-    icon: Shield,
-    title: "Certificado de Autenticidad",
-    description:
-      "Cada pieza incluye un certificado que garantiza la pureza del oro (14k o 18k) y la autenticidad de las piedras preciosas.",
-  },
-  {
-    icon: Award,
-    title: "Garantía de Por Vida",
-    description:
-      "Ofrecemos garantía de por vida en manufactura y acabados. Reparaciones sin costo por defectos de fabricación.",
-  },
-  {
-    icon: FileCheck,
-    title: "Certificación de Diamantes",
-    description:
-      "Todos nuestros diamantes cuentan con certificación internacional que valida su calidad, corte y características.",
-  },
-  {
-    icon: Infinity,
-    title: "Mantenimiento Gratuito",
-    description:
-      "Limpieza, pulido y revisión profesional sin costo durante toda la vida útil de tu joya.",
-  },
-  {
-    icon: Star,
-    title: "Oro Ético y Responsable",
-    description:
-      "Trabajamos únicamente con proveedores certificados que garantizan prácticas éticas y sostenibles en la minería.",
-  },
-  {
-    icon: CheckCircle2,
-    title: "Política de Satisfacción",
-    description:
-      "30 días para cambios o devoluciones. Tu satisfacción es nuestra prioridad número uno.",
-  },
-];
-
 const Certifications = () => {
+  const t = useTranslations("about");
+
+  const certifications = [
+    {
+      icon: Shield,
+      title: t("cert1Title"),
+      description: t("cert1Description"),
+    },
+    {
+      icon: Award,
+      title: t("cert2Title"),
+      description: t("cert2Description"),
+    },
+    {
+      icon: FileCheck,
+      title: t("cert3Title"),
+      description: t("cert3Description"),
+    },
+    {
+      icon: Infinity,
+      title: t("cert4Title"),
+      description: t("cert4Description"),
+    },
+    {
+      icon: Star,
+      title: t("cert5Title"),
+      description: t("cert5Description"),
+    },
+    {
+      icon: CheckCircle2,
+      title: t("cert6Title"),
+      description: t("cert6Description"),
+    },
+  ];
+
   return (
     <section className="py-24 sm:py-32 bg-muted/30">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-semibold text-[#D4AF37] uppercase tracking-wide">
-            Calidad Garantizada
+            {t("qualityGuaranteed")}
           </p>
           <h2 className="mt-2 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-            Certificaciones y Garantías
+            {t("certificationsTitle")}
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Tu confianza es nuestro mayor tesoro. Respaldamos cada pieza con
-            certificaciones y garantías que aseguran tu inversión.
+            {t("certificationsDescription")}
           </p>
         </div>
 
@@ -82,7 +80,7 @@ const Certifications = () => {
           <div className="relative aspect-[4/3] overflow-hidden rounded-2xl">
             <Image
               src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80"
-              alt="Certificados de autenticidad Oro Nacional"
+              alt={t("certificatesImageAlt")}
               fill
               className="object-cover"
             />
@@ -90,7 +88,7 @@ const Certifications = () => {
 
           <div className="space-y-6">
             <h3 className="text-2xl font-semibold text-foreground">
-              Compromiso con la Excelencia
+              {t("excellenceCommitment")}
             </h3>
 
             <div className="space-y-4">
@@ -102,11 +100,10 @@ const Certifications = () => {
                 </div>
                 <div>
                   <p className="font-semibold text-foreground">
-                    Verificación de Pureza
+                    {t("excellence1Title")}
                   </p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Análisis de espectrometría para verificar la pureza exacta del
-                    oro en cada pieza que fabricamos.
+                    {t("excellence1Description")}
                   </p>
                 </div>
               </div>
@@ -119,11 +116,10 @@ const Certifications = () => {
                 </div>
                 <div>
                   <p className="font-semibold text-foreground">
-                    Trazabilidad Completa
+                    {t("excellence2Title")}
                   </p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Registramos el origen de todos nuestros materiales y el proceso
-                    de elaboración de cada joya.
+                    {t("excellence2Description")}
                   </p>
                 </div>
               </div>
@@ -136,11 +132,10 @@ const Certifications = () => {
                 </div>
                 <div>
                   <p className="font-semibold text-foreground">
-                    Seguro de Envío Incluido
+                    {t("excellence3Title")}
                   </p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Todos nuestros envíos están completamente asegurados contra
-                    pérdida, robo o daño durante el transporte.
+                    {t("excellence3Description")}
                   </p>
                 </div>
               </div>
@@ -153,11 +148,10 @@ const Certifications = () => {
                 </div>
                 <div>
                   <p className="font-semibold text-foreground">
-                    Valuación Profesional
+                    {t("excellence4Title")}
                   </p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Ofrecemos servicio de valuación profesional para efectos de
-                    seguro sin costo adicional.
+                    {t("excellence4Description")}
                   </p>
                 </div>
               </div>
@@ -168,14 +162,14 @@ const Certifications = () => {
         {/* Call to action */}
         <div className="mt-16 text-center">
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-            ¿Tienes preguntas sobre nuestras garantías o certificaciones?{" "}
+            {t("certificationsQuestion")}{" "}
             <a
               href="#"
               className="font-semibold text-[#D4AF37] hover:text-[#B8941E] transition-colors"
             >
-              Contáctanos
+              {t("contactUs")}
             </a>{" "}
-            y con gusto te atenderemos.
+            {t("contactUsText")}
           </p>
         </div>
       </div>

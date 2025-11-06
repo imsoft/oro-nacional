@@ -58,33 +58,33 @@ const Footer = () => {
                 href="#"
                 className="text-muted-foreground transition-colors hover:text-foreground"
               >
-                <span className="sr-only">Facebook</span>
+                <span className="sr-only">{t("social.facebook")}</span>
                 <Facebook className="h-6 w-6" />
               </Link>
               <Link
                 href="#"
                 className="text-muted-foreground transition-colors hover:text-foreground"
               >
-                <span className="sr-only">Instagram</span>
+                <span className="sr-only">{t("social.instagram")}</span>
                 <Instagram className="h-6 w-6" />
               </Link>
               <Link
                 href="#"
                 className="text-muted-foreground transition-colors hover:text-foreground"
               >
-                <span className="sr-only">Twitter</span>
+                <span className="sr-only">{t("social.twitter")}</span>
                 <Twitter className="h-6 w-6" />
               </Link>
             </div>
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <MapPin className="h-4 w-4" />
-                <span>Guadalajara, Jalisco, México</span>
+                <span>{t("location")}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Phone className="h-4 w-4" />
                 <Link href="tel:+523312345678" className="hover:text-foreground">
-                  +52 33 1234 5678
+                  {t("phoneNumber")}
                 </Link>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -93,7 +93,7 @@ const Footer = () => {
                   href="mailto:contacto@oronacional.com"
                   className="hover:text-foreground"
                 >
-                  contacto@oronacional.com
+                  {t("emailAddress")}
                 </Link>
               </div>
             </div>

@@ -1,17 +1,20 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { MapPin } from "lucide-react";
 
 const LocationMap = () => {
+  const t = useTranslations('contact');
+  
   return (
     <section className="py-16 lg:py-24">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-semibold text-foreground">
-            Visítanos en Nuestra Tienda
+            {t('visitStoreTitle')}
           </h2>
           <p className="mt-2 text-lg text-muted-foreground">
-            Estamos ubicados en el corazón de Guadalajara, Jalisco
+            {t('visitStoreDescription')}
           </p>
         </div>
 
@@ -26,7 +29,7 @@ const LocationMap = () => {
               allowFullScreen
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
-              title="Ubicación de Oro Nacional en Guadalajara"
+              title={t('storeName')}
             />
           </div>
 
@@ -38,10 +41,10 @@ const LocationMap = () => {
               </div>
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-foreground">
-                  Oro Nacional - Joyería Fina
+                  {t('storeName')}
                 </h3>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Av. Chapultepec 234, Col. Americana, Guadalajara, Jalisco 44160
+                  {t('storeAddress')}
                 </p>
                 <div className="mt-4 flex flex-wrap gap-3">
                   <a
@@ -51,7 +54,7 @@ const LocationMap = () => {
                     className="inline-flex items-center gap-2 rounded-lg bg-[#D4AF37] px-4 py-2 text-sm font-medium text-white hover:bg-[#B8941E] transition-colors"
                   >
                     <MapPin className="h-4 w-4" />
-                    Cómo llegar
+                    {t('getDirections')}
                   </a>
                 </div>
               </div>
@@ -60,31 +63,31 @@ const LocationMap = () => {
             {/* Instrucciones de acceso */}
             <div className="mt-6 pt-6 border-t border-border">
               <h4 className="font-semibold text-foreground mb-3">
-                Información de Acceso
+                {t('accessInfo')}
               </h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
                   <span className="text-[#D4AF37] mt-0.5">•</span>
                   <span>
-                    Estacionamiento disponible en la parte trasera del edificio
+                    {t('accessInfo1')}
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-[#D4AF37] mt-0.5">•</span>
                   <span>
-                    Acceso para personas con movilidad reducida
+                    {t('accessInfo2')}
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-[#D4AF37] mt-0.5">•</span>
                   <span>
-                    A 5 minutos caminando de la estación del tren ligero Chapultepec
+                    {t('accessInfo3')}
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-[#D4AF37] mt-0.5">•</span>
                   <span>
-                    Zona segura con vigilancia las 24 horas
+                    {t('accessInfo4')}
                   </span>
                 </li>
               </ul>

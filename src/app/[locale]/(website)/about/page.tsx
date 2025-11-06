@@ -18,12 +18,12 @@ const NosotrosPage = () => {
       {/* Hero Section */}
       <section className="relative isolate overflow-hidden bg-background py-24 sm:py-32 pt-32 sm:pt-44">
         <div className="absolute inset-0 -z-10">
-          <Image
-            src="https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?ixlib=rb-4.0.3&auto=format&fit=crop&w=2832&q=80"
-            alt="Taller de joyería Oro Nacional en Guadalajara, Jalisco"
-            fill
-            className="object-cover brightness-[0.3]"
-          />
+            <Image
+              src="https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?ixlib=rb-4.0.3&auto=format&fit=crop&w=2832&q=80"
+              alt={t("workshopImageAlt")}
+              fill
+              className="object-cover brightness-[0.3]"
+            />
         </div>
         <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/80 via-black/50 to-black/80" />
 

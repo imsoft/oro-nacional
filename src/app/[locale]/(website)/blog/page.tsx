@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { BookOpen, Calendar, Clock, Loader2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -13,7 +13,8 @@ import type { BlogPostCard, BlogCategory } from "@/types/blog";
 const BlogPage = () => {
   const t = useTranslations('blog');
   const tCommon = useTranslations('common');
-  const [selectedCategory, setSelectedCategory] = useState("Todos");
+  const locale = useLocale();
+  const [selectedCategory, setSelectedCategory] = useState(t('all'));
   const [posts, setPosts] = useState<BlogPostCard[]>([]);
   const [categories, setCategories] = useState<BlogCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -22,6 +23,11 @@ const BlogPage = () => {
   useEffect(() => {
     loadData();
   }, []);
+
+  // Actualizar selectedCategory cuando cambie el locale
+  useEffect(() => {
+    setSelectedCategory(t('all'));
+  }, [locale, t]);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -40,7 +46,7 @@ const BlogPage = () => {
   };
 
   // Filtrar posts por categoría
-  const filteredPosts = selectedCategory === "Todos"
+  const filteredPosts = selectedCategory === t('all')
     ? posts
     : posts.filter((post) => post.category_name === selectedCategory);
 
@@ -69,9 +75,9 @@ const BlogPage = () => {
           {/* Categorías */}
           <div className="mb-8 flex flex-wrap gap-3 justify-center">
             <button
-              onClick={() => setSelectedCategory("Todos")}
+              onClick={() => setSelectedCategory(t('all'))}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                selectedCategory === "Todos"
+                selectedCategory === t('all')
                   ? "bg-[#D4AF37] text-white"
                   : "bg-muted text-muted-foreground hover:bg-muted/80"
               }`}
@@ -148,7 +154,7 @@ const BlogPage = () => {
                           <div className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
                             <span>
-                              {new Date(post.published_at).toLocaleDateString("es-MX", {
+                              {new Date(post.published_at).toLocaleDateString(locale === 'es' ? "es-MX" : "en-US", {
                                 year: "numeric",
                                 month: "short",
                                 day: "numeric",
@@ -166,7 +172,7 @@ const BlogPage = () => {
                       {post.author_name && (
                         <div className="mt-4 pt-4 border-t border-border">
                           <p className="text-xs text-muted-foreground">
-                            Por <span className="font-medium">{post.author_name}</span>
+                            {t('by')} <span className="font-medium">{post.author_name}</span>
                           </p>
                         </div>
                       )}
@@ -192,24 +198,23 @@ const BlogPage = () => {
       <section className="py-16 bg-muted/30">
         <div className="mx-auto max-w-3xl px-6 lg:px-8 text-center">
           <h2 className="text-2xl font-semibold text-foreground mb-4">
-            Suscríbete a Nuestro Newsletter
+            {t('newsletterTitle')}
           </h2>
           <p className="text-muted-foreground mb-6">
-            Recibe consejos exclusivos, tendencias y ofertas especiales
-            directamente en tu correo.
+            {t('newsletterDescription')}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
             <input
               type="email"
-              placeholder="tu@email.com"
+              placeholder={t('newsletterPlaceholder')}
               className="flex-1 px-4 py-3 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
             />
             <button className="px-6 py-3 rounded-lg bg-[#D4AF37] hover:bg-[#B8941E] text-white font-medium transition-colors whitespace-nowrap">
-              Suscribirme
+              {t('newsletterButton')}
             </button>
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            No spam. Cancela cuando quieras.
+            {t('newsletterDisclaimer')}
           </p>
         </div>
       </section>

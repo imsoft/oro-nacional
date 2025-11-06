@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Search, Grid3x3, List, SlidersHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -28,15 +29,17 @@ const CatalogHeader = ({
   totalProducts,
   onToggleMobileFilters,
 }: CatalogHeaderProps) => {
+  const t = useTranslations("catalog");
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div>
           <h1 className="text-3xl font-semibold text-foreground">
-            Catálogo de Joyería de Oro
+            {t("pageTitle")}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {totalProducts} productos disponibles
+            {totalProducts} {t("productsAvailable")}
           </p>
         </div>
 
@@ -73,7 +76,7 @@ const CatalogHeader = ({
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Buscar anillos, collares, aretes..."
+            placeholder={t("searchPlaceholder")}
             className="pl-10 pr-4"
             onChange={(e) => onSearch?.(e.target.value)}
           />
@@ -81,14 +84,14 @@ const CatalogHeader = ({
 
         <Select onValueChange={onSort}>
           <SelectTrigger className="w-full sm:w-[200px]">
-            <SelectValue placeholder="Ordenar por" />
+            <SelectValue placeholder={t("sortBy")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="featured">Destacados</SelectItem>
-            <SelectItem value="price-asc">Precio: Menor a Mayor</SelectItem>
-            <SelectItem value="price-desc">Precio: Mayor a Menor</SelectItem>
-            <SelectItem value="newest">Más Recientes</SelectItem>
-            <SelectItem value="name">Nombre A-Z</SelectItem>
+            <SelectItem value="featured">{t("sortFeatured")}</SelectItem>
+            <SelectItem value="price-asc">{t("sortPriceAsc")}</SelectItem>
+            <SelectItem value="price-desc">{t("sortPriceDesc")}</SelectItem>
+            <SelectItem value="newest">{t("sortNewest")}</SelectItem>
+            <SelectItem value="name">{t("sortName")}</SelectItem>
           </SelectContent>
         </Select>
 
@@ -98,7 +101,7 @@ const CatalogHeader = ({
           onClick={onToggleMobileFilters}
         >
           <SlidersHorizontal className="h-5 w-5 mr-2" />
-          Filtros
+          {t("filters")}
         </Button>
       </div>
     </div>

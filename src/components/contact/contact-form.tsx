@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Send, Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,7 @@ import { createContactMessage } from "@/lib/supabase/contact";
 
 const ContactForm = () => {
   const locale = useLocale() as 'es' | 'en';
+  const t = useTranslations('contact');
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -70,10 +71,7 @@ const ContactForm = () => {
 
       setSubmitStatus({
         type: "success",
-        message:
-          locale === 'es'
-            ? "¡Gracias por contactarnos! Hemos recibido tu mensaje y te responderemos en un plazo máximo de 24 horas."
-            : "Thank you for contacting us! We have received your message and will respond within 24 hours.",
+        message: t('successMessage'),
       });
       // Reset form
       setFormData({
@@ -86,11 +84,7 @@ const ContactForm = () => {
     } else {
       setSubmitStatus({
         type: "error",
-        message:
-          result.error ||
-          (locale === 'es'
-            ? "Hubo un error al enviar tu mensaje. Por favor, intenta de nuevo o contáctanos por WhatsApp."
-            : "There was an error sending your message. Please try again or contact us via WhatsApp."),
+        message: result.error || t('errorMessage'),
       });
     }
 
@@ -106,11 +100,10 @@ const ContactForm = () => {
     <div className="rounded-2xl bg-card p-8 lg:p-10 shadow-lg">
       <div className="mb-8">
         <h2 className="text-2xl font-semibold text-foreground">
-          Envíanos un Mensaje
+          {t('sendMessageTitle')}
         </h2>
         <p className="mt-2 text-muted-foreground">
-          Completa el formulario y nos pondremos en contacto contigo lo antes
-          posible.
+          {t('sendMessageDescription')}
         </p>
       </div>
 
@@ -135,12 +128,12 @@ const ContactForm = () => {
         {/* Nombre */}
         <div className="space-y-2">
           <Label htmlFor="name">
-            Nombre completo <span className="text-red-500">*</span>
+            {t('name')} <span className="text-red-500">*</span>
           </Label>
           <Input
             id="name"
             type="text"
-            placeholder="Juan Pérez"
+            placeholder={t('namePlaceholder')}
             required
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -152,12 +145,12 @@ const ContactForm = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="email">
-              Email <span className="text-red-500">*</span>
+              {t('email')} <span className="text-red-500">*</span>
             </Label>
             <Input
               id="email"
               type="email"
-              placeholder="juan@ejemplo.com"
+              placeholder={t('emailPlaceholder')}
               required
               value={formData.email}
               onChange={(e) =>
@@ -168,11 +161,11 @@ const ContactForm = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="phone">Teléfono</Label>
+            <Label htmlFor="phone">{t('phone')}</Label>
             <Input
               id="phone"
               type="tel"
-              placeholder="33 1234 5678"
+              placeholder={t('phonePlaceholder')}
               value={formData.phone}
               onChange={(e) =>
                 setFormData({ ...formData, phone: e.target.value })
@@ -185,7 +178,7 @@ const ContactForm = () => {
         {/* Asunto */}
         <div className="space-y-2">
           <Label htmlFor="subject">
-            Asunto <span className="text-red-500">*</span>
+            {t('subject')} <span className="text-red-500">*</span>
           </Label>
           <Select
             value={formData.subject}
@@ -196,20 +189,20 @@ const ContactForm = () => {
             disabled={isLoading}
           >
             <SelectTrigger id="subject">
-              <SelectValue placeholder="Selecciona un asunto" />
+              <SelectValue placeholder={t('subjectPlaceholder')} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="anillos-compromiso">
-                Anillos de Compromiso
+                {t('subjectOption1')}
               </SelectItem>
               <SelectItem value="diseno-personalizado">
-                Diseño Personalizado
+                {t('subjectOption2')}
               </SelectItem>
-              <SelectItem value="cotizacion">Solicitar Cotización</SelectItem>
-              <SelectItem value="reparacion">Reparación/Mantenimiento</SelectItem>
-              <SelectItem value="garantia">Garantía</SelectItem>
-              <SelectItem value="envio">Información de Envío</SelectItem>
-              <SelectItem value="otro">Otro</SelectItem>
+              <SelectItem value="cotizacion">{t('subjectOption3')}</SelectItem>
+              <SelectItem value="reparacion">{t('subjectOption4')}</SelectItem>
+              <SelectItem value="garantia">{t('subjectOption5')}</SelectItem>
+              <SelectItem value="envio">{t('subjectOption6')}</SelectItem>
+              <SelectItem value="otro">{t('subjectOption7')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -217,11 +210,11 @@ const ContactForm = () => {
         {/* Mensaje */}
         <div className="space-y-2">
           <Label htmlFor="message">
-            Mensaje <span className="text-red-500">*</span>
+            {t('message')} <span className="text-red-500">*</span>
           </Label>
           <Textarea
             id="message"
-            placeholder="Cuéntanos en qué podemos ayudarte..."
+            placeholder={t('messagePlaceholder')}
             rows={6}
             required
             value={formData.message}
@@ -242,19 +235,18 @@ const ContactForm = () => {
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              Enviando...
+              {t('sending')}
             </>
           ) : (
             <>
               <Send className="mr-2 h-5 w-5" />
-              Enviar Mensaje
+              {t('send')}
             </>
           )}
         </Button>
 
         <p className="text-xs text-muted-foreground text-center">
-          Al enviar este formulario, aceptas nuestra política de privacidad.
-          Responderemos en un plazo máximo de 24 horas.
+          {t('privacyNotice')}
         </p>
       </form>
     </div>

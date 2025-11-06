@@ -90,7 +90,7 @@ const CatalogoPage = () => {
             {displayProducts.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-muted-foreground">
-                  No hay productos disponibles en este momento.
+                  {t("noProducts")}
                 </p>
               </div>
             ) : (

@@ -1,13 +1,18 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { Mail, Phone, MapPin, Clock, Facebook, Instagram, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const ContactInfo = () => {
+  const t = useTranslations('contact');
+  
   return (
     <div className="space-y-8">
       {/* Información de contacto */}
       <div className="rounded-2xl bg-card p-8 shadow-lg">
         <h3 className="text-xl font-semibold text-foreground mb-6">
-          Información de Contacto
+          {t('contactInfo')}
         </h3>
 
         <div className="space-y-5">
@@ -17,13 +22,9 @@ const ContactInfo = () => {
               <MapPin className="h-6 w-6 text-[#D4AF37]" />
             </div>
             <div>
-              <p className="font-semibold text-foreground">Dirección</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Av. Chapultepec 234, Col. Americana
-                <br />
-                Guadalajara, Jalisco 44160
-                <br />
-                México
+              <p className="font-semibold text-foreground">{t('address')}</p>
+              <p className="mt-1 text-sm text-muted-foreground whitespace-pre-line">
+                {t('addressFull')}
               </p>
             </div>
           </div>
@@ -34,7 +35,7 @@ const ContactInfo = () => {
               <Phone className="h-6 w-6 text-[#D4AF37]" />
             </div>
             <div>
-              <p className="font-semibold text-foreground">Teléfono</p>
+              <p className="font-semibold text-foreground">{t('phoneNumber')}</p>
               <a
                 href="tel:+523312345678"
                 className="mt-1 text-sm text-muted-foreground hover:text-[#D4AF37] transition-colors"
@@ -42,7 +43,7 @@ const ContactInfo = () => {
                 +52 33 1234 5678
               </a>
               <p className="text-xs text-muted-foreground mt-1">
-                Lun - Vie: 10:00 AM - 7:00 PM
+                {t('phoneHours')}
               </p>
             </div>
           </div>
@@ -53,7 +54,7 @@ const ContactInfo = () => {
               <Mail className="h-6 w-6 text-[#D4AF37]" />
             </div>
             <div>
-              <p className="font-semibold text-foreground">Email</p>
+              <p className="font-semibold text-foreground">{t('emailAddress')}</p>
               <a
                 href="mailto:contacto@oronacional.com"
                 className="mt-1 text-sm text-muted-foreground hover:text-[#D4AF37] transition-colors"
@@ -61,7 +62,7 @@ const ContactInfo = () => {
                 contacto@oronacional.com
               </a>
               <p className="text-xs text-muted-foreground mt-1">
-                Respondemos en 24 horas
+                {t('emailResponse')}
               </p>
             </div>
           </div>
@@ -72,11 +73,11 @@ const ContactInfo = () => {
               <Clock className="h-6 w-6 text-[#D4AF37]" />
             </div>
             <div>
-              <p className="font-semibold text-foreground">Horarios</p>
+              <p className="font-semibold text-foreground">{t('hours')}</p>
               <div className="mt-1 space-y-1 text-sm text-muted-foreground">
-                <p>Lunes a Viernes: 10:00 AM - 7:00 PM</p>
-                <p>Sábado: 10:00 AM - 3:00 PM</p>
-                <p>Domingo: Cerrado</p>
+                <p>{t('hoursWeekdays')}</p>
+                <p>{t('hoursSaturday')}</p>
+                <p>{t('hoursSunday')}</p>
               </div>
             </div>
           </div>
@@ -88,12 +89,11 @@ const ContactInfo = () => {
         <div className="flex items-center gap-3 mb-4">
           <MessageCircle className="h-6 w-6 text-green-600" />
           <h3 className="text-lg font-semibold text-foreground">
-            Contacto Directo por WhatsApp
+            {t('whatsappTitle')}
           </h3>
         </div>
         <p className="text-sm text-muted-foreground mb-4">
-          ¿Necesitas ayuda inmediata? Chatea con nosotros por WhatsApp y te
-          atenderemos al instante.
+          {t('whatsappDescription')}
         </p>
         <Button
           asChild
@@ -105,7 +105,7 @@ const ContactInfo = () => {
             rel="noopener noreferrer"
           >
             <MessageCircle className="mr-2 h-5 w-5" />
-            Abrir WhatsApp
+            {t('whatsappButton')}
           </a>
         </Button>
       </div>
@@ -113,7 +113,7 @@ const ContactInfo = () => {
       {/* Redes sociales */}
       <div className="rounded-2xl bg-card p-8 shadow-lg">
         <h3 className="text-lg font-semibold text-foreground mb-4">
-          Síguenos en Redes Sociales
+          {t('followUs')}
         </h3>
         <div className="space-y-3">
           <a
@@ -125,7 +125,7 @@ const ContactInfo = () => {
             <Facebook className="h-5 w-5 text-blue-600" />
             <div className="flex-1">
               <p className="text-sm font-medium text-foreground group-hover:text-[#D4AF37] transition-colors">
-                Facebook
+                {t('facebook')}
               </p>
               <p className="text-xs text-muted-foreground">@OroNacional</p>
             </div>
@@ -140,7 +140,7 @@ const ContactInfo = () => {
             <Instagram className="h-5 w-5 text-pink-600" />
             <div className="flex-1">
               <p className="text-sm font-medium text-foreground group-hover:text-[#D4AF37] transition-colors">
-                Instagram
+                {t('instagram')}
               </p>
               <p className="text-xs text-muted-foreground">@OroNacional</p>
             </div>

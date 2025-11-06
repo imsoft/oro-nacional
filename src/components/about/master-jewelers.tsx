@@ -1,52 +1,53 @@
-import Image from "next/image";
+"use client";
 
-const jewelers = [
-  {
-    name: "Maestro Roberto García",
-    role: "Maestro Joyero Principal",
-    experience: "35 años de experiencia",
-    specialty: "Especialista en anillos de compromiso y matrimonio",
-    image:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    description:
-      "Con más de tres décadas perfeccionando su arte, el Maestro Roberto lidera nuestro equipo con pasión y dedicación incomparables.",
-  },
-  {
-    name: "Maestra Elena Ramírez",
-    role: "Maestra en Diseño",
-    experience: "28 años de experiencia",
-    specialty: "Diseños contemporáneos y personalizados",
-    image:
-      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    description:
-      "Elena fusiona la tradición jalisciense con tendencias modernas, creando piezas únicas que cuentan historias.",
-  },
-  {
-    name: "Maestro Carlos Mendoza",
-    role: "Especialista en Engaste",
-    experience: "30 años de experiencia",
-    specialty: "Engaste de piedras preciosas y diamantes",
-    image:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    description:
-      "La precisión de Carlos en el engaste de piedras es legendaria, garantizando la seguridad y belleza de cada gema.",
-  },
-];
+import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 const MasterJewelers = () => {
+  const t = useTranslations("about");
+
+  const jewelers = [
+    {
+      name: t("jeweler1Name"),
+      role: t("jeweler1Role"),
+      experience: t("jeweler1Experience"),
+      specialty: t("jeweler1Specialty"),
+      image:
+        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+      description: t("jeweler1Description"),
+    },
+    {
+      name: t("jeweler2Name"),
+      role: t("jeweler2Role"),
+      experience: t("jeweler2Experience"),
+      specialty: t("jeweler2Specialty"),
+      image:
+        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+      description: t("jeweler2Description"),
+    },
+    {
+      name: t("jeweler3Name"),
+      role: t("jeweler3Role"),
+      experience: t("jeweler3Experience"),
+      specialty: t("jeweler3Specialty"),
+      image:
+        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+      description: t("jeweler3Description"),
+    },
+  ];
+
   return (
     <section className="py-24 sm:py-32 bg-muted/30">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-semibold text-[#D4AF37] uppercase tracking-wide">
-            Nuestro Equipo
+            {t("ourTeam")}
           </p>
           <h2 className="mt-2 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-            Maestros Joyeros Artesanales
+            {t("masterJewelers")}
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Conoce a los artesanos detrás de cada pieza única. Pasión, dedicación
-            y décadas de experiencia en cada creación.
+            {t("teamDescription")}
           </p>
         </div>
 
@@ -60,7 +61,7 @@ const MasterJewelers = () => {
               <div className="relative aspect-square overflow-hidden bg-muted">
                 <Image
                   src={jeweler.image}
-                  alt={`${jeweler.name} - ${jeweler.role} en Oro Nacional`}
+                  alt={`${jeweler.name} - ${jeweler.role}`}
                   fill
                   className="object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
                 />
@@ -100,10 +101,7 @@ const MasterJewelers = () => {
         {/* Texto adicional */}
         <div className="mt-16 mx-auto max-w-3xl text-center">
           <p className="text-lg text-muted-foreground leading-relaxed">
-            Nuestros maestros joyeros han dedicado su vida a perfeccionar el arte
-            de la joyería. Cada pieza que sale de nuestro taller lleva la firma
-            invisible de años de experiencia, conocimiento transmitido de
-            generación en generación, y un amor profundo por el oficio.
+            {t("teamClosing")}
           </p>
         </div>
       </div>

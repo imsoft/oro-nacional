@@ -1,57 +1,56 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { Lightbulb, Wrench, Gem, Sparkles, CheckCircle } from "lucide-react";
 
-const steps = [
-  {
-    number: "01",
-    title: "Diseño y Concepto",
-    description:
-      "Cada pieza comienza con un boceto detallado. Nuestros diseñadores trabajan contigo para capturar tu visión y crear un diseño único que refleje tu historia.",
-    icon: Lightbulb,
-  },
-  {
-    number: "02",
-    title: "Selección de Materiales",
-    description:
-      "Elegimos cuidadosamente oro certificado de 14k o 18k y piedras preciosas de la más alta calidad. Solo trabajamos con proveedores confiables y éticos.",
-    icon: Gem,
-  },
-  {
-    number: "03",
-    title: "Elaboración Artesanal",
-    description:
-      "Nuestros maestros joyeros dan vida al diseño usando técnicas tradicionales refinadas durante décadas. Cada detalle se trabaja a mano con precisión milimétrica.",
-    icon: Wrench,
-  },
-  {
-    number: "04",
-    title: "Engaste y Acabado",
-    description:
-      "Las piedras se engastan con técnicas especializadas que garantizan seguridad y belleza. El acabado final incluye pulido de alto brillo y baños de rodio cuando es necesario.",
-    icon: Sparkles,
-  },
-  {
-    number: "05",
-    title: "Control de Calidad",
-    description:
-      "Cada pieza pasa por rigurosas inspecciones de calidad. Verificamos peso, pureza del oro, seguridad de los engastes y perfección en el acabado antes de entregar.",
-    icon: CheckCircle,
-  },
-];
-
 const ArtisanProcess = () => {
+  const t = useTranslations("about");
+
+  const steps = [
+    {
+      number: "01",
+      title: t("step1Title"),
+      description: t("step1Description"),
+      icon: Lightbulb,
+    },
+    {
+      number: "02",
+      title: t("step2Title"),
+      description: t("step2Description"),
+      icon: Gem,
+    },
+    {
+      number: "03",
+      title: t("step3Title"),
+      description: t("step3Description"),
+      icon: Wrench,
+    },
+    {
+      number: "04",
+      title: t("step4Title"),
+      description: t("step4Description"),
+      icon: Sparkles,
+    },
+    {
+      number: "05",
+      title: t("step5Title"),
+      description: t("step5Description"),
+      icon: CheckCircle,
+    },
+  ];
+
   return (
     <section className="py-24 sm:py-32 bg-background">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-semibold text-[#D4AF37] uppercase tracking-wide">
-            Nuestro Proceso
+            {t("ourProcess")}
           </p>
           <h2 className="mt-2 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-            De la Inspiración a la Obra Maestra
+            {t("processTitle")}
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Cada joya pasa por un meticuloso proceso artesanal que garantiza
-            calidad excepcional y diseños únicos.
+            {t("processDescription")}
           </p>
         </div>
 
@@ -94,12 +93,10 @@ const ArtisanProcess = () => {
         <div className="mt-16 mx-auto max-w-3xl">
           <div className="rounded-2xl bg-gradient-to-br from-[#D4AF37]/10 to-[#B8941E]/5 p-8 lg:p-12 text-center">
             <p className="text-lg text-foreground font-medium leading-relaxed">
-              &quot;La joyería artesanal no es solo crear objetos hermosos, es preservar
-              una tradición milenaria, honrar el trabajo manual y crear tesoros
-              que trasciendan el tiempo.&quot;
+              &quot;{t("quote")}&quot;
             </p>
             <p className="mt-4 text-sm text-muted-foreground">
-              — Maestro Roberto García, Oro Nacional
+              — {t("quoteAuthor")}
             </p>
           </div>
         </div>

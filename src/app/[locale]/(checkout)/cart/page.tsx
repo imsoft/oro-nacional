@@ -68,7 +68,7 @@ const CarritoPage = () => {
             {t('title')}
           </h1>
           <p className="mt-2 text-muted-foreground">
-            {t('itemCount', { count: items.length })}
+            {t('itemCountText', { count: items.length })}
           </p>
         </div>
 
