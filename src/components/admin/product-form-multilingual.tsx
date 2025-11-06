@@ -126,8 +126,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
       spec_value: { es: "", en: "" },
       display_order: formData.specifications.length
     };
-    // Para campos no multilingües, necesitamos una solución temporal
-    console.log('Adding specification:', newSpec);
+    updateField("specifications", [...formData.specifications, newSpec]);
   };
 
   const removeSpecification = (index: number) => {
@@ -145,8 +144,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
       size: "",
       stock: 0
     };
-    // Para campos no multilingües, necesitamos una solución temporal
-    console.log('Adding size:', newSize);
+    updateField("sizes", [...formData.sizes, newSize]);
   };
 
   const removeSize = (index: number) => {
@@ -157,8 +155,6 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
     const newSizes = [...formData.sizes];
     newSizes[index] = { ...newSizes[index], [field]: value };
     updateField("sizes", newSizes);
-    // Para campos no multilingües, necesitamos una solución temporal
-    console.log('Updating size:', { index, field, value });
   };
 
   if (isPreviewMode) {
