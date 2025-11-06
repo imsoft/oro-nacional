@@ -18,7 +18,6 @@ import {
 } from "./multilingual-form";
 import type { 
   BlogPostFormData, 
-  MultilingualFormData, 
   Locale
 } from "@/types/multilingual";
 import { 

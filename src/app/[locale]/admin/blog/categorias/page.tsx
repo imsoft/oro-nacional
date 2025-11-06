@@ -56,7 +56,7 @@ export default function BlogCategoriesAdmin() {
   const loadCategories = async () => {
     setIsLoading(true);
     try {
-      const data = await getAllBlogCategories("es");
+      const data = await getAllBlogCategories();
       setCategories(data);
     } catch (error) {
       console.error("Error loading categories:", error);

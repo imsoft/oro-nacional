@@ -35,7 +35,6 @@ export default function EditProductCategoryPage({ params }: EditCategoryPageProp
 
   const {
     formData,
-    errors,
     updateField,
     validateForm,
     setFormData,
@@ -43,6 +42,7 @@ export default function EditProductCategoryPage({ params }: EditCategoryPageProp
 
   useEffect(() => {
     loadCategory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
 
   const loadCategory = async () => {

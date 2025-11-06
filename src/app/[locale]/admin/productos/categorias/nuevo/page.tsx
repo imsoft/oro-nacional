@@ -30,7 +30,6 @@ export default function NewProductCategoryPage() {
 
   const {
     formData,
-    errors,
     updateField,
     validateForm,
   } = useMultilingualForm<CategoryFormData>(defaultData);

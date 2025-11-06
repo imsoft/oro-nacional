@@ -57,7 +57,7 @@ export default function ProductCategoriesAdmin() {
   const loadCategories = async () => {
     setIsLoading(true);
     try {
-      const data = await getAllProductCategories("es");
+      const data = await getAllProductCategories();
       setCategories(data);
     } catch (error) {
       console.error("Error loading categories:", error);
