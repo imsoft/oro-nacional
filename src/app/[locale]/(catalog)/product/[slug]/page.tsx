@@ -60,7 +60,7 @@ export default function ProductPage({ params }: ProductPageProps) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="flex items-center justify-center min-h-[60vh] pt-20">
+        <div className="flex items-center justify-center min-h-[60vh] pt-32">
           <Loader2 className="h-8 w-8 animate-spin text-[#D4AF37]" />
         </div>
         <Footer />
@@ -73,7 +73,7 @@ export default function ProductPage({ params }: ProductPageProps) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="mx-auto max-w-7xl px-6 lg:px-8 py-20 pt-32 text-center">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8 py-20 pt-40 text-center">
           <h1 className="text-3xl font-semibold text-foreground">
             Producto no encontrado
           </h1>
@@ -150,7 +150,7 @@ export default function ProductPage({ params }: ProductPageProps) {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <main className="mx-auto max-w-7xl px-6 lg:px-8 pt-24">
+      <main className="mx-auto max-w-7xl px-6 lg:px-8 pt-32">
         {/* Breadcrumbs */}
         <Breadcrumbs
           items={[

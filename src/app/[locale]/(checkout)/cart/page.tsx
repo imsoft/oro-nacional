@@ -17,7 +17,7 @@ const CarritoPage = () => {
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
 
-        <main className="flex-1 flex items-center justify-center px-6 pt-20">
+        <main className="flex-1 flex items-center justify-center px-6 pt-32">
           <div className="text-center max-w-md">
             <div className="mx-auto w-24 h-24 rounded-full bg-muted flex items-center justify-center mb-6">
               <ShoppingBag className="h-12 w-12 text-muted-foreground" />
@@ -53,7 +53,7 @@ const CarritoPage = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <main className="mx-auto max-w-7xl px-6 lg:px-8 py-12 lg:py-16 pt-28 lg:pt-32">
+      <main className="mx-auto max-w-7xl px-6 lg:px-8 py-12 lg:py-16 pt-32 lg:pt-40">
         {/* Header */}
         <div className="mb-8">
           <Link

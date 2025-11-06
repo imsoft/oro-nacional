@@ -195,7 +195,7 @@ const ProfilePage = () => {
 
   if (isLoadingData) {
     return (
-      <div className="min-h-screen bg-background py-12 pt-28">
+      <div className="min-h-screen bg-background py-12 pt-32">
         <div className="mx-auto max-w-4xl px-6 lg:px-8">
           <div className="flex justify-center items-center min-h-[400px]">
             <Loader2 className="h-12 w-12 animate-spin text-[#D4AF37]" />
@@ -206,7 +206,7 @@ const ProfilePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background py-12 pt-28">
+    <div className="min-h-screen bg-background py-12 pt-32">
       <div className="mx-auto max-w-4xl px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-semibold text-foreground">Mi Perfil</h1>

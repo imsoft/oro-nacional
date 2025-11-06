@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from 'next-intl';
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
 import CatalogHeader from "@/components/catalog/catalog-header";
@@ -12,6 +13,8 @@ import { getProductsByCategory } from "@/lib/supabase/products";
 import type { Product } from "@/types/product";
 
 const CollaresPage = () => {
+  const t = useTranslations('catalog.necklaces');
+  const tCommon = useTranslations('catalog');
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
@@ -47,16 +50,14 @@ const CollaresPage = () => {
       <Navbar />
 
       {/* Hero de categoría */}
-      <section className="relative bg-gradient-to-b from-muted/50 to-background py-16 lg:py-20 pt-28 lg:pt-32">
+      <section className="relative bg-gradient-to-b from-muted/50 to-background py-16 lg:py-20 pt-32 lg:pt-40">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
-              Collares de Oro en Guadalajara
+              {t('title')}
             </h1>
             <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-              Explora nuestra colección de collares y cadenas de oro 14k y 18k.
-              Desde elegantes cadenas hasta collares con dijes únicos. Diseños
-              artesanales jaliscienses con certificado de autenticidad.
+              {t('description')}
             </p>
           </div>
         </div>
@@ -84,7 +85,7 @@ const CollaresPage = () => {
               <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
                 <SheetContent side="left" className="w-[300px] overflow-y-auto">
                   <div className="py-6">
-                    <h2 className="text-lg font-semibold mb-6">Filtros</h2>
+                    <h2 className="text-lg font-semibold mb-6">{tCommon('filters')}</h2>
                     <CategoryFilters category="collares" />
                   </div>
                 </SheetContent>
@@ -93,7 +94,7 @@ const CollaresPage = () => {
               <div className="flex-1">
                 {displayProducts.length === 0 ? (
                   <div className="text-center py-16">
-                    <p className="text-muted-foreground">No hay productos disponibles en esta categoría</p>
+                    <p className="text-muted-foreground">{tCommon('noProductsCategory')}</p>
                   </div>
                 ) : (
                   <ProductsGrid products={displayProducts} viewMode={viewMode} />

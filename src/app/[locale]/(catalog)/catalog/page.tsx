@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from 'next-intl';
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
 import CatalogHeader from "@/components/catalog/catalog-header";
@@ -12,6 +13,7 @@ import { getProducts } from "@/lib/supabase/products";
 import type { Product } from "@/types/product";
 
 const CatalogoPage = () => {
+  const t = useTranslations('catalog');
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
@@ -59,7 +61,7 @@ const CatalogoPage = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <main className="mx-auto max-w-7xl px-6 lg:px-8 py-12 lg:py-16 pt-28 lg:pt-32">
+      <main className="mx-auto max-w-7xl px-6 lg:px-8 py-12 lg:py-16 pt-32 lg:pt-40">
         <CatalogHeader
           viewMode={viewMode}
           onViewModeChange={setViewMode}
@@ -77,7 +79,7 @@ const CatalogoPage = () => {
           <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
             <SheetContent side="left" className="w-[300px] overflow-y-auto">
               <div className="py-6">
-                <h2 className="text-lg font-semibold mb-6">Filtros</h2>
+                <h2 className="text-lg font-semibold mb-6">{t('filters')}</h2>
                 <CatalogFilters />
               </div>
             </SheetContent>

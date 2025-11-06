@@ -153,6 +153,31 @@
     "addToFavorites": "Add to favorites",
     "removeFromFavorites": "Remove from favorites"
   },
+  "catalog": {
+    "title": "Jewelry Catalog",
+    "subtitle": "Discover our collection of fine gold jewelry",
+    "totalProducts": "products",
+    "noProducts": "No products available at this time.",
+    "noProductsCategory": "No products available in this category",
+    "filters": "Filters",
+    "viewMode": "View",
+    "rings": {
+      "title": "Gold Rings in Guadalajara",
+      "description": "Discover our exclusive collection of engagement rings, wedding bands and unique designs in 14k and 18k gold. Artisan jewelry from Jalisco with authenticity certificate."
+    },
+    "necklaces": {
+      "title": "Gold Necklaces in Guadalajara",
+      "description": "Explore our collection of necklaces and chains in 14k and 18k gold. From elegant chains to necklaces with unique charms. Artisan designs from Jalisco with authenticity certificate."
+    },
+    "earrings": {
+      "title": "Gold Earrings in Guadalajara",
+      "description": "Find elegant earrings in 14k and 18k gold. From classic hoops to drop designs with diamonds and precious stones. Artisan jewelry from Jalisco of the highest quality."
+    },
+    "bracelets": {
+      "title": "Gold Bracelets in Guadalajara",
+      "description": "Discover bracelets and bangles in 14k and 18k gold. From elegant tennis bracelets to personalized bangles. Artisan jewelry from Jalisco with the highest quality and authenticity certificate."
+    }
+  },
   "admin": {
     "title": "Admin Panel",
     "navigation": {

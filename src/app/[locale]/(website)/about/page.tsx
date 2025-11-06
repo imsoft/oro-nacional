@@ -12,7 +12,7 @@ const NosotrosPage = () => {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative isolate overflow-hidden bg-background py-24 sm:py-32 pt-28 sm:pt-40">
+      <section className="relative isolate overflow-hidden bg-background py-24 sm:py-32 pt-32 sm:pt-44">
         <div className="absolute inset-0 -z-10">
           <Image
             src="https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?ixlib=rb-4.0.3&auto=format&fit=crop&w=2832&q=80"

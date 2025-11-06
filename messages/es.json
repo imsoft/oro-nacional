@@ -153,6 +153,31 @@
     "addToFavorites": "Agregar a favoritos",
     "removeFromFavorites": "Quitar de favoritos"
   },
+  "catalog": {
+    "title": "Catálogo de Joyería",
+    "subtitle": "Descubre nuestra colección de joyería fina en oro",
+    "totalProducts": "productos",
+    "noProducts": "No hay productos disponibles en este momento.",
+    "noProductsCategory": "No hay productos disponibles en esta categoría",
+    "filters": "Filtros",
+    "viewMode": "Vista",
+    "rings": {
+      "title": "Anillos de Oro en Guadalajara",
+      "description": "Descubre nuestra exclusiva colección de anillos de compromiso, matrimonio y diseños únicos en oro 14k y 18k. Joyería artesanal jalisciense con certificado de autenticidad."
+    },
+    "necklaces": {
+      "title": "Collares de Oro en Guadalajara",
+      "description": "Explora nuestra colección de collares y cadenas de oro 14k y 18k. Desde elegantes cadenas hasta collares con dijes únicos. Diseños artesanales jaliscienses con certificado de autenticidad."
+    },
+    "earrings": {
+      "title": "Aretes de Oro en Guadalajara",
+      "description": "Encuentra aretes elegantes de oro 14k y 18k. Desde argollas clásicas hasta diseños colgantes con diamantes y piedras preciosas. Joyería artesanal jalisciense de la más alta calidad."
+    },
+    "bracelets": {
+      "title": "Pulseras de Oro en Guadalajara",
+      "description": "Descubre pulseras y brazaletes de oro 14k y 18k. Desde elegantes pulseras tenis hasta brazaletes personalizados. Joyería artesanal jalisciense con la más alta calidad y certificado de autenticidad."
+    }
+  },
   "admin": {
     "title": "Panel de Administración",
     "navigation": {
