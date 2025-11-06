@@ -108,28 +108,30 @@ DECLARE
   low_stock_products INTEGER;
   new_products_this_month INTEGER;
 BEGIN
-  -- Get total products
+  -- Get total products (only active products)
   SELECT COUNT(*)
   INTO total_products
-  FROM products;
+  FROM products
+  WHERE is_active = true;
 
-  -- Get active products (in stock)
+  -- Get active products (active and in stock)
   SELECT COUNT(*)
   INTO active_products
   FROM products
-  WHERE stock > 0;
+  WHERE is_active = true AND stock > 0;
 
-  -- Get low stock products (stock <= 5)
+  -- Get low stock products (active products with stock <= 10)
   SELECT COUNT(*)
   INTO low_stock_products
   FROM products
-  WHERE stock > 0 AND stock <= 5;
+  WHERE is_active = true AND stock > 0 AND stock <= 10;
 
-  -- Get products created this month
+  -- Get products created this month (only active products)
   SELECT COUNT(*)
   INTO new_products_this_month
   FROM products
-  WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE)
+  WHERE is_active = true
+    AND created_at >= DATE_TRUNC('month', CURRENT_DATE)
     AND created_at < DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month';
 
   RETURN json_build_object(
