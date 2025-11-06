@@ -420,7 +420,7 @@ export default function EditProduct({ params }: ProductPageProps) {
               <div className="space-y-3">
                 <Label htmlFor="category">Categoría</Label>
                 <Select value={categoryId} onValueChange={setCategoryId}>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Selecciona una categoría" />
                   </SelectTrigger>
                   <SelectContent>

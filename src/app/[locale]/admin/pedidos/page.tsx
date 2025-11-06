@@ -174,7 +174,7 @@ export default function OrdersAdmin() {
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-[200px]">
+          <SelectTrigger className="w-full">
             <SelectValue placeholder={t('status')} />
           </SelectTrigger>
           <SelectContent>
@@ -251,7 +251,7 @@ export default function OrdersAdmin() {
                           handleStatusChange(order.id, value as OrderStatus)
                         }
                       >
-                        <SelectTrigger className="w-[140px]">
+                        <SelectTrigger className="w-full">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
                             {getStatusTranslation(order.status)}
                           </span>

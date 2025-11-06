@@ -271,7 +271,7 @@ export default function AdminSettings() {
               </div>
               <div className="relative">
                 <Select value={currency} disabled>
-                  <SelectTrigger id="currency" className="bg-muted/50">
+                  <SelectTrigger id="currency" className="w-full bg-muted/50">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -295,7 +295,7 @@ export default function AdminSettings() {
               </div>
               <div className="relative">
                 <Select value={timezone} disabled>
-                  <SelectTrigger id="timezone" className="bg-muted/50">
+                  <SelectTrigger id="timezone" className="w-full bg-muted/50">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -317,7 +317,7 @@ export default function AdminSettings() {
               </div>
               <div className="relative">
                 <Select value={language} disabled>
-                  <SelectTrigger id="language" className="bg-muted/50">
+                  <SelectTrigger id="language" className="w-full bg-muted/50">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -352,7 +352,7 @@ export default function AdminSettings() {
               </div>
               <div className="relative">
                 <Select value={detectedCountry} disabled>
-                  <SelectTrigger id="country" className="bg-muted/50">
+                  <SelectTrigger id="country" className="w-full bg-muted/50">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

@@ -83,7 +83,7 @@ export default function UsersAdmin() {
           />
         </div>
         <Select value={roleFilter} onValueChange={setRoleFilter}>
-          <SelectTrigger className="w-full sm:w-48">
+          <SelectTrigger className="w-full">
             <SelectValue placeholder={t('filterByRole')} />
           </SelectTrigger>
           <SelectContent>

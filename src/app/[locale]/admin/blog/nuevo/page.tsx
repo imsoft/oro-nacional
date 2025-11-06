@@ -207,7 +207,7 @@ export default function NewPostPage() {
             <div className="space-y-2">
               <Label htmlFor="category">Categoría</Label>
               <Select value={categoryId} onValueChange={setCategoryId}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Selecciona una categoría" />
                 </SelectTrigger>
                 <SelectContent>
@@ -305,7 +305,7 @@ export default function NewPostPage() {
               value={status}
               onValueChange={(value) => setStatus(value as "draft" | "published")}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
