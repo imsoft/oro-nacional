@@ -39,6 +39,7 @@ export default function EditPostPage({
   const [categoryId, setCategoryId] = useState<string>("");
   const [status, setStatus] = useState<"draft" | "published">("draft");
   const [tags, setTags] = useState<string>("");
+  const [availableLanguages, setAvailableLanguages] = useState<string[]>(["es", "en"]);
   const [currentFeaturedImage, setCurrentFeaturedImage] = useState<string | null>(null);
   const [newFeaturedImage, setNewFeaturedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -76,6 +77,7 @@ export default function EditPostPage({
       setContent(postData.content);
       setCategoryId(postData.category_id || "");
       setStatus(postData.status);
+      setAvailableLanguages(postData.available_languages || ["es", "en"]);
       setCurrentFeaturedImage(postData.featured_image || null);
       setTags(postData.tags?.map((tag) => tag.name).join(", ") || "");
       setCategories(categoriesData);
@@ -144,6 +146,7 @@ export default function EditPostPage({
           .split(",")
           .map((t) => t.trim())
           .filter((t) => t.length > 0),
+        available_languages: availableLanguages,
       };
 
       const result = await updateBlogPost(params.id, updates);
@@ -391,23 +394,48 @@ export default function EditPostPage({
             Publicación
           </h2>
 
-          <div className="space-y-2">
-            <Label htmlFor="status">Estado</Label>
-            <Select
-              value={status}
-              onValueChange={(value) => setStatus(value as "draft" | "published")}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="draft">Borrador</SelectItem>
-                <SelectItem value="published">Publicado</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              Los borradores no aparecerán en el blog público
-            </p>
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="status">Estado</Label>
+              <Select
+                value={status}
+                onValueChange={(value) => setStatus(value as "draft" | "published")}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">Borrador</SelectItem>
+                  <SelectItem value="published">Publicado</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Los borradores no aparecerán en el blog público
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="available_languages">Idiomas Disponibles</Label>
+              <Select
+                value={availableLanguages.join(",")}
+                onValueChange={(value) => {
+                  const languages = value === "both" ? ["es", "en"] : value === "es" ? ["es"] : ["en"];
+                  setAvailableLanguages(languages);
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecciona idiomas" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="both">Ambos idiomas (ES/EN)</SelectItem>
+                  <SelectItem value="es">Solo Español</SelectItem>
+                  <SelectItem value="en">Solo Inglés</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                El post se mostrará solo en los idiomas seleccionados
+              </p>
+            </div>
           </div>
         </div>
 

@@ -40,6 +40,7 @@ export interface BlogPost {
   author_id?: string;
   status: 'draft' | 'published';
   views: number;
+  available_languages?: string[]; // ['es', 'en'] o ['es'] o ['en']
   published_at?: string;
   created_at: string;
   updated_at: string;
@@ -92,6 +93,7 @@ export interface CreateBlogPostData {
   category_id?: string;
   status: 'draft' | 'published';
   tags?: string[]; // Array de nombres de etiquetas
+  available_languages?: string[]; // ['es', 'en'] o ['es'] o ['en']
 }
 
 // Datos para actualizar un post
@@ -103,6 +105,7 @@ export interface UpdateBlogPostData {
   category_id?: string;
   status?: 'draft' | 'published';
   tags?: string[]; // Array de nombres de etiquetas
+  available_languages?: string[]; // ['es', 'en'] o ['es'] o ['en']
 }
 
 // Relación post-tag

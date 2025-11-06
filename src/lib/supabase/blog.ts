@@ -175,6 +175,7 @@ export async function createBlogPost(
         category_id: postData.category_id || null,
         author_id: authorId,
         status: postData.status,
+        available_languages: postData.available_languages || ['es', 'en'],
         published_at: postData.status === "published" ? new Date().toISOString() : null,
       })
       .select()
@@ -575,6 +576,8 @@ export async function updateBlogPost(
     if (updates.content) dataToUpdate.content = updates.content;
     if (updates.category_id !== undefined)
       dataToUpdate.category_id = updates.category_id || null;
+    if (updates.available_languages !== undefined)
+      dataToUpdate.available_languages = updates.available_languages;
     if (updates.status) {
       dataToUpdate.status = updates.status;
       // Si se publica por primera vez, establecer published_at

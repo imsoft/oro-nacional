@@ -31,6 +31,7 @@ export default function NewPostPage() {
   const [categoryId, setCategoryId] = useState<string>("");
   const [status, setStatus] = useState<"draft" | "published">("draft");
   const [tags, setTags] = useState<string>("");
+  const [availableLanguages, setAvailableLanguages] = useState<string[]>(["es", "en"]);
   const [featuredImage, setFeaturedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
@@ -104,6 +105,7 @@ export default function NewPostPage() {
           .split(",")
           .map((t) => t.trim())
           .filter((t) => t.length > 0),
+        available_languages: availableLanguages,
       };
 
       const result = await createBlogPost(postData, user.id);
@@ -299,23 +301,48 @@ export default function NewPostPage() {
             Publicación
           </h2>
 
-          <div className="space-y-2">
-            <Label htmlFor="status">Estado</Label>
-            <Select
-              value={status}
-              onValueChange={(value) => setStatus(value as "draft" | "published")}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="draft">Borrador</SelectItem>
-                <SelectItem value="published">Publicado</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              Los borradores no aparecerán en el blog público
-            </p>
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="status">Estado</Label>
+              <Select
+                value={status}
+                onValueChange={(value) => setStatus(value as "draft" | "published")}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">Borrador</SelectItem>
+                  <SelectItem value="published">Publicado</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Los borradores no aparecerán en el blog público
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="available_languages">Idiomas Disponibles</Label>
+              <Select
+                value={availableLanguages.join(",")}
+                onValueChange={(value) => {
+                  const languages = value === "both" ? ["es", "en"] : value === "es" ? ["es"] : ["en"];
+                  setAvailableLanguages(languages);
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecciona idiomas" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="both">Ambos idiomas (ES/EN)</SelectItem>
+                  <SelectItem value="es">Solo Español</SelectItem>
+                  <SelectItem value="en">Solo Inglés</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                El post se mostrará solo en los idiomas seleccionados
+              </p>
+            </div>
           </div>
         </div>
 
