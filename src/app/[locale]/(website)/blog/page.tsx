@@ -20,12 +20,13 @@ const BlogPage = () => {
   // Cargar posts al montar
   useEffect(() => {
     loadPosts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadPosts = async () => {
     setIsLoading(true);
     try {
-      const postsData = await getPublishedPosts();
+      const postsData = await getPublishedPosts(locale);
       setPosts(postsData);
     } catch (error) {
       console.error("Error loading blog posts:", error);

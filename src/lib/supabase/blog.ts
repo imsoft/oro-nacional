@@ -217,8 +217,9 @@ export async function createBlogPost(
 
 /**
  * Obtener posts publicados para el blog público
+ * @param locale - Idioma actual del usuario (opcional, por defecto muestra todos)
  */
-export async function getPublishedPosts(): Promise<BlogPostCard[]> {
+export async function getPublishedPosts(locale?: string): Promise<BlogPostCard[]> {
   const { data, error } = await supabase
     .from("blog_posts")
     .select(
@@ -230,6 +231,7 @@ export async function getPublishedPosts(): Promise<BlogPostCard[]> {
       featured_image,
       published_at,
       views,
+      available_languages,
       category:blog_categories(name),
       author:profiles(full_name)
     `
@@ -251,6 +253,7 @@ export async function getPublishedPosts(): Promise<BlogPostCard[]> {
       featured_image?: string;
       published_at?: string;
       views: number;
+      available_languages?: string[];
       category?: { name: string };
       author?: { full_name: string };
     };
@@ -266,6 +269,11 @@ export async function getPublishedPosts(): Promise<BlogPostCard[]> {
       category_name: p.category?.name,
       author_name: p.author?.full_name,
     };
+  }).filter(post => {
+    // Filtrar por idioma si se especifica
+    if (!locale) return true;
+    const originalPost = (data as unknown[]).find((d: unknown) => (d as { id: string }).id === post.id) as { available_languages?: string[] } | undefined;
+    return !originalPost?.available_languages || originalPost.available_languages.includes(locale);
   });
 
   return posts;
@@ -403,9 +411,11 @@ export async function getBlogPostById(id: string): Promise<BlogPostDetail | null
 
 /**
  * Obtener posts por categoría
+ * @param locale - Idioma actual del usuario (opcional)
  */
 export async function getBlogPostsByCategory(
-  categorySlug: string
+  categorySlug: string,
+  locale?: string
 ): Promise<BlogPostCard[]> {
   // Primero obtener la categoría
   const category = await getBlogCategoryBySlug(categorySlug);
@@ -422,6 +432,7 @@ export async function getBlogPostsByCategory(
       featured_image,
       published_at,
       views,
+      available_languages,
       category:blog_categories(name),
       author:profiles(full_name)
     `
@@ -444,6 +455,7 @@ export async function getBlogPostsByCategory(
       featured_image?: string;
       published_at?: string;
       views: number;
+      available_languages?: string[];
       category?: { name: string };
       author?: { full_name: string };
     };
@@ -459,6 +471,11 @@ export async function getBlogPostsByCategory(
       category_name: p.category?.name,
       author_name: p.author?.full_name,
     };
+  }).filter(post => {
+    // Filtrar por idioma si se especifica
+    if (!locale) return true;
+    const originalPost = (data as unknown[]).find((d: unknown) => (d as { id: string }).id === post.id) as { available_languages?: string[] } | undefined;
+    return !originalPost?.available_languages || originalPost.available_languages.includes(locale);
   });
 
   return posts;
@@ -466,8 +483,9 @@ export async function getBlogPostsByCategory(
 
 /**
  * Buscar posts
+ * @param locale - Idioma actual del usuario (opcional)
  */
-export async function searchBlogPosts(query: string): Promise<BlogPostCard[]> {
+export async function searchBlogPosts(query: string, locale?: string): Promise<BlogPostCard[]> {
   const { data, error } = await supabase
     .from("blog_posts")
     .select(
@@ -479,6 +497,7 @@ export async function searchBlogPosts(query: string): Promise<BlogPostCard[]> {
       featured_image,
       published_at,
       views,
+      available_languages,
       category:blog_categories(name),
       author:profiles(full_name)
     `
@@ -501,6 +520,7 @@ export async function searchBlogPosts(query: string): Promise<BlogPostCard[]> {
       featured_image?: string;
       published_at?: string;
       views: number;
+      available_languages?: string[];
       category?: { name: string };
       author?: { full_name: string };
     };
@@ -516,6 +536,11 @@ export async function searchBlogPosts(query: string): Promise<BlogPostCard[]> {
       category_name: p.category?.name,
       author_name: p.author?.full_name,
     };
+  }).filter(post => {
+    // Filtrar por idioma si se especifica
+    if (!locale) return true;
+    const originalPost = (data as unknown[]).find((d: unknown) => (d as { id: string }).id === post.id) as { available_languages?: string[] } | undefined;
+    return !originalPost?.available_languages || originalPost.available_languages.includes(locale);
   });
 
   return posts;
