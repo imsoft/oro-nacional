@@ -131,6 +131,7 @@ export interface CreateMultilingualProductData {
   stock: number;
   weight?: number;
   is_active: boolean;
+  available_languages?: string[]; // ['es', 'en'] o ['es'] o ['en']
   specifications?: Array<{
     spec_key: MultilingualText;
     spec_value: MultilingualText;

@@ -208,12 +208,12 @@ export function useMultilingualForm<T>(
   const [formData, setFormData] = useState<T>(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const updateField = (field: keyof T, value: MultilingualFormData | string | number | boolean | string[] | undefined) => {
+  const updateField = <K extends keyof T>(field: K, value: T[K]) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
-    
+
     // Limpiar error del campo
     if (errors[field as string]) {
       setErrors(prev => ({
