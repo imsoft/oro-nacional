@@ -545,6 +545,7 @@ function transformProductForLocale(locale: Locale) {
     created_at: product.created_at,
     updated_at: product.updated_at,
     category: product.category ? {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       id: (product.category as any).id,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       name: getLocalizedText({ es: (product.category as any).name_es, en: (product.category as any).name_en }, locale),
