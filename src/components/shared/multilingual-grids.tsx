@@ -10,7 +10,7 @@ import { useCurrentLocale, useMultilingualContent } from "@/hooks/use-multilingu
 import { getProducts } from "@/lib/supabase/products-multilingual";
 import { getBlogPosts as getBlogPostsMultilingual } from "@/lib/supabase/blog-multilingual";
 import type { MultilingualProduct, MultilingualBlogPost } from "@/types/multilingual";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import Image from "next/image";
 
 export function MultilingualProductGrid() {

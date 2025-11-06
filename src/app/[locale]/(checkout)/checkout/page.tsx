@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, Link } from "@/i18n/routing";
 import { useLocale } from "next-intl";
-import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, CreditCard, Truck, CheckCircle2, AlertCircle } from "lucide-react";
 import { Elements } from '@stripe/react-stripe-js';

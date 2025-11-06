@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/routing";
 import { Plus, Pencil, Trash2, Search, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -114,10 +115,12 @@ export default function ProductsAdmin() {
         </div>
         <Button
           className="bg-[#D4AF37] hover:bg-[#B8941E] text-white"
-          onClick={() => window.location.href = '/admin/productos/nuevo'}
+          asChild
         >
-          <Plus className="mr-2 h-5 w-5" />
-          {t('newProduct')}
+          <Link href="/admin/productos/nuevo">
+            <Plus className="mr-2 h-5 w-5" />
+            {t('newProduct')}
+          </Link>
         </Button>
       </div>
 
@@ -225,9 +228,11 @@ export default function ProductsAdmin() {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                        onClick={() => window.location.href = `/admin/productos/${product.id}/editar`}
+                        asChild
                       >
-                        <Pencil className="h-4 w-4" />
+                        <Link href={`/admin/productos/${product.id}/editar`}>
+                          <Pencil className="h-4 w-4" />
+                        </Link>
                       </Button>
                       <Button
                         variant="ghost"

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { useTranslations } from 'next-intl';
 import { ShoppingBag, ArrowLeft } from "lucide-react";
 import Navbar from "@/components/shared/navbar";

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
 import { Heart, Share2, Loader2 } from "lucide-react";
 import { useFavoritesStore } from "@/stores/favorites-store";

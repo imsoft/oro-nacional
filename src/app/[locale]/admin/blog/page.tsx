@@ -15,7 +15,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { getAllBlogPosts, deleteBlogPost } from "@/lib/supabase/blog";
 import type { BlogPostListItem } from "@/types/blog";
 

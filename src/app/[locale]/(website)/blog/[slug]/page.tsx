@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Calendar, Clock, User, ArrowLeft, Tag, Loader2, BookOpen } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import Image from "next/image";
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";

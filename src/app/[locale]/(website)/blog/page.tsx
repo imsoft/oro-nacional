@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useTranslations, useLocale } from 'next-intl';
 import { BookOpen, Calendar, Clock, Loader2 } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import Image from "next/image";
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
