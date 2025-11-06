@@ -122,6 +122,7 @@ export async function getAllProducts(locale: Locale = 'es') {
     material: getLocalizedText({ es: product.material_es as string, en: product.material_en as string }, locale),
     is_active: product.is_active,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     category_name: product.category ? getLocalizedText({ es: (product.category as any).name_es, en: (product.category as any).name_en }, locale) : null,
     primary_image: Array.isArray(product.images) ? product.images.find((img: Record<string, unknown>) => img.is_primary)?.image_url : null,
   }));
