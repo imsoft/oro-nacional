@@ -686,6 +686,11 @@
       "saving": "Saving...",
       "settings": "Settings",
       "selectCategory": "Select category",
+      "availableLanguages": "Available Languages",
+      "selectLanguages": "Select languages",
+      "bothLanguages": "Spanish and English",
+      "spanishOnly": "Spanish Only",
+      "englishOnly": "English Only",
       "searchPlaceholder": "Search posts...",
       "titleColumn": "Title",
       "categoryColumn": "Category",
@@ -777,7 +782,12 @@
       "size": "Size",
       "addSize": "Add Size",
       "save": "Save",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "availableLanguages": "Available Languages",
+      "selectLanguages": "Select languages",
+      "bothLanguages": "Spanish and English",
+      "spanishOnly": "Spanish Only",
+      "englishOnly": "English Only"
     },
     "settings": {
       "title": "Settings",

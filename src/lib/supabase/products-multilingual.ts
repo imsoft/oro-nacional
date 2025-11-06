@@ -36,6 +36,7 @@ export async function getProducts(locale: Locale = 'es') {
       weight,
       has_engraving,
       is_active,
+      available_languages,
       created_at,
       updated_at,
       category:product_categories(
@@ -70,6 +71,7 @@ export async function getProducts(locale: Locale = 'es') {
       )
     `)
     .eq("is_active", true)
+    .contains("available_languages", [locale])
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -189,6 +191,7 @@ export async function getProductBySlug(slug: string, locale: Locale = 'es') {
     `)
     .eq(slugColumn, slug)
     .eq("is_active", true)
+    .contains("available_languages", [locale])
     .single();
 
   if (error) {
@@ -220,6 +223,7 @@ export async function getProductById(id: string, locale: Locale = 'es') {
       weight,
       has_engraving,
       is_active,
+      available_languages,
       category_id,
       created_at,
       updated_at,
@@ -296,6 +300,7 @@ export async function getProductsByCategory(categorySlug: string, locale: Locale
       )
     `)
     .eq("is_active", true)
+    .contains("available_languages", [locale])
     .eq(`category.${categorySlugColumn}`, categorySlug)
     .order("created_at", { ascending: false });
 
@@ -377,6 +382,7 @@ export async function searchProducts(query: string, locale: Locale = 'es') {
       )
     `)
     .eq("is_active", true)
+    .contains("available_languages", [locale])
     .or(`${nameColumn}.ilike.%${query}%,${descriptionColumn}.ilike.%${query}%`)
     .order("created_at", { ascending: false });
 
@@ -415,6 +421,7 @@ export async function createProduct(
         stock: productData.stock,
         weight: productData.weight,
         is_active: productData.is_active,
+        available_languages: productData.available_languages || ['es', 'en'],
       })
       .select()
       .single();
@@ -504,6 +511,7 @@ export async function updateProduct(
     if (updates.weight !== undefined) dataToUpdate.weight = updates.weight;
     if (updates.has_engraving !== undefined) dataToUpdate.has_engraving = updates.has_engraving;
     if (updates.is_active !== undefined) dataToUpdate.is_active = updates.is_active;
+    if (updates.available_languages !== undefined) dataToUpdate.available_languages = updates.available_languages;
 
     const { data, error } = await supabase
       .from("products")

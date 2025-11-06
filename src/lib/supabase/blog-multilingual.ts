@@ -32,6 +32,7 @@ export async function getBlogPosts(locale: Locale = 'es', limit?: number) {
       featured_image,
       status,
       views,
+      available_languages,
       published_at,
       created_at,
       updated_at,
@@ -59,6 +60,7 @@ export async function getBlogPosts(locale: Locale = 'es', limit?: number) {
       )
     `)
     .eq("status", "published")
+    .contains("available_languages", [locale])
     .order("published_at", { ascending: false });
 
   if (limit) {
@@ -177,6 +179,7 @@ export async function getBlogPostBySlug(slug: string, locale: Locale = 'es') {
     `)
     .eq(slugColumn, slug)
     .eq("status", "published")
+    .contains("available_languages", [locale])
     .single();
 
   if (error) {
@@ -206,6 +209,7 @@ export async function getBlogPostById(id: string, locale: Locale = 'es') {
       featured_image,
       status,
       views,
+      available_languages,
       published_at,
       created_at,
       updated_at,
@@ -281,6 +285,7 @@ export async function getBlogPostsByCategory(categorySlug: string, locale: Local
       )
     `)
     .eq("status", "published")
+    .contains("available_languages", [locale])
     .eq(`category.${categorySlugColumn}`, categorySlug)
     .order("published_at", { ascending: false });
 
@@ -392,6 +397,7 @@ export async function searchBlogPosts(query: string, locale: Locale = 'es') {
       )
     `)
     .eq("status", "published")
+    .contains("available_languages", [locale])
     .or(`${titleColumn}.ilike.%${query}%,${contentColumn}.ilike.%${query}%`)
     .order("published_at", { ascending: false });
 
@@ -441,6 +447,7 @@ export async function createBlogPost(
         category_id: postData.category_id,
         author_id: authorId,
         status: postData.status,
+        available_languages: postData.available_languages || ['es', 'en'],
         published_at: postData.status === 'published' ? new Date().toISOString() : null,
       })
       .select()
@@ -524,6 +531,10 @@ export async function updateBlogPost(
           dataToUpdate.published_at = new Date().toISOString();
         }
       }
+    }
+
+    if (updates.available_languages !== undefined) {
+      dataToUpdate.available_languages = updates.available_languages;
     }
 
     const { data, error } = await supabase

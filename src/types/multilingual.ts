@@ -152,6 +152,7 @@ export interface UpdateMultilingualProductData {
   weight?: number;
   has_engraving?: boolean;
   is_active?: boolean;
+  available_languages?: string[]; // ['es', 'en'] o ['es'] o ['en']
 }
 
 export interface CreateMultilingualBlogPostData {
@@ -162,6 +163,7 @@ export interface CreateMultilingualBlogPostData {
   category_id?: string;
   status: 'draft' | 'published';
   tags?: string[];
+  available_languages?: string[]; // ['es', 'en'] o ['es'] o ['en']
 }
 
 export interface UpdateMultilingualBlogPostData {
@@ -172,6 +174,7 @@ export interface UpdateMultilingualBlogPostData {
   category_id?: string;
   status?: 'draft' | 'published';
   tags?: string[];
+  available_languages?: string[]; // ['es', 'en'] o ['es'] o ['en']
 }
 
 // ================================================
@@ -192,6 +195,7 @@ export interface ProductFormData {
   stock: number;
   weight?: number;
   is_active: boolean;
+  available_languages: string[]; // ['es', 'en'] o ['es'] o ['en']
   specifications: Array<{
     spec_key: MultilingualFormData;
     spec_value: MultilingualFormData;
@@ -210,6 +214,7 @@ export interface BlogPostFormData {
   category_id?: string;
   status: 'draft' | 'published';
   tags: string[];
+  available_languages: string[]; // ['es', 'en'] o ['es'] o ['en']
 }
 
 // ================================================

@@ -57,7 +57,8 @@ export function BlogPostForm({ postId, initialData, onSuccess, onCancel }: BlogP
     content: { es: "", en: "" },
     category_id: "",
     status: "draft",
-    tags: []
+    tags: [],
+    available_languages: ['es', 'en']
   };
 
   const {
@@ -114,7 +115,8 @@ export function BlogPostForm({ postId, initialData, onSuccess, onCancel }: BlogP
         content: formData.content,
         category_id: formData.category_id || undefined,
         status: formData.status,
-        tags: selectedTags
+        tags: selectedTags,
+        available_languages: formData.available_languages
       };
 
       if (postId) {
@@ -293,7 +295,7 @@ export function BlogPostForm({ postId, initialData, onSuccess, onCancel }: BlogP
                   updateField("category_id", value);
                 }}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder={t('blog.selectCategory')} />
                 </SelectTrigger>
                 <SelectContent>
@@ -314,12 +316,32 @@ export function BlogPostForm({ postId, initialData, onSuccess, onCancel }: BlogP
                   updateField("status", value as 'draft' | 'published');
                 }}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="draft">{t('blog.draft')}</SelectItem>
                   <SelectItem value="published">{t('blog.published')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-3">
+              <Label htmlFor="available_languages">{t('blog.availableLanguages')}</Label>
+              <Select 
+                value={formData.available_languages.join(',')} 
+                onValueChange={(value) => {
+                  const languages = value === 'both' ? ['es', 'en'] : value === 'es' ? ['es'] : ['en'];
+                  updateField("available_languages", languages);
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={t('blog.selectLanguages')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="both">{t('blog.bothLanguages')}</SelectItem>
+                  <SelectItem value="es">{t('blog.spanishOnly')}</SelectItem>
+                  <SelectItem value="en">{t('blog.englishOnly')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

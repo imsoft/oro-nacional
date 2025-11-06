@@ -686,6 +686,11 @@
       "saving": "Guardando...",
       "settings": "Configuración",
       "selectCategory": "Seleccionar categoría",
+      "availableLanguages": "Idiomas Disponibles",
+      "selectLanguages": "Seleccionar idiomas",
+      "bothLanguages": "Español e Inglés",
+      "spanishOnly": "Solo Español",
+      "englishOnly": "Solo Inglés",
       "searchPlaceholder": "Buscar posts...",
       "titleColumn": "Título",
       "categoryColumn": "Categoría",
@@ -777,7 +782,12 @@
       "size": "Talla",
       "addSize": "Agregar Talla",
       "save": "Guardar",
-      "cancel": "Cancelar"
+      "cancel": "Cancelar",
+      "availableLanguages": "Idiomas Disponibles",
+      "selectLanguages": "Seleccionar idiomas",
+      "bothLanguages": "Español e Inglés",
+      "spanishOnly": "Solo Español",
+      "englishOnly": "Solo Inglés"
     },
     "settings": {
       "title": "Configuración",

@@ -50,6 +50,7 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel }: Pro
     stock: 0,
     weight: 0,
     is_active: true,
+    available_languages: ['es', 'en'],
     specifications: [],
     sizes: []
   };
@@ -96,6 +97,7 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel }: Pro
         stock: formData.stock,
         weight: formData.weight || undefined,
         is_active: formData.is_active,
+        available_languages: formData.available_languages,
         specifications: formData.specifications.map(spec => ({
           spec_key: spec.spec_key,
           spec_value: spec.spec_value,
@@ -306,7 +308,7 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel }: Pro
                   updateField("category_id", value);
                 }}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder={t('productForm.selectCategory')} />
                 </SelectTrigger>
                 <SelectContent>
@@ -315,6 +317,26 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel }: Pro
                       {category.name.es} / {category.name.en}
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-3">
+              <Label htmlFor="available_languages">{t('productForm.availableLanguages')}</Label>
+              <Select 
+                value={formData.available_languages.join(',')} 
+                onValueChange={(value) => {
+                  const languages = value === 'both' ? ['es', 'en'] : value === 'es' ? ['es'] : ['en'];
+                  updateField("available_languages", languages);
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={t('productForm.selectLanguages')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="both">{t('productForm.bothLanguages')}</SelectItem>
+                  <SelectItem value="es">{t('productForm.spanishOnly')}</SelectItem>
+                  <SelectItem value="en">{t('productForm.englishOnly')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
