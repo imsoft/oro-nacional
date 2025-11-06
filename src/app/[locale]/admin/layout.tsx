@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import Link from "next/link";
+import { useRouter, usePathname, Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import {
   LayoutDashboard,
@@ -26,6 +25,7 @@ export default function AdminLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const locale = useLocale();
   const { isAdmin, isAuthenticated, user, logout, checkSession, isLoading } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
@@ -54,9 +54,9 @@ export default function AdminLayout({
   useEffect(() => {
     // Si terminó de cargar y no está autenticado o no es admin, redirigir
     if (!isLoading && !isChecking && (!isAuthenticated || !isAdmin)) {
-      router.push("/login");
+      router.push("/login", { locale: locale as 'es' | 'en' });
     }
-  }, [isLoading, isChecking, isAuthenticated, isAdmin, router]);
+  }, [isLoading, isChecking, isAuthenticated, isAdmin, router, locale]);
 
   // Mostrar loading mientras se verifica la sesión
   if (isLoading || isChecking) {
