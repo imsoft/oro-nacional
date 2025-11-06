@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 import { Button } from "@/components/ui/button";
+import { LanguageSwitcher } from "@/components/shared/language-switcher";
 
 export default function AdminLayout({
   children,
@@ -85,12 +86,13 @@ export default function AdminLayout({
       <aside className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col">
         <div className="flex min-h-0 flex-1 flex-col border-r border-border bg-card">
           {/* Logo */}
-          <div className="flex h-16 flex-shrink-0 items-center px-6 border-b border-border">
+          <div className="flex h-16 flex-shrink-0 items-center justify-between px-6 border-b border-border">
             <Link href="/admin" className="flex items-center">
               <span className="text-xl font-bold text-[#D4AF37]">
                 Oro Nacional
               </span>
             </Link>
+            <LanguageSwitcher />
           </div>
 
           {/* Navigation */}
@@ -151,13 +153,16 @@ export default function AdminLayout({
                   Oro Nacional
                 </span>
               </Link>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setSidebarOpen(false)}
-              >
-                <X className="h-6 w-6" />
-              </Button>
+              <div className="flex items-center gap-2">
+                <LanguageSwitcher />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <X className="h-6 w-6" />
+                </Button>
+              </div>
             </div>
 
             {/* Navigation */}
@@ -217,10 +222,11 @@ export default function AdminLayout({
           >
             <Menu className="h-6 w-6" />
           </Button>
-          <div className="flex flex-1 items-center px-4">
+          <div className="flex flex-1 items-center justify-between px-4">
             <span className="text-xl font-bold text-[#D4AF37]">
               Oro Nacional
             </span>
+            <LanguageSwitcher />
           </div>
         </div>
 
