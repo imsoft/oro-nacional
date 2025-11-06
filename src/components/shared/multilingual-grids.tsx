@@ -9,7 +9,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useCurrentLocale, useMultilingualContent } from "@/hooks/use-multilingual";
 import { getProducts } from "@/lib/supabase/products-multilingual";
 import { getBlogPosts as getBlogPostsMultilingual } from "@/lib/supabase/blog-multilingual";
-import type { MultilingualProduct, MultilingualBlogPost } from "@/types/multilingual";
 import { Link } from "@/i18n/routing";
 import Image from "next/image";
 
