@@ -632,7 +632,8 @@
       "deleteConfirm": "¿Estás seguro de que deseas eliminar el producto",
       "deleteWarning": "Nota: El producto se desactivará y ya no aparecerá en el catálogo público. Los datos se conservarán en el sistema.",
       "deleting": "Eliminando...",
-      "deleteError": "Error al eliminar el producto. Por favor intenta de nuevo."
+      "deleteError": "Error al eliminar el producto. Por favor intenta de nuevo.",
+      "cancel": "Cancelar"
     },
     "orders": {
       "title": "Pedidos",

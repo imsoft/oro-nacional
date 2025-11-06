@@ -632,7 +632,8 @@
       "deleteConfirm": "Are you sure you want to delete the product",
       "deleteWarning": "Note: The product will be deactivated and will no longer appear in the public catalog. Data will be kept in the system.",
       "deleting": "Deleting...",
-      "deleteError": "Error deleting product. Please try again."
+      "deleteError": "Error deleting product. Please try again.",
+      "cancel": "Cancel"
     },
     "orders": {
       "title": "Orders",

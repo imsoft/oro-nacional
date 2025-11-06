@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { getAllProducts, softDeleteProduct } from "@/lib/supabase/products";
 import type { ProductListItem } from "@/types/product";
+import { useMemo } from "react";
 
 export default function ProductsAdmin() {
   const t = useTranslations('admin.products');
@@ -71,15 +72,27 @@ export default function ProductsAdmin() {
     }
   };
 
-  const filteredProducts = products.filter((product) => {
-    // Filter by search term
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    // Only show active products (soft deleted products have is_active: false)
-    const isActive = product.is_active !== false;
-    
-    return matchesSearch && isActive;
-  });
+  const filteredProducts = useMemo(() => {
+    return products.filter((product) => {
+      // Filter by search term
+      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // Only show active products (soft deleted products have is_active: false)
+      const isActive = product.is_active !== false;
+      
+      return matchesSearch && isActive;
+    });
+  }, [products, searchTerm]);
+
+  // Calcular estadísticas basadas en productos activos
+  const stats = useMemo(() => {
+    const activeProducts = products.filter((p) => p.is_active !== false);
+    return {
+      totalProducts: activeProducts.length,
+      inventoryValue: activeProducts.reduce((sum, p) => sum + p.price * p.stock, 0),
+      lowStock: activeProducts.filter((p) => p.stock < 10).length,
+    };
+  }, [products]);
 
   if (isLoading) {
     return (
@@ -239,22 +252,20 @@ export default function ProductsAdmin() {
         <div className="rounded-lg bg-card border border-border p-6">
           <div className="text-sm text-muted-foreground">{t('totalProducts')}</div>
           <div className="mt-2 text-3xl font-bold text-foreground">
-            {products.length}
+            {stats.totalProducts}
           </div>
         </div>
         <div className="rounded-lg bg-card border border-border p-6">
           <div className="text-sm text-muted-foreground">{t('inventoryValue')}</div>
           <div className="mt-2 text-3xl font-bold text-[#D4AF37]">
             $
-            {products
-              .reduce((sum, p) => sum + p.price * p.stock, 0)
-              .toLocaleString("es-MX")}
+            {stats.inventoryValue.toLocaleString("es-MX")}
           </div>
         </div>
         <div className="rounded-lg bg-card border border-border p-6">
           <div className="text-sm text-muted-foreground">{t('lowStock')}</div>
           <div className="mt-2 text-3xl font-bold text-red-600">
-            {products.filter((p) => p.stock < 10).length}
+            {stats.lowStock}
           </div>
         </div>
       </div>
@@ -291,7 +302,7 @@ export default function ProductsAdmin() {
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               disabled={isDeleting}
-              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600 text-white"
             >
               {isDeleting ? (
                 <>
