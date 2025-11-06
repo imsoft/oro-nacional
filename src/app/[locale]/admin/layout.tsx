@@ -34,6 +34,7 @@ export default function AdminLayout({
   const navigation = [
     { name: t('dashboard'), href: "/admin", icon: LayoutDashboard },
     { name: t('products'), href: "/admin/productos", icon: Package },
+    { name: t('productCategories'), href: "/admin/productos/categorias", icon: Package },
     { name: t('blog'), href: "/admin/blog", icon: FileText },
     { name: t('blogCategories'), href: "/admin/blog/categorias", icon: FileText },
     { name: t('orders'), href: "/admin/pedidos", icon: ShoppingCart },

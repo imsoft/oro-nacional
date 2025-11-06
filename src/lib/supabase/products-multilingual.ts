@@ -583,6 +583,97 @@ function transformProductForLocale(locale: Locale) {
 // ================================================
 
 /**
+ * Obtener todas las categorías de productos (para admin)
+ */
+export async function getAllProductCategories(locale: Locale = 'es') {
+  const { data, error } = await supabase
+    .from("product_categories")
+    .select(`
+      id,
+      name_es,
+      name_en,
+      slug_es,
+      slug_en,
+      description_es,
+      description_en,
+      image_url,
+      created_at,
+      updated_at
+    `)
+    .order("name_es", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching all product categories:", error);
+    return [];
+  }
+
+  return data.map((category: Record<string, unknown>) => ({
+    id: category.id as string,
+    name: {
+      es: category.name_es as string,
+      en: category.name_en as string,
+    },
+    slug: {
+      es: category.slug_es as string,
+      en: category.slug_en as string,
+    },
+    description: category.description_es || category.description_en ? {
+      es: (category.description_es as string) || '',
+      en: (category.description_en as string) || '',
+    } : undefined,
+    image_url: category.image_url as string | undefined,
+    created_at: category.created_at as string,
+    updated_at: category.updated_at as string,
+  }));
+}
+
+/**
+ * Obtener una categoría de producto por ID (para admin)
+ */
+export async function getProductCategoryById(id: string) {
+  const { data, error } = await supabase
+    .from("product_categories")
+    .select(`
+      id,
+      name_es,
+      name_en,
+      slug_es,
+      slug_en,
+      description_es,
+      description_en,
+      image_url,
+      created_at,
+      updated_at
+    `)
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    console.error("Error fetching product category by ID:", error);
+    return null;
+  }
+
+  return {
+    id: data.id,
+    name: {
+      es: data.name_es,
+      en: data.name_en,
+    },
+    slug: {
+      es: data.slug_es,
+      en: data.slug_en,
+    },
+    description: data.description_es || data.description_en ? {
+      es: data.description_es || '',
+      en: data.description_en || '',
+    } : undefined,
+    image_url: data.image_url || undefined,
+    created_at: data.created_at,
+    updated_at: data.updated_at,
+  };
+}
+
+/**
  * Crear una nueva categoría con contenido multilingüe
  */
 export async function createCategory(
