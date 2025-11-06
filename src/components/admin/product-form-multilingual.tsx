@@ -298,13 +298,12 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel }: Pro
 
         <MultilingualCard title={t('productForm.productDetails')}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label htmlFor="category">{t('productForm.category')}</Label>
               <Select 
                 value={formData.category_id} 
                 onValueChange={(value) => {
-                  // Para campos no multilingües, necesitamos una solución temporal
-                  console.log('Updating category_id:', value);
+                  updateField("category_id", value);
                 }}
               >
                 <SelectTrigger>
@@ -320,60 +319,60 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel }: Pro
               </Select>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label htmlFor="price">{t('productForm.priceLabel')}</Label>
               <Input
                 id="price"
                 type="number"
+                step="0.01"
+                min="0"
                 value={formData.price}
                 onChange={(e) => {
-                  // Para campos no multilingües, necesitamos una solución temporal
-                  console.log('Updating price:', parseFloat(e.target.value) || 0);
+                  updateField("price", parseFloat(e.target.value) || 0);
                 }}
                 placeholder="0.00"
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label htmlFor="stock">{t('productForm.stock')}</Label>
               <Input
                 id="stock"
                 type="number"
+                min="0"
                 value={formData.stock}
                 onChange={(e) => {
-                  // Para campos no multilingües, necesitamos una solución temporal
-                  console.log('Updating stock:', parseInt(e.target.value) || 0);
+                  updateField("stock", parseInt(e.target.value) || 0);
                 }}
                 placeholder="0"
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label htmlFor="weight">{t('productForm.weight')}</Label>
               <Input
                 id="weight"
                 type="number"
+                step="0.01"
+                min="0"
                 value={formData.weight || ""}
                 onChange={(e) => {
-                  // Para campos no multilingües, necesitamos una solución temporal
-                  console.log('Updating weight:', parseFloat(e.target.value) || undefined);
+                  updateField("weight", parseFloat(e.target.value) || undefined);
                 }}
                 placeholder="0.0"
               />
             </div>
           </div>
 
-
-          <div className="flex items-center space-x-2 mt-2">
+          <div className="flex items-center space-x-2 mt-4">
             <Checkbox
               id="is_active"
               checked={formData.is_active}
               onCheckedChange={(checked) => {
-                // Para campos no multilingües, necesitamos una solución temporal
-                console.log('Updating is_active:', checked);
+                updateField("is_active", checked === true);
               }}
             />
-            <Label htmlFor="is_active">{t('productForm.activeProduct')}</Label>
+            <Label htmlFor="is_active" className="cursor-pointer">{t('productForm.activeProduct')}</Label>
           </div>
         </MultilingualCard>
 

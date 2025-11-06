@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ArrowLeft, Upload, X, Plus } from "lucide-react";
@@ -28,7 +28,7 @@ interface Specification {
   value: string;
 }
 
-export default function NuevoProducto() {
+export default function NewProduct() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -53,15 +53,25 @@ export default function NuevoProducto() {
   const [sizes, setSizes] = useState<string[]>([]);
   const [newSize, setNewSize] = useState("");
 
-  // Categories (mock data - will be fetched from DB)
-  const categories = [
-    { id: "1", name: "Anillos" },
-    { id: "2", name: "Collares" },
-    { id: "3", name: "Aretes" },
-    { id: "4", name: "Pulseras" },
-    { id: "5", name: "Dijes" },
-    { id: "6", name: "Relojes" },
-  ];
+  // Categories
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("product_categories")
+          .select("id, name")
+          .order("name");
+        
+        if (error) throw error;
+        setCategories(data || []);
+      } catch (error) {
+        console.error("Error loading categories:", error);
+      }
+    };
+    loadCategories();
+  }, []);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -148,7 +158,7 @@ export default function NuevoProducto() {
           name,
           slug,
           description,
-          category_id: categoryId || null,
+          category_id: categoryId && categoryId.trim() !== "" ? categoryId : null,
           price: parseFloat(price),
           stock: parseInt(stock),
           material,
@@ -260,7 +270,7 @@ export default function NuevoProducto() {
         <div className="rounded-lg bg-card border border-border p-6">
           <h2 className="text-xl font-semibold mb-4">Información Básica</h2>
           <div className="space-y-4">
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label htmlFor="name">
                 Nombre del Producto <span className="text-red-500">*</span>
               </Label>
@@ -273,7 +283,7 @@ export default function NuevoProducto() {
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label htmlFor="description">
                 Descripción <span className="text-red-500">*</span>
               </Label>
@@ -288,7 +298,7 @@ export default function NuevoProducto() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label htmlFor="category">Categoría</Label>
                 <Select value={categoryId} onValueChange={setCategoryId}>
                   <SelectTrigger>
@@ -304,7 +314,7 @@ export default function NuevoProducto() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label htmlFor="material">
                   Material <span className="text-red-500">*</span>
                 </Label>
@@ -319,7 +329,7 @@ export default function NuevoProducto() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label htmlFor="price">
                   Precio (MXN) <span className="text-red-500">*</span>
                 </Label>
@@ -335,7 +345,7 @@ export default function NuevoProducto() {
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label htmlFor="stock">
                   Stock <span className="text-red-500">*</span>
                 </Label>
@@ -350,7 +360,7 @@ export default function NuevoProducto() {
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label htmlFor="weight">Peso (gramos)</Label>
                 <Input
                   id="weight"
@@ -372,7 +382,7 @@ export default function NuevoProducto() {
           <h2 className="text-xl font-semibold mb-4">Imágenes</h2>
 
           <div className="space-y-4">
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label htmlFor="images">Subir Imágenes</Label>
               <div className="mt-2">
                 <label

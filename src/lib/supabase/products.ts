@@ -458,15 +458,19 @@ export async function addProductSizes(
  * Delete a product (soft delete by setting is_active to false)
  */
 export async function softDeleteProduct(productId: string) {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("products")
     .update({ is_active: false })
-    .eq("id", productId);
+    .eq("id", productId)
+    .select()
+    .single();
 
   if (error) {
     console.error("Error soft deleting product:", error);
     throw error;
   }
+
+  return data;
 }
 
 /**

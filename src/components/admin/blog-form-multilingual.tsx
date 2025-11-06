@@ -285,13 +285,12 @@ export function BlogPostForm({ postId, initialData, onSuccess, onCancel }: BlogP
 
         <MultilingualCard title={t('blog.settings')}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label htmlFor="category">{t('blog.category')}</Label>
               <Select 
-                value={formData.category_id} 
+                value={formData.category_id || ""} 
                 onValueChange={(value) => {
-                  // Para campos no multilingües, necesitamos una solución temporal
-                  console.log('Updating category_id:', value);
+                  updateField("category_id", value);
                 }}
               >
                 <SelectTrigger>
@@ -307,13 +306,12 @@ export function BlogPostForm({ postId, initialData, onSuccess, onCancel }: BlogP
               </Select>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label htmlFor="status">{t('blog.status')}</Label>
               <Select 
                 value={formData.status} 
                 onValueChange={(value) => {
-                  // Para campos no multilingües, necesitamos una solución temporal
-                  console.log('Updating status:', value);
+                  updateField("status", value as 'draft' | 'published');
                 }}
               >
                 <SelectTrigger>

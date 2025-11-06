@@ -49,22 +49,37 @@ export default function ProductsAdmin() {
 
     setIsDeleting(true);
     try {
-      await softDeleteProduct(productToDelete.id);
-      // Reload products after deletion
-      await loadProducts();
+      const deletedProductId = productToDelete.id;
+      
+      // Delete the product
+      await softDeleteProduct(deletedProductId);
+      
+      // Remove the product from the list immediately for better UX
+      setProducts(prevProducts => prevProducts.filter(p => p.id !== deletedProductId));
+      
+      // Close dialog
       setDeleteDialogOpen(false);
       setProductToDelete(null);
+      
+      // Reload to ensure sync with database (will include inactive products, which is fine for admin)
+      await loadProducts();
     } catch (error) {
       console.error("Error deleting product:", error);
-      alert(t('deleteError'));
+      alert(t('deleteError') || "Error al eliminar el producto. Por favor intenta de nuevo.");
     } finally {
       setIsDeleting(false);
     }
   };
 
-  const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredProducts = products.filter((product) => {
+    // Filter by search term
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Only show active products (soft deleted products have is_active: false)
+    const isActive = product.is_active !== false;
+    
+    return matchesSearch && isActive;
+  });
 
   if (isLoading) {
     return (
