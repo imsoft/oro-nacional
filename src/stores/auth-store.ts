@@ -32,35 +32,68 @@ export const useAuthStore = create<AuthStore>()(
 
       checkSession: async () => {
         try {
-          const { data: { session } } = await supabase.auth.getSession();
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+          if (sessionError) {
+            console.error("Session error:", sessionError);
+            set({
+              user: null,
+              isAuthenticated: false,
+              isAdmin: false,
+              isLoading: false,
+            });
+            return;
+          }
 
           if (session?.user) {
-            // Obtener el perfil del usuario de la tabla profiles
-            const { data: profile, error } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
+            try {
+              // Usar la función SECURITY DEFINER para evitar problemas de RLS
+              const { data: profileData, error: profileError } = await supabase
+                .rpc('get_user_profile', { user_uuid: session.user.id });
 
-            if (error) throw error;
+              // Si la función RPC no existe o falla, usar consulta directa como fallback
+              let profile = null;
+              
+              if (profileError || !profileData || profileData.length === 0) {
+                // Fallback: consulta directa (puede fallar si RLS está mal configurado)
+                const { data: directProfile, error: directError } = await supabase
+                  .from('profiles')
+                  .select('*')
+                  .eq('id', session.user.id)
+                  .single();
 
-            if (profile) {
-              const user: User = {
-                id: profile.id,
-                email: profile.email,
-                name: profile.full_name,
-                role: profile.role,
-                avatarUrl: profile.avatar_url,
-                createdAt: profile.created_at,
-              };
+                if (directError) {
+                  console.error("Error getting profile (direct):", directError);
+                  // No lanzar error, solo registrar
+                } else {
+                  profile = directProfile;
+                }
+              } else {
+                // La función RPC devuelve un array, tomar el primer elemento
+                profile = Array.isArray(profileData) ? profileData[0] : profileData;
+              }
 
-              set({
-                user,
-                isAuthenticated: true,
-                isAdmin: profile.role === "admin",
-                isLoading: false,
-              });
-              return;
+              if (profile) {
+                const user: User = {
+                  id: profile.id,
+                  email: profile.email,
+                  name: profile.full_name,
+                  role: profile.role,
+                  avatarUrl: profile.avatar_url,
+                  createdAt: profile.created_at,
+                };
+
+                set({
+                  user,
+                  isAuthenticated: true,
+                  isAdmin: profile.role === "admin",
+                  isLoading: false,
+                });
+                return;
+              }
+            } catch (profileError) {
+              console.error("Error getting profile:", profileError);
+              // Continuar y establecer como no autenticado
             }
           }
 
@@ -102,14 +135,28 @@ export const useAuthStore = create<AuthStore>()(
             return { success: false, error: "Error al iniciar sesión" };
           }
 
-          // Obtener el perfil del usuario
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', data.user.id)
-            .single();
+          // Obtener el perfil del usuario usando la función RPC si está disponible
+          let profile = null;
+          const { data: profileData, error: profileError } = await supabase
+            .rpc('get_user_profile', { user_uuid: data.user.id });
 
-          if (profileError) {
+          if (profileError || !profileData || profileData.length === 0) {
+            // Fallback: consulta directa
+            const { data: directProfile, error: directError } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', data.user.id)
+              .single();
+
+            if (directError) {
+              return { success: false, error: "Error al obtener perfil" };
+            }
+            profile = directProfile;
+          } else {
+            profile = Array.isArray(profileData) ? profileData[0] : profileData;
+          }
+
+          if (!profile) {
             return { success: false, error: "Error al obtener perfil" };
           }
 
@@ -169,19 +216,26 @@ export const useAuthStore = create<AuthStore>()(
           // Esperar un momento para que el trigger cree el perfil
           await new Promise(resolve => setTimeout(resolve, 1000));
 
-          // Obtener el perfil creado
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', data.user.id)
-            .single();
+          // Obtener el perfil creado usando la función RPC si está disponible
+          let profile = null;
+          const { data: profileData, error: profileError } = await supabase
+            .rpc('get_user_profile', { user_uuid: data.user.id });
 
-          if (profileError) {
-            console.error("Profile error:", profileError);
-            // Aún así consideramos el registro exitoso
-            return {
-              success: true,
-            };
+          if (profileError || !profileData || profileData.length === 0) {
+            // Fallback: consulta directa
+            const { data: directProfile, error: directError } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', data.user.id)
+              .single();
+
+            if (directError) {
+              console.error("Profile error:", directError);
+            } else {
+              profile = directProfile;
+            }
+          } else {
+            profile = Array.isArray(profileData) ? profileData[0] : profileData;
           }
 
           if (profile) {
