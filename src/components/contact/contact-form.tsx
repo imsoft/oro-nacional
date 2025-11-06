@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale } from "next-intl";
 import { Send, Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,7 @@ import {
 import { createContactMessage } from "@/lib/supabase/contact";
 
 const ContactForm = () => {
+  const locale = useLocale() as 'es' | 'en';
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -43,13 +45,35 @@ const ContactForm = () => {
       message: formData.message,
     });
 
-    setIsLoading(false);
+    if (result.success && result.message) {
+      // Enviar correos electrónicos
+      try {
+        const emailResponse = await fetch('/api/email/contact', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messageId: result.message.id,
+            locale,
+          }),
+        });
 
-    if (result.success) {
+        if (!emailResponse.ok) {
+          console.error('Error sending emails:', await emailResponse.text());
+          // No fallar si los correos fallan, solo loguear
+        }
+      } catch (error) {
+        console.error('Error sending emails:', error);
+        // No fallar si los correos fallan, solo loguear
+      }
+
       setSubmitStatus({
         type: "success",
         message:
-          "¡Gracias por contactarnos! Hemos recibido tu mensaje y te responderemos en un plazo máximo de 24 horas.",
+          locale === 'es'
+            ? "¡Gracias por contactarnos! Hemos recibido tu mensaje y te responderemos en un plazo máximo de 24 horas."
+            : "Thank you for contacting us! We have received your message and will respond within 24 hours.",
       });
       // Reset form
       setFormData({
@@ -64,9 +88,13 @@ const ContactForm = () => {
         type: "error",
         message:
           result.error ||
-          "Hubo un error al enviar tu mensaje. Por favor, intenta de nuevo o contáctanos por WhatsApp.",
+          (locale === 'es'
+            ? "Hubo un error al enviar tu mensaje. Por favor, intenta de nuevo o contáctanos por WhatsApp."
+            : "There was an error sending your message. Please try again or contact us via WhatsApp."),
       });
     }
+
+    setIsLoading(false);
 
     // Clear status after 10 seconds
     setTimeout(() => {

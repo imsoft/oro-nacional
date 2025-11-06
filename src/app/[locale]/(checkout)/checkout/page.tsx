@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, CreditCard, Truck, CheckCircle2, AlertCircle } from "lucide-react";
@@ -18,6 +19,7 @@ import type { CreateOrderData, PaymentMethod } from "@/types/order";
 
 const CheckoutPage = () => {
   const router = useRouter();
+  const locale = useLocale() as 'es' | 'en';
   const { items } = useCartStore();
   const { user } = useAuthStore();
   const total = useCartStore((state) => state.getTotal());
@@ -137,6 +139,28 @@ const CheckoutPage = () => {
         setError(result.error || "Error al procesar el pedido");
         setIsLoading(false);
         return;
+      }
+
+      // Enviar correos electrónicos
+      try {
+        const emailResponse = await fetch('/api/email/order', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            orderId: result.order.id,
+            locale,
+          }),
+        });
+
+        if (!emailResponse.ok) {
+          console.error('Error sending emails:', await emailResponse.text());
+          // No fallar si los correos fallan, solo loguear
+        }
+      } catch (error) {
+        console.error('Error sending emails:', error);
+        // No fallar si los correos fallan, solo loguear
       }
 
       // Guardar el número de pedido en localStorage para la página de confirmación
