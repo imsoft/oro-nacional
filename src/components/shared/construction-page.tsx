@@ -1,10 +1,8 @@
-import { useTranslations } from 'next-intl';
 import { Clock, Mail, Phone, MapPin, Instagram, Facebook, Gem } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
 const ConstructionPage = () => {
-  const t = useTranslations();
 
   return (
     <div className="bg-background min-h-screen flex flex-col">

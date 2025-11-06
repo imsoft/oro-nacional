@@ -665,7 +665,7 @@ function transformBlogPostForLocale(locale: Locale) {
 /**
  * Obtener todas las categorías de blog (para admin)
  */
-export async function getAllBlogCategories(locale: Locale = 'es') {
+export async function getAllBlogCategories() {
   const { data, error } = await supabase
     .from("blog_categories")
     .select(`

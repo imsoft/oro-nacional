@@ -3,11 +3,8 @@
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Save, Eye, Plus, X } from "lucide-react";
@@ -22,9 +19,7 @@ import {
 import type { 
   BlogPostFormData, 
   MultilingualFormData, 
-  Locale,
-  MultilingualBlogCategory,
-  MultilingualBlogTag 
+  Locale
 } from "@/types/multilingual";
 import { 
   createBlogPost, 
@@ -65,15 +60,7 @@ export function BlogPostForm({ postId, initialData, onSuccess, onCancel }: BlogP
     formData,
     updateField,
     validateForm,
-    resetForm
   } = useMultilingualForm<BlogPostFormData>(defaultData);
-
-  // Función para actualizar campos no multilingües
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const updateNonMultilingualField = (field: keyof BlogPostFormData, value: any) => {
-    // Esta función necesitaría acceso a setFormData, pero por ahora usamos updateField
-    // TODO: Mejorar el hook para manejar campos no multilingües
-  };
 
   // Cargar categorías y etiquetas
   useEffect(() => {
@@ -144,14 +131,6 @@ export function BlogPostForm({ postId, initialData, onSuccess, onCancel }: BlogP
     );
   };
 
-  const addNewTag = async (name: MultilingualFormData) => {
-    try {
-      // TODO: Implementar creación de nueva etiqueta
-      console.log("Creating new tag:", name);
-    } catch (error) {
-      console.error("Error creating tag:", error);
-    }
-  };
 
   if (isPreviewMode) {
     return (

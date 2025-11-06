@@ -21,8 +21,7 @@ import {
 import type { 
   ProductFormData, 
   MultilingualFormData, 
-  Locale,
-  MultilingualCategory 
+  Locale
 } from "@/types/multilingual";
 import { createProduct, updateProduct, getCategories } from "@/lib/supabase/products-multilingual";
 
@@ -33,7 +32,7 @@ interface ProductFormProps {
   onCancel?: () => void;
 }
 
-export function ProductForm({ productId, initialData, onSuccess, onCancel }: ProductFormProps) {
+export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps) {
   const t = useTranslations("admin");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [categories, setCategories] = useState<any[]>([]);
@@ -57,10 +56,8 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel }: Pro
 
   const {
     formData,
-    errors,
     updateField,
     validateForm,
-    resetForm
   } = useMultilingualForm<ProductFormData>(defaultData);
 
   // Cargar categorías
@@ -134,16 +131,13 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel }: Pro
   };
 
   const removeSpecification = (index: number) => {
-    const newSpecs = formData.specifications.filter((_, i) => i !== index);
-    // Para campos no multilingües, necesitamos una solución temporal
-    console.log('Removing specification at index:', index);
+    updateField("specifications", formData.specifications.filter((_, i) => i !== index));
   };
 
   const updateSpecification = (index: number, field: "spec_key" | "spec_value", value: MultilingualFormData) => {
     const newSpecs = [...formData.specifications];
     newSpecs[index] = { ...newSpecs[index], [field]: value };
-    // Para campos no multilingües, necesitamos una solución temporal
-    console.log('Updating specification:', { index, field, value });
+    updateField("specifications", newSpecs);
   };
 
   const addSize = () => {
@@ -156,14 +150,13 @@ export function ProductForm({ productId, initialData, onSuccess, onCancel }: Pro
   };
 
   const removeSize = (index: number) => {
-    const newSizes = formData.sizes.filter((_, i) => i !== index);
-    // Para campos no multilingües, necesitamos una solución temporal
-    console.log('Removing size at index:', index);
+    updateField("sizes", formData.sizes.filter((_, i) => i !== index));
   };
 
   const updateSize = (index: number, field: "size" | "stock", value: string | number) => {
     const newSizes = [...formData.sizes];
     newSizes[index] = { ...newSizes[index], [field]: value };
+    updateField("sizes", newSizes);
     // Para campos no multilingües, necesitamos una solución temporal
     console.log('Updating size:', { index, field, value });
   };

@@ -16,7 +16,7 @@ import Image from "next/image";
 export function MultilingualProductGrid() {
   const t = useTranslations("common");
   const locale = useCurrentLocale();
-  const { getLocalizedText, getLocalizedContent } = useMultilingualContent();
+  useMultilingualContent();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [products, setProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -144,7 +144,7 @@ export function MultilingualProductGrid() {
 export function MultilingualBlogGrid() {
   const t = useTranslations("common");
   const locale = useCurrentLocale();
-  const { getLocalizedText, getLocalizedContent } = useMultilingualContent();
+  useMultilingualContent();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [posts, setPosts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);

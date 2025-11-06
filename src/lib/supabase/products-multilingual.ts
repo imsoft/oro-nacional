@@ -1,10 +1,5 @@
 import { supabase } from "./client";
 import type { 
-  MultilingualProduct, 
-  MultilingualCategory, 
-  MultilingualSpecification,
-  ProductImage,
-  ProductSize,
   CreateMultilingualProductData,
   UpdateMultilingualProductData,
   Locale
@@ -585,7 +580,7 @@ function transformProductForLocale(locale: Locale) {
 /**
  * Obtener todas las categorías de productos (para admin)
  */
-export async function getAllProductCategories(locale: Locale = 'es') {
+export async function getAllProductCategories() {
   const { data, error } = await supabase
     .from("product_categories")
     .select(`

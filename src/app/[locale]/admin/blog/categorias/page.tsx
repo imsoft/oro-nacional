@@ -19,7 +19,6 @@ import {
   getAllBlogCategories,
   deleteBlogCategory,
 } from "@/lib/supabase/blog-multilingual";
-import type { MultilingualCategory } from "@/types/multilingual";
 import { Link } from "@/i18n/routing";
 
 interface BlogCategoryListItem {

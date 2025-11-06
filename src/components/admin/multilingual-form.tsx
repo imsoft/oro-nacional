@@ -209,7 +209,7 @@ export function useMultilingualForm<T>(
   const [formData, setFormData] = useState<T>(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const updateField = (field: keyof T, value: MultilingualFormData | string | number | boolean | undefined) => {
+  const updateField = (field: keyof T, value: MultilingualFormData | string | number | boolean | string[] | undefined) => {
     setFormData(prev => ({
       ...prev,
       [field]: value

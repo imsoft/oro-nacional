@@ -32,7 +32,6 @@ export default function NewBlogCategoryPage() {
 
   const {
     formData,
-    errors,
     updateField,
     validateForm,
   } = useMultilingualForm<CategoryFormData>(defaultData);
