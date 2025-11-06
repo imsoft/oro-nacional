@@ -92,6 +92,9 @@ export interface Order {
   customer_notes: string | null;
   admin_notes: string | null;
 
+  // Stripe
+  stripe_payment_intent_id: string | null;
+
   // Timestamps
   created_at: string;
   updated_at: string;

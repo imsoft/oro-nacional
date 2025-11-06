@@ -6,6 +6,8 @@ import { useLocale } from "next-intl";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, CreditCard, Truck, CheckCircle2, AlertCircle } from "lucide-react";
+import { Elements } from '@stripe/react-stripe-js';
+import type { Stripe } from '@stripe/stripe-js';
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
 import { Button } from "@/components/ui/button";
@@ -15,18 +17,24 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCartStore } from "@/stores/cart-store";
 import { useAuthStore } from "@/stores/auth-store";
 import { createOrder } from "@/lib/supabase/orders";
+import { getStripeClient } from "@/lib/stripe/client";
+import { StripePaymentElement } from "@/components/checkout/stripe-payment-element";
 import type { CreateOrderData, PaymentMethod } from "@/types/order";
 
 const CheckoutPage = () => {
   const router = useRouter();
   const locale = useLocale() as 'es' | 'en';
-  const { items } = useCartStore();
+  const { items, clearCart } = useCartStore();
   const { user } = useAuthStore();
   const total = useCartStore((state) => state.getTotal());
   const itemCount = useCartStore((state) => state.getItemCount());
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [stripeClient, setStripeClient] = useState<Stripe | null>(null);
+  const [stripeEnabled, setStripeEnabled] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [orderId, setOrderId] = useState<string | null>(null);
 
   // Datos de envío
   const [shippingData, setShippingData] = useState({
@@ -44,16 +52,20 @@ const CheckoutPage = () => {
   // Método de pago
   const [paymentMethod, setPaymentMethod] = useState<"card" | "transfer" | "cash">("card");
 
-  // Datos de tarjeta
-  const [cardData, setCardData] = useState({
-    cardNumber: "",
-    cardName: "",
-    expiryDate: "",
-    cvv: "",
-  });
-
   const shippingCost = 0; // Envío gratis
   const finalTotal = total + shippingCost;
+
+  // Inicializar Stripe
+  useEffect(() => {
+    const initStripe = async () => {
+      const stripe = await getStripeClient();
+      if (stripe) {
+        setStripeClient(stripe);
+        setStripeEnabled(true);
+      }
+    };
+    initStripe();
+  }, []);
 
   useEffect(() => {
     // Redirigir si el carrito está vacío
@@ -66,10 +78,6 @@ const CheckoutPage = () => {
     setShippingData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleCardChange = (field: string, value: string) => {
-    setCardData((prev) => ({ ...prev, [field]: value }));
-  };
-
   const validateForm = () => {
     // Validar datos de envío
     if (!shippingData.fullName || !shippingData.email || !shippingData.phone ||
@@ -79,17 +87,167 @@ const CheckoutPage = () => {
       return false;
     }
 
-    // Validar datos de pago si es tarjeta
-    if (paymentMethod === "card") {
-      if (!cardData.cardNumber || !cardData.cardName || !cardData.expiryDate || !cardData.cvv) {
-        setError("Por favor completa todos los datos de la tarjeta");
-        return false;
-      }
-    }
-
     return true;
   };
 
+  // Crear pedido antes de procesar el pago con Stripe
+  const createOrderForStripe = async (): Promise<string | null> => {
+    if (orderId) return orderId;
+
+    const paymentMethodMap: Record<string, PaymentMethod> = {
+      card: "Tarjeta",
+      transfer: "Transferencia",
+      cash: "Efectivo",
+    };
+
+    const orderData: CreateOrderData = {
+      customer_name: shippingData.fullName,
+      customer_email: shippingData.email,
+      customer_phone: shippingData.phone,
+      shipping_address: `${shippingData.street} ${shippingData.number}, ${shippingData.colony}`,
+      shipping_city: shippingData.city,
+      shipping_state: shippingData.state,
+      shipping_zip_code: shippingData.zipCode,
+      shipping_country: "México",
+      payment_method: paymentMethodMap[paymentMethod],
+      items: items.map((item) => ({
+        product_id: item.id,
+        product_name: item.name,
+        product_slug: "",
+        product_sku: undefined,
+        product_image: item.image,
+        quantity: item.quantity,
+        unit_price: item.price,
+        size: item.size,
+        material: item.material,
+      })),
+    };
+
+    const result = await createOrder(orderData);
+    if (result.success && result.order) {
+      setOrderId(result.order.id);
+      return result.order.id;
+    }
+    return null;
+  };
+
+  // Crear Payment Intent cuando el método de pago es tarjeta
+  useEffect(() => {
+    const createPaymentIntent = async () => {
+      // Solo crear Payment Intent si:
+      // 1. El método de pago es tarjeta
+      // 2. Stripe está habilitado
+      // 3. No hay un clientSecret ya creado
+      if (paymentMethod !== 'card' || !stripeEnabled || clientSecret) {
+        if (paymentMethod !== 'card') {
+          setClientSecret(null);
+          setOrderId(null);
+        }
+        return;
+      }
+
+      // Validar que todos los campos de envío estén completos
+      if (!shippingData.fullName || !shippingData.email || !shippingData.phone ||
+          !shippingData.street || !shippingData.number || !shippingData.colony ||
+          !shippingData.city || !shippingData.state || !shippingData.zipCode) {
+        return;
+      }
+
+      try {
+        // Primero crear el pedido
+        const createdOrderId = await createOrderForStripe();
+        if (!createdOrderId) {
+          setError("Error al crear el pedido");
+          return;
+        }
+
+        // Crear Payment Intent
+        const response = await fetch('/api/stripe/create-payment-intent', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            amount: finalTotal,
+            currency: 'mxn',
+            orderId: createdOrderId,
+            customerEmail: shippingData.email,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          setError(errorData.error || "Error al inicializar el pago");
+          return;
+        }
+
+        const data = await response.json();
+        setClientSecret(data.clientSecret);
+      } catch (err) {
+        console.error('Error creating payment intent:', err);
+        setError("Error al inicializar el pago con Stripe");
+      }
+    };
+
+    // Debounce para evitar múltiples llamadas
+    const timeoutId = setTimeout(() => {
+      createPaymentIntent();
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paymentMethod, stripeEnabled, finalTotal, shippingData, items, clientSecret]);
+
+  // Manejar pago exitoso con Stripe
+  const handleStripePaymentSuccess = async (paymentIntentId: string) => {
+    try {
+      if (!orderId) {
+        setError("Error: No se encontró el ID del pedido");
+        return;
+      }
+
+      // Enviar correos electrónicos
+      try {
+        const emailResponse = await fetch('/api/email/order', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            orderId: orderId,
+            locale,
+          }),
+        });
+
+        if (!emailResponse.ok) {
+          console.error('Error sending emails:', await emailResponse.text());
+        }
+      } catch (error) {
+        console.error('Error sending emails:', error);
+      }
+
+      // Limpiar carrito
+      clearCart();
+
+      // Guardar información del pedido
+      localStorage.setItem("lastOrderNumber", orderId);
+      localStorage.setItem("paymentIntentId", paymentIntentId);
+
+      // Redirigir a página de confirmación
+      router.push("/checkout/confirmacion");
+    } catch (err) {
+      console.error("Error after payment:", err);
+      setError("Error al procesar el pedido después del pago");
+    }
+  };
+
+  // Manejar pago fallido con Stripe
+  const handleStripePaymentError = (error: string) => {
+    setError(error);
+    setIsLoading(false);
+  };
+
+  // Manejar submit para métodos de pago que no son tarjeta
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -98,17 +256,20 @@ const CheckoutPage = () => {
       return;
     }
 
+    // Si es pago con tarjeta y Stripe está habilitado, el pago se maneja con Stripe Payment Element
+    if (paymentMethod === 'card' && stripeEnabled && clientSecret) {
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // Mapear método de pago al tipo correcto
       const paymentMethodMap: Record<string, PaymentMethod> = {
         card: "Tarjeta",
         transfer: "Transferencia",
         cash: "Efectivo",
       };
 
-      // Preparar datos del pedido
       const orderData: CreateOrderData = {
         customer_name: shippingData.fullName,
         customer_email: shippingData.email,
@@ -132,7 +293,6 @@ const CheckoutPage = () => {
         })),
       };
 
-      // Crear el pedido en la base de datos
       const result = await createOrder(orderData);
 
       if (!result.success || !result.order) {
@@ -156,15 +316,16 @@ const CheckoutPage = () => {
 
         if (!emailResponse.ok) {
           console.error('Error sending emails:', await emailResponse.text());
-          // No fallar si los correos fallan, solo loguear
         }
       } catch (error) {
         console.error('Error sending emails:', error);
-        // No fallar si los correos fallan, solo loguear
       }
 
       // Guardar el número de pedido en localStorage para la página de confirmación
       localStorage.setItem("lastOrderNumber", result.order.order_number);
+
+      // Limpiar carrito
+      clearCart();
 
       // Redirigir a página de confirmación
       router.push("/checkout/confirmacion");
@@ -353,7 +514,11 @@ const CheckoutPage = () => {
                   </h2>
                 </div>
 
-                <Tabs value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as "card" | "transfer" | "cash")}>
+                <Tabs value={paymentMethod} onValueChange={(value) => {
+                  setPaymentMethod(value as "card" | "transfer" | "cash");
+                  setClientSecret(null);
+                  setOrderId(null);
+                }}>
                   <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="card">Tarjeta</TabsTrigger>
                     <TabsTrigger value="transfer">Transferencia</TabsTrigger>
@@ -361,50 +526,30 @@ const CheckoutPage = () => {
                   </TabsList>
 
                   <TabsContent value="card" className="space-y-4 mt-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="cardNumber">Número de Tarjeta *</Label>
-                      <Input
-                        id="cardNumber"
-                        value={cardData.cardNumber}
-                        onChange={(e) => handleCardChange("cardNumber", e.target.value)}
-                        placeholder="1234 5678 9012 3456"
-                        maxLength={19}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="cardName">Nombre en la Tarjeta *</Label>
-                      <Input
-                        id="cardName"
-                        value={cardData.cardName}
-                        onChange={(e) => handleCardChange("cardName", e.target.value)}
-                        placeholder="JUAN PEREZ"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="expiryDate">Fecha de Vencimiento *</Label>
-                        <Input
-                          id="expiryDate"
-                          value={cardData.expiryDate}
-                          onChange={(e) => handleCardChange("expiryDate", e.target.value)}
-                          placeholder="MM/AA"
-                          maxLength={5}
+                    {stripeEnabled && clientSecret && stripeClient ? (
+                      <Elements stripe={stripeClient} options={{ clientSecret }}>
+                        <StripePaymentElement
+                          clientSecret={clientSecret}
+                          onSuccess={handleStripePaymentSuccess}
+                          onError={handleStripePaymentError}
+                          isLoading={isLoading}
                         />
+                      </Elements>
+                    ) : stripeEnabled ? (
+                      <div className="p-4 rounded-lg bg-muted">
+                        <p className="text-sm text-muted-foreground">
+                          {clientSecret === null 
+                            ? "Completa la información de envío para continuar con el pago"
+                            : "Cargando método de pago..."}
+                        </p>
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="cvv">CVV *</Label>
-                        <Input
-                          id="cvv"
-                          value={cardData.cvv}
-                          onChange={(e) => handleCardChange("cvv", e.target.value)}
-                          placeholder="123"
-                          maxLength={4}
-                          type="password"
-                        />
+                    ) : (
+                      <div className="p-4 rounded-lg bg-muted">
+                        <p className="text-sm text-muted-foreground">
+                          El pago con tarjeta no está disponible en este momento. Por favor selecciona otro método de pago.
+                        </p>
                       </div>
-                    </div>
+                    )}
                   </TabsContent>
 
                   <TabsContent value="transfer" className="mt-6">
@@ -489,15 +634,17 @@ const CheckoutPage = () => {
                   </div>
                 </div>
 
-                {/* Botón */}
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="w-full mt-6 bg-[#D4AF37] hover:bg-[#B8941E] text-white"
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Procesando..." : "Confirmar Pedido"}
-                </Button>
+                {/* Botón - Solo mostrar si no es pago con tarjeta usando Stripe */}
+                {!(paymentMethod === 'card' && stripeEnabled && clientSecret) && (
+                  <Button
+                    type="submit"
+                    size="lg"
+                    className="w-full mt-6 bg-[#D4AF37] hover:bg-[#B8941E] text-white"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Procesando..." : "Confirmar Pedido"}
+                  </Button>
+                )}
 
                 {/* Seguridad */}
                 <div className="mt-6 pt-6 border-t border-border">

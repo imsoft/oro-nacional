@@ -3,11 +3,15 @@
 import { Clock, Mail, Phone, MapPin, Instagram, Facebook, Gem } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { MarketTicker } from '@/components/shared/market-ticker';
+import Navbar from '@/components/shared/navbar';
 
 const ConstructionPage = () => {
   return (
     <div className="bg-background min-h-screen flex flex-col">
-      <div className="relative isolate overflow-hidden flex-1 flex items-center">
+      <Navbar />
+      <MarketTicker />
+      <div className="relative isolate overflow-hidden flex-1 flex items-center pt-20">
         {/* Fondo con imagen */}
         <div className="absolute inset-0 -z-10">
           <div className="absolute inset-0 bg-gradient-to-br from-background via-background/95 to-background"></div>

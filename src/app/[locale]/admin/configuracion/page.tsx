@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { useTranslations } from "next-intl";
-import { Save, Store, Mail, MapPin, Phone, Globe, CreditCard } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useTranslations, useLocale } from "next-intl";
+import { Save, Store, Mail, MapPin, Phone, Globe, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,10 +14,65 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 
 export default function ConfiguracionAdmin() {
   const t = useTranslations('admin.settings');
+  const locale = useLocale() as 'es' | 'en';
   const [isSaving, setIsSaving] = useState(false);
+  const [detectedCountry, setDetectedCountry] = useState<string>('MX');
+  const [countryName, setCountryName] = useState<string>('México');
+  const [isDetectingCountry, setIsDetectingCountry] = useState(false);
+
+  // Moneda basada en el idioma: Español -> USD, Inglés -> MXN
+  const currency = locale === 'es' ? 'USD' : 'MXN';
+  
+  // Zona horaria siempre Ciudad de México
+  const timezone = 'America/Mexico_City';
+  
+  // Idioma basado en el locale actual
+  const language = locale;
+
+  // Detectar país automáticamente
+  useEffect(() => {
+    const detectCountry = async () => {
+      setIsDetectingCountry(true);
+      try {
+        const response = await fetch('/api/utils/detect-country');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setDetectedCountry(data.country);
+            setCountryName(data.countryName);
+          }
+        }
+      } catch (error) {
+        console.error('Error detecting country:', error);
+      } finally {
+        setIsDetectingCountry(false);
+      }
+    };
+
+    detectCountry();
+  }, []);
+
+  const handleDetectCountry = async () => {
+    setIsDetectingCountry(true);
+    try {
+      const response = await fetch('/api/utils/detect-country');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setDetectedCountry(data.country);
+          setCountryName(data.countryName);
+        }
+      }
+    } catch (error) {
+      console.error('Error detecting country:', error);
+    } finally {
+      setIsDetectingCountry(false);
+    }
+  };
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -187,74 +242,6 @@ export default function ConfiguracionAdmin() {
           </div>
         </div>
 
-        {/* Configuración de Pagos */}
-        <div className="rounded-lg bg-card border border-border p-6 shadow-sm">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="rounded-lg bg-[#D4AF37]/10 p-2">
-              <CreditCard className="h-5 w-5 text-[#D4AF37]" />
-            </div>
-            <h2 className="text-xl font-semibold text-foreground">
-              {t('payments.title')}
-            </h2>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 rounded-lg border border-border">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded bg-blue-100 flex items-center justify-center">
-                  <CreditCard className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="font-medium text-foreground">{t('payments.creditDebitCards')}</p>
-                  <p className="text-sm text-muted-foreground">{t('payments.creditCardsDescription')}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-green-600 font-medium">{t('payments.active')}</span>
-                <div className="h-6 w-11 rounded-full bg-green-600 relative">
-                  <div className="h-5 w-5 rounded-full bg-white absolute right-0.5 top-0.5"></div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between p-4 rounded-lg border border-border">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded bg-purple-100 flex items-center justify-center">
-                  <span className="text-xl">🏦</span>
-                </div>
-                <div>
-                  <p className="font-medium text-foreground">{t('payments.bankTransfer')}</p>
-                  <p className="text-sm text-muted-foreground">{t('payments.bankTransferDescription')}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-green-600 font-medium">{t('payments.active')}</span>
-                <div className="h-6 w-11 rounded-full bg-green-600 relative">
-                  <div className="h-5 w-5 rounded-full bg-white absolute right-0.5 top-0.5"></div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between p-4 rounded-lg border border-border">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded bg-green-100 flex items-center justify-center">
-                  <span className="text-xl">💰</span>
-                </div>
-                <div>
-                  <p className="font-medium text-foreground">{t('payments.cashOnDelivery')}</p>
-                  <p className="text-sm text-muted-foreground">{t('payments.cashOnDeliveryDescription')}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-green-600 font-medium">{t('payments.active')}</span>
-                <div className="h-6 w-11 rounded-full bg-green-600 relative">
-                  <div className="h-5 w-5 rounded-full bg-white absolute right-0.5 top-0.5"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Configuración de Moneda y Región */}
         <div className="rounded-lg bg-card border border-border p-6 shadow-sm">
           <div className="flex items-center gap-3 mb-6">
@@ -266,59 +253,125 @@ export default function ConfiguracionAdmin() {
             </h2>
           </div>
 
+          <div className="mb-4 p-4 rounded-lg bg-muted/50 border border-border">
+            <p className="text-sm text-muted-foreground mb-2">
+              {locale === 'es' 
+                ? 'Estos valores se configuran automáticamente según el idioma y ubicación del usuario.'
+                : 'These values are automatically configured based on user language and location.'}
+            </p>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="currency">{t('regional.currency')}</Label>
-              <Select defaultValue="MXN">
-                <SelectTrigger id="currency">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="MXN">{t('regional.currencyMXN')}</SelectItem>
-                  <SelectItem value="USD">{t('regional.currencyUSD')}</SelectItem>
-                  <SelectItem value="EUR">{t('regional.currencyEUR')}</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="currency">{t('regional.currency')}</Label>
+                <Badge variant="secondary" className="text-xs">
+                  {locale === 'es' ? 'Auto (USD)' : 'Auto (MXN)'}
+                </Badge>
+              </div>
+              <div className="relative">
+                <Select value={currency} disabled>
+                  <SelectTrigger id="currency" className="bg-muted/50">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="MXN">{t('regional.currencyMXN')}</SelectItem>
+                    <SelectItem value="USD">{t('regional.currencyUSD')}</SelectItem>
+                    <SelectItem value="EUR">{t('regional.currencyEUR')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {locale === 'es' 
+                  ? 'Español → USD | Inglés → MXN'
+                  : 'Spanish → USD | English → MXN'}
+              </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="timezone">{t('regional.timezone')}</Label>
-              <Select defaultValue="America/Mexico_City">
-                <SelectTrigger id="timezone">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="America/Mexico_City">{t('regional.timezoneMexicoCity')}</SelectItem>
-                  <SelectItem value="America/Tijuana">{t('regional.timezoneTijuana')}</SelectItem>
-                  <SelectItem value="America/Cancun">{t('regional.timezoneCancun')}</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="timezone">{t('regional.timezone')}</Label>
+                <Badge variant="secondary" className="text-xs">Fijo</Badge>
+              </div>
+              <div className="relative">
+                <Select value={timezone} disabled>
+                  <SelectTrigger id="timezone" className="bg-muted/50">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="America/Mexico_City">{t('regional.timezoneMexicoCity')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {locale === 'es' 
+                  ? 'Siempre Ciudad de México (GMT-6)'
+                  : 'Always Mexico City (GMT-6)'}
+              </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="language">{t('regional.language')}</Label>
-              <Select defaultValue="es">
-                <SelectTrigger id="language">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="es">{t('regional.languageEs')}</SelectItem>
-                  <SelectItem value="en">{t('regional.languageEn')}</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="language">{t('regional.language')}</Label>
+                <Badge variant="secondary" className="text-xs">Actual</Badge>
+              </div>
+              <div className="relative">
+                <Select value={language} disabled>
+                  <SelectTrigger id="language" className="bg-muted/50">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="es">{t('regional.languageEs')}</SelectItem>
+                    <SelectItem value="en">{t('regional.languageEn')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {locale === 'es' 
+                  ? 'Basado en el idioma actual de la página'
+                  : 'Based on current page language'}
+              </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="country">{t('regional.country')}</Label>
-              <Select defaultValue="MX">
-                <SelectTrigger id="country">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="MX">{t('regional.countryMX')}</SelectItem>
-                  <SelectItem value="US">{t('regional.countryUS')}</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="country">{t('regional.country')}</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleDetectCountry}
+                  disabled={isDetectingCountry}
+                  className="h-6 px-2 text-xs"
+                >
+                  <RefreshCw className={`h-3 w-3 mr-1 ${isDetectingCountry ? 'animate-spin' : ''}`} />
+                  {isDetectingCountry 
+                    ? (locale === 'es' ? 'Detectando...' : 'Detecting...')
+                    : (locale === 'es' ? 'Detectar' : 'Detect')}
+                </Button>
+              </div>
+              <div className="relative">
+                <Select value={detectedCountry} disabled>
+                  <SelectTrigger id="country" className="bg-muted/50">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="MX">{t('regional.countryMX')}</SelectItem>
+                    <SelectItem value="US">{t('regional.countryUS')}</SelectItem>
+                    <SelectItem value="CA">Canadá</SelectItem>
+                    <SelectItem value="CO">Colombia</SelectItem>
+                    <SelectItem value="AR">Argentina</SelectItem>
+                    <SelectItem value="CL">Chile</SelectItem>
+                    <SelectItem value="PE">Perú</SelectItem>
+                    <SelectItem value="ES">España</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {isDetectingCountry 
+                  ? (locale === 'es' ? 'Detectando país...' : 'Detecting country...')
+                  : `${locale === 'es' ? 'País detectado' : 'Detected country'}: ${countryName}`}
+              </p>
             </div>
           </div>
         </div>
