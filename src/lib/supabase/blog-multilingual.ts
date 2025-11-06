@@ -663,6 +663,93 @@ function transformBlogPostForLocale(locale: Locale) {
 // ================================================
 
 /**
+ * Obtener todas las categorías de blog (para admin)
+ */
+export async function getAllBlogCategories(locale: Locale = 'es') {
+  const { data, error } = await supabase
+    .from("blog_categories")
+    .select(`
+      id,
+      name_es,
+      name_en,
+      slug_es,
+      slug_en,
+      description_es,
+      description_en,
+      created_at,
+      updated_at
+    `)
+    .order("name_es", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching all blog categories:", error);
+    return [];
+  }
+
+  return data.map((category: Record<string, unknown>) => ({
+    id: category.id as string,
+    name: {
+      es: category.name_es as string,
+      en: category.name_en as string,
+    },
+    slug: {
+      es: category.slug_es as string,
+      en: category.slug_en as string,
+    },
+    description: category.description_es || category.description_en ? {
+      es: (category.description_es as string) || '',
+      en: (category.description_en as string) || '',
+    } : undefined,
+    created_at: category.created_at as string,
+    updated_at: category.updated_at as string,
+  }));
+}
+
+/**
+ * Obtener una categoría de blog por ID (para admin)
+ */
+export async function getBlogCategoryById(id: string) {
+  const { data, error } = await supabase
+    .from("blog_categories")
+    .select(`
+      id,
+      name_es,
+      name_en,
+      slug_es,
+      slug_en,
+      description_es,
+      description_en,
+      created_at,
+      updated_at
+    `)
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    console.error("Error fetching blog category by ID:", error);
+    return null;
+  }
+
+  return {
+    id: data.id,
+    name: {
+      es: data.name_es,
+      en: data.name_en,
+    },
+    slug: {
+      es: data.slug_es,
+      en: data.slug_en,
+    },
+    description: data.description_es || data.description_en ? {
+      es: data.description_es || '',
+      en: data.description_en || '',
+    } : undefined,
+    created_at: data.created_at,
+    updated_at: data.updated_at,
+  };
+}
+
+/**
  * Crear una nueva categoría de blog con contenido multilingüe
  */
 export async function createBlogCategory(
@@ -695,6 +782,90 @@ export async function createBlogCategory(
     return data;
   } catch (error) {
     console.error("Error in createBlogCategory:", error);
+    throw error;
+  }
+}
+
+/**
+ * Actualizar una categoría de blog existente
+ */
+export async function updateBlogCategory(
+  categoryId: string,
+  updates: {
+    name?: { es: string; en: string };
+    description?: { es: string; en: string };
+  }
+) {
+  try {
+    const dataToUpdate: Record<string, unknown> = {};
+
+    if (updates.name) {
+      dataToUpdate.name_es = updates.name.es;
+      dataToUpdate.name_en = updates.name.en;
+      // Regenerar slugs
+      const slugs = generateMultilingualSlug(updates.name);
+      dataToUpdate.slug_es = slugs.es;
+      dataToUpdate.slug_en = slugs.en;
+    }
+
+    if (updates.description !== undefined) {
+      dataToUpdate.description_es = updates.description?.es || null;
+      dataToUpdate.description_en = updates.description?.en || null;
+    }
+
+    const { data, error } = await supabase
+      .from("blog_categories")
+      .update(dataToUpdate)
+      .eq("id", categoryId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error updating blog category:", error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error in updateBlogCategory:", error);
+    throw error;
+  }
+}
+
+/**
+ * Eliminar una categoría de blog
+ */
+export async function deleteBlogCategory(categoryId: string) {
+  try {
+    // Verificar si hay posts usando esta categoría
+    const { data: posts, error: checkError } = await supabase
+      .from("blog_posts")
+      .select("id")
+      .eq("category_id", categoryId)
+      .limit(1);
+
+    if (checkError) {
+      console.error("Error checking blog posts:", checkError);
+      throw checkError;
+    }
+
+    if (posts && posts.length > 0) {
+      throw new Error("Cannot delete category: there are blog posts using this category");
+    }
+
+    const { error } = await supabase
+      .from("blog_categories")
+      .delete()
+      .eq("id", categoryId);
+
+    if (error) {
+      console.error("Error deleting blog category:", error);
+      throw error;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error in deleteBlogCategory:", error);
     throw error;
   }
 }

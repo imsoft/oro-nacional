@@ -7,48 +7,32 @@ import { Link } from "@/i18n/routing";
 import Image from "next/image";
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
-import { getPublishedPosts, getBlogCategories } from "@/lib/supabase/blog";
-import type { BlogPostCard, BlogCategory } from "@/types/blog";
+import { getPublishedPosts } from "@/lib/supabase/blog";
+import type { BlogPostCard } from "@/types/blog";
 
 const BlogPage = () => {
   const t = useTranslations('blog');
   const tCommon = useTranslations('common');
   const locale = useLocale();
-  const [selectedCategory, setSelectedCategory] = useState(t('all'));
   const [posts, setPosts] = useState<BlogPostCard[]>([]);
-  const [categories, setCategories] = useState<BlogCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Cargar posts y categorías al montar
+  // Cargar posts al montar
   useEffect(() => {
-    loadData();
+    loadPosts();
   }, []);
 
-  // Actualizar selectedCategory cuando cambie el locale
-  useEffect(() => {
-    setSelectedCategory(t('all'));
-  }, [locale, t]);
-
-  const loadData = async () => {
+  const loadPosts = async () => {
     setIsLoading(true);
     try {
-      const [postsData, categoriesData] = await Promise.all([
-        getPublishedPosts(),
-        getBlogCategories(),
-      ]);
+      const postsData = await getPublishedPosts();
       setPosts(postsData);
-      setCategories(categoriesData);
     } catch (error) {
-      console.error("Error loading blog data:", error);
+      console.error("Error loading blog posts:", error);
     } finally {
       setIsLoading(false);
     }
   };
-
-  // Filtrar posts por categoría
-  const filteredPosts = selectedCategory === t('all')
-    ? posts
-    : posts.filter((post) => post.category_name === selectedCategory);
 
   return (
     <div className="min-h-screen bg-background">
@@ -72,33 +56,6 @@ const BlogPage = () => {
       {/* Contenido */}
       <section className="py-12 lg:py-16">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          {/* Categorías */}
-          <div className="mb-8 flex flex-wrap gap-3 justify-center">
-            <button
-              onClick={() => setSelectedCategory(t('all'))}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                selectedCategory === t('all')
-                  ? "bg-[#D4AF37] text-white"
-                  : "bg-muted text-muted-foreground hover:bg-muted/80"
-              }`}
-            >
-              {t('allCategories')}
-            </button>
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => setSelectedCategory(category.name)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  selectedCategory === category.name
-                    ? "bg-[#D4AF37] text-white"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80"
-                }`}
-              >
-                {category.name}
-              </button>
-            ))}
-          </div>
-
           {/* Loading State */}
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
@@ -108,7 +65,7 @@ const BlogPage = () => {
             <>
               {/* Grid de artículos */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {filteredPosts.map((post) => (
+                {posts.map((post) => (
                   <Link
                     key={post.id}
                     href={`/blog/${post.slug}`}
@@ -182,7 +139,7 @@ const BlogPage = () => {
               </div>
 
               {/* No hay posts */}
-              {filteredPosts.length === 0 && (
+              {posts.length === 0 && (
                 <div className="text-center py-12">
                   <p className="text-muted-foreground">
                     {t('noPosts')}
@@ -191,31 +148,6 @@ const BlogPage = () => {
               )}
             </>
           )}
-        </div>
-      </section>
-
-      {/* CTA Newsletter (opcional) */}
-      <section className="py-16 bg-muted/30">
-        <div className="mx-auto max-w-3xl px-6 lg:px-8 text-center">
-          <h2 className="text-2xl font-semibold text-foreground mb-4">
-            {t('newsletterTitle')}
-          </h2>
-          <p className="text-muted-foreground mb-6">
-            {t('newsletterDescription')}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-            <input
-              type="email"
-              placeholder={t('newsletterPlaceholder')}
-              className="flex-1 px-4 py-3 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
-            />
-            <button className="px-6 py-3 rounded-lg bg-[#D4AF37] hover:bg-[#B8941E] text-white font-medium transition-colors whitespace-nowrap">
-              {t('newsletterButton')}
-            </button>
-          </div>
-          <p className="mt-3 text-xs text-muted-foreground">
-            {t('newsletterDisclaimer')}
-          </p>
         </div>
       </section>
 

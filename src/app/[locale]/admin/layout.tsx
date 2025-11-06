@@ -35,6 +35,7 @@ export default function AdminLayout({
     { name: t('dashboard'), href: "/admin", icon: LayoutDashboard },
     { name: t('products'), href: "/admin/productos", icon: Package },
     { name: t('blog'), href: "/admin/blog", icon: FileText },
+    { name: t('blogCategories'), href: "/admin/blog/categorias", icon: FileText },
     { name: t('orders'), href: "/admin/pedidos", icon: ShoppingCart },
     { name: t('users'), href: "/admin/usuarios", icon: Users },
     { name: t('settings'), href: "/admin/configuracion", icon: Settings },

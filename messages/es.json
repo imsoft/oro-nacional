@@ -334,18 +334,10 @@
   "blog": {
     "title": "Blog de Oro Nacional",
     "subtitle": "Descubre consejos, tendencias y noticias sobre joyería fina",
-    "allCategories": "Todas las Categorías",
-    "all": "Todos",
     "readArticle": "Leer Artículo",
     "minutesRead": "min de lectura",
     "noPosts": "No hay publicaciones disponibles en este momento.",
-    "categories": "Categorías",
-    "by": "Por",
-    "newsletterTitle": "Suscríbete a Nuestro Newsletter",
-    "newsletterDescription": "Recibe consejos exclusivos, tendencias y ofertas especiales directamente en tu correo.",
-    "newsletterPlaceholder": "tu@email.com",
-    "newsletterButton": "Suscribirme",
-    "newsletterDisclaimer": "No spam. Cancela cuando quieras."
+    "by": "Por"
   },
   "auth": {
     "login": {
@@ -566,6 +558,7 @@
       "dashboard": "Dashboard",
       "products": "Productos",
       "blog": "Blog",
+      "blogCategories": "Categorías de Blog",
       "orders": "Pedidos",
       "users": "Usuarios",
       "settings": "Configuración"
@@ -714,6 +707,39 @@
       "viewsLabel": "Vistas:",
       "deleting": "Eliminando...",
       "deleteError": "Error al eliminar el post. Por favor intenta de nuevo."
+    },
+    "blogCategories": {
+      "title": "Categorías de Blog",
+      "subtitle": "Gestiona las categorías para tus publicaciones de blog",
+      "newCategory": "Nueva Categoría",
+      "editCategory": "Editar Categoría",
+      "deleteCategory": "Eliminar Categoría",
+      "searchPlaceholder": "Buscar categorías...",
+      "nameColumn": "Nombre",
+      "slugColumn": "Slug",
+      "descriptionColumn": "Descripción",
+      "actionsColumn": "Acciones",
+      "noCategories": "No hay categorías disponibles",
+      "noCategoriesFound": "No se encontraron categorías",
+      "totalCategories": "Total de Categorías",
+      "deleteConfirm": "¿Estás seguro de que quieres eliminar la categoría",
+      "deleteWarning": "Esta acción no se puede deshacer. La categoría será eliminada permanentemente.",
+      "deleteError": "Error al eliminar la categoría. Por favor intenta de nuevo.",
+      "deleteErrorWithPosts": "No se puede eliminar la categoría: hay publicaciones de blog que la están usando.",
+      "cancel": "Cancelar",
+      "deleting": "Eliminando...",
+      "back": "Volver",
+      "basicInfo": "Información Básica",
+      "categoryName": "Nombre de la Categoría",
+      "description": "Descripción",
+      "saveCategory": "Guardar Categoría",
+      "saving": "Guardando...",
+      "newCategorySubtitle": "Crea una nueva categoría para tus publicaciones de blog",
+      "editCategorySubtitle": "Actualiza la información de la categoría",
+      "createError": "Error al crear la categoría. Por favor intenta de nuevo.",
+      "updateError": "Error al actualizar la categoría. Por favor intenta de nuevo.",
+      "loadError": "Error al cargar la categoría.",
+      "noDescription": "Sin descripción"
     },
     "multilingual": {
       "spanish": "Español",
