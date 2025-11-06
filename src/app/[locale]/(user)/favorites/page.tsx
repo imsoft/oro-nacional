@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useTranslations } from 'next-intl';
 import { useFavoritesStore } from "@/stores/favorites-store";
 import { Button } from "@/components/ui/button";
 import { Heart, ShoppingCart, Trash2 } from "lucide-react";
 import { useCartStore } from "@/stores/cart-store";
 
 const FavoritesPage = () => {
+  const t = useTranslations('favorites');
   const { items, removeFavorite } = useFavoritesStore();
   const { addItem } = useCartStore();
 
@@ -29,12 +31,12 @@ const FavoritesPage = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-semibold text-foreground flex items-center gap-2">
             <Heart className="h-8 w-8 text-[#D4AF37]" />
-            Mis Favoritos
+            {t('title')}
           </h1>
           <p className="mt-2 text-muted-foreground">
             {items.length === 0
-              ? "No tienes productos favoritos aún"
-              : `Tienes ${items.length} ${items.length === 1 ? "producto favorito" : "productos favoritos"}`}
+              ? t('noFavorites')
+              : t('itemCount', { count: items.length })}
           </p>
         </div>
 
@@ -42,14 +44,13 @@ const FavoritesPage = () => {
           <div className="text-center py-16">
             <Heart className="mx-auto h-24 w-24 text-muted-foreground/20" />
             <h3 className="mt-4 text-lg font-semibold text-foreground">
-              No hay favoritos aún
+              {t('emptyTitle')}
             </h3>
             <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
-              Explora nuestro catálogo y marca tus productos favoritos haciendo
-              clic en el ícono de corazón
+              {t('emptyDescription')}
             </p>
             <Button asChild className="mt-6 bg-[#D4AF37] hover:bg-[#B8941E]">
-              <Link href="/catalog">Explorar Catálogo</Link>
+              <Link href="/catalog">{t('exploreCatalog')}</Link>
             </Button>
           </div>
         ) : (
@@ -74,7 +75,7 @@ const FavoritesPage = () => {
                   <button
                     onClick={() => removeFavorite(item.id)}
                     className="absolute top-4 right-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm transition-all duration-300 hover:bg-white hover:scale-110"
-                    aria-label="Eliminar de favoritos"
+                    aria-label={t('removeFromFavorites')}
                   >
                     <Heart className="h-5 w-5 text-red-500 fill-red-500" />
                   </button>
@@ -117,7 +118,7 @@ const FavoritesPage = () => {
                         size="sm"
                       >
                         <ShoppingCart className="mr-2 h-4 w-4" />
-                        Agregar
+                        {t('addToCart')}
                       </Button>
 
                       <Button
@@ -139,12 +140,12 @@ const FavoritesPage = () => {
         {items.length > 0 && (
           <div className="mt-12 flex justify-center gap-4">
             <Button asChild variant="outline" size="lg">
-              <Link href="/catalog">Seguir Explorando</Link>
+              <Link href="/catalog">{t('continueExploring')}</Link>
             </Button>
             <Button asChild size="lg" className="bg-[#D4AF37] hover:bg-[#B8941E]">
               <Link href="/cart">
                 <ShoppingCart className="mr-2 h-5 w-5" />
-                Ver Carrito
+                {t('viewCart')}
               </Link>
             </Button>
           </div>

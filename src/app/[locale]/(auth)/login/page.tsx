@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from 'next-intl';
 import Link from "next/link";
 import { Mail, Lock, AlertCircle, Loader2 } from "lucide-react";
 import Navbar from "@/components/shared/navbar";
@@ -12,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/stores/auth-store";
 
 const LoginPage = () => {
+  const t = useTranslations('auth.login');
   const router = useRouter();
   const login = useAuthStore((state) => state.login);
 
@@ -27,13 +29,13 @@ const LoginPage = () => {
 
     // Validaciones básicas
     if (!email || !password) {
-      setError("Por favor completa todos los campos");
+      setError(t('allFieldsRequired'));
       setIsLoading(false);
       return;
     }
 
     if (!/\S+@\S+\.\S+/.test(email)) {
-      setError("Por favor ingresa un correo válido");
+      setError(t('invalidEmail'));
       setIsLoading(false);
       return;
     }
@@ -43,7 +45,7 @@ const LoginPage = () => {
     if (result.success) {
       router.push("/");
     } else {
-      setError(result.error || "Error al iniciar sesión");
+      setError(result.error || t('loginError'));
     }
 
     setIsLoading(false);
@@ -58,10 +60,10 @@ const LoginPage = () => {
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-semibold text-foreground mb-2">
-              Bienvenido de nuevo
+              {t('title')}
             </h1>
             <p className="text-muted-foreground">
-              Inicia sesión en tu cuenta de Oro Nacional
+              {t('subtitle')}
             </p>
           </div>
 
@@ -70,13 +72,13 @@ const LoginPage = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Email */}
               <div className="space-y-2">
-                <Label htmlFor="email">Correo Electrónico</Label>
+                <Label htmlFor="email">{t('email')}</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
                     id="email"
                     type="email"
-                    placeholder="tu@email.com"
+                    placeholder={t('emailPlaceholder')}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="pl-10"
@@ -87,7 +89,7 @@ const LoginPage = () => {
 
               {/* Password */}
               <div className="space-y-2">
-                <Label htmlFor="password">Contraseña</Label>
+                <Label htmlFor="password">{t('password')}</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
@@ -116,7 +118,7 @@ const LoginPage = () => {
                   href="/reset-password"
                   className="text-sm text-[#D4AF37] hover:text-[#B8941E] transition-colors"
                 >
-                  ¿Olvidaste tu contraseña?
+                  {t('forgotPassword')}
                 </Link>
               </div>
 
@@ -130,10 +132,10 @@ const LoginPage = () => {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Iniciando sesión...
+                    {t('loggingIn')}
                   </>
                 ) : (
-                  "Iniciar Sesión"
+                  t('loginButton')
                 )}
               </Button>
             </form>
@@ -145,7 +147,7 @@ const LoginPage = () => {
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-card px-2 text-muted-foreground">
-                  ¿No tienes cuenta?
+                  {t('noAccount')}
                 </span>
               </div>
             </div>
@@ -158,7 +160,7 @@ const LoginPage = () => {
                 size="lg"
                 className="w-full border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white"
               >
-                <Link href="/register">Crear una cuenta</Link>
+                <Link href="/register">{t('signUp')}</Link>
               </Button>
             </div>
           </div>
@@ -166,31 +168,31 @@ const LoginPage = () => {
           {/* Benefits */}
           <div className="mt-8 space-y-3">
             <p className="text-center text-sm text-muted-foreground mb-4">
-              Beneficios de tener una cuenta:
+              {t('accountBenefits')}
             </p>
             <div className="space-y-2">
               <div className="flex items-center gap-3 text-sm">
                 <div className="h-2 w-2 rounded-full bg-[#D4AF37]"></div>
                 <span className="text-muted-foreground">
-                  Seguimiento de pedidos en tiempo real
+                  {t('benefit1')}
                 </span>
               </div>
               <div className="flex items-center gap-3 text-sm">
                 <div className="h-2 w-2 rounded-full bg-[#D4AF37]"></div>
                 <span className="text-muted-foreground">
-                  Guardado de direcciones de envío
+                  {t('benefit2')}
                 </span>
               </div>
               <div className="flex items-center gap-3 text-sm">
                 <div className="h-2 w-2 rounded-full bg-[#D4AF37]"></div>
                 <span className="text-muted-foreground">
-                  Acceso a ofertas exclusivas
+                  {t('benefit3')}
                 </span>
               </div>
               <div className="flex items-center gap-3 text-sm">
                 <div className="h-2 w-2 rounded-full bg-[#D4AF37]"></div>
                 <span className="text-muted-foreground">
-                  Lista de deseos personalizada
+                  {t('benefit4')}
                 </span>
               </div>
             </div>

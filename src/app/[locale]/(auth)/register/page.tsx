@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from 'next-intl';
 import Link from "next/link";
 import { Mail, Lock, User, AlertCircle, Loader2, CheckCircle2 } from "lucide-react";
 import Navbar from "@/components/shared/navbar";
@@ -12,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/stores/auth-store";
 
 const RegistroPage = () => {
+  const t = useTranslations('auth.register');
   const router = useRouter();
   const register = useAuthStore((state) => state.register);
 
@@ -29,31 +31,31 @@ const RegistroPage = () => {
 
     // Validaciones
     if (!name || !email || !password || !confirmPassword) {
-      setError("Por favor completa todos los campos");
+      setError(t('allFieldsRequired'));
       setIsLoading(false);
       return;
     }
 
     if (name.length < 3) {
-      setError("El nombre debe tener al menos 3 caracteres");
+      setError(t('nameMinLength'));
       setIsLoading(false);
       return;
     }
 
     if (!/\S+@\S+\.\S+/.test(email)) {
-      setError("Por favor ingresa un correo válido");
+      setError(t('invalidEmail'));
       setIsLoading(false);
       return;
     }
 
     if (password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres");
+      setError(t('passwordMinLength'));
       setIsLoading(false);
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Las contraseñas no coinciden");
+      setError(t('passwordsDontMatch'));
       setIsLoading(false);
       return;
     }
@@ -63,7 +65,7 @@ const RegistroPage = () => {
     if (result.success) {
       router.push("/");
     } else {
-      setError(result.error || "Error al crear la cuenta");
+      setError(result.error || t('registerError'));
     }
 
     setIsLoading(false);
@@ -80,9 +82,9 @@ const RegistroPage = () => {
     if (/\d/.test(password)) strength++;
     if (/[^a-zA-Z0-9]/.test(password)) strength++;
 
-    if (strength <= 2) return { strength, text: "Débil", color: "text-red-600" };
-    if (strength <= 3) return { strength, text: "Media", color: "text-yellow-600" };
-    return { strength, text: "Fuerte", color: "text-green-600" };
+    if (strength <= 2) return { strength, text: t('passwordWeak'), color: "text-red-600" };
+    if (strength <= 3) return { strength, text: t('passwordMedium'), color: "text-yellow-600" };
+    return { strength, text: t('passwordStrong'), color: "text-green-600" };
   };
 
   const passwordStrength = getPasswordStrength();
@@ -96,10 +98,10 @@ const RegistroPage = () => {
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-semibold text-foreground mb-2">
-              Crear tu cuenta
+              {t('title')}
             </h1>
             <p className="text-muted-foreground">
-              Únete a la familia Oro Nacional y disfruta de beneficios exclusivos
+              {t('subtitle')}
             </p>
           </div>
 
@@ -108,13 +110,13 @@ const RegistroPage = () => {
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Name */}
               <div className="space-y-2">
-                <Label htmlFor="name">Nombre Completo</Label>
+                <Label htmlFor="name">{t('name')}</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
                     id="name"
                     type="text"
-                    placeholder="Juan Pérez"
+                    placeholder={t('namePlaceholder')}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="pl-10"
@@ -125,13 +127,13 @@ const RegistroPage = () => {
 
               {/* Email */}
               <div className="space-y-2">
-                <Label htmlFor="email">Correo Electrónico</Label>
+                <Label htmlFor="email">{t('email')}</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
                     id="email"
                     type="email"
-                    placeholder="tu@email.com"
+                    placeholder={t('emailPlaceholder')}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="pl-10"
@@ -142,7 +144,7 @@ const RegistroPage = () => {
 
               {/* Password */}
               <div className="space-y-2">
-                <Label htmlFor="password">Contraseña</Label>
+                <Label htmlFor="password">{t('password')}</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
@@ -158,10 +160,10 @@ const RegistroPage = () => {
                 {password && (
                   <div className="flex items-center justify-between text-xs">
                     <span className={passwordStrength.color}>
-                      Contraseña: {passwordStrength.text}
+                      {t('passwordLabel')}: {passwordStrength.text}
                     </span>
                     <span className="text-muted-foreground">
-                      {password.length}/8+ caracteres
+                      {password.length}/8+ {t('characters')}
                     </span>
                   </div>
                 )}
@@ -169,7 +171,7 @@ const RegistroPage = () => {
 
               {/* Confirm Password */}
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirmar Contraseña</Label>
+                <Label htmlFor="confirmPassword">{t('confirmPassword')}</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
@@ -197,13 +199,13 @@ const RegistroPage = () => {
 
               {/* Terms */}
               <div className="text-xs text-muted-foreground">
-                Al crear una cuenta, aceptas nuestros{" "}
+                {t('termsText')}{" "}
                 <Link href="/terms" className="text-[#D4AF37] hover:underline">
-                  Términos y Condiciones
+                  {t('termsAndConditions')}
                 </Link>{" "}
-                y{" "}
+                {t('and')}{" "}
                 <Link href="/privacy" className="text-[#D4AF37] hover:underline">
-                  Política de Privacidad
+                  {t('privacyPolicy')}
                 </Link>
               </div>
 
@@ -217,10 +219,10 @@ const RegistroPage = () => {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Creando cuenta...
+                    {t('creatingAccount')}
                   </>
                 ) : (
-                  "Crear Cuenta"
+                  t('registerButton')
                 )}
               </Button>
             </form>
@@ -232,7 +234,7 @@ const RegistroPage = () => {
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-card px-2 text-muted-foreground">
-                  ¿Ya tienes cuenta?
+                  {t('alreadyHaveAccount')}
                 </span>
               </div>
             </div>
@@ -245,7 +247,7 @@ const RegistroPage = () => {
                 size="lg"
                 className="w-full border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white"
               >
-                <Link href="/login">Iniciar Sesión</Link>
+                <Link href="/login">{t('login')}</Link>
               </Button>
             </div>
           </div>
@@ -253,7 +255,7 @@ const RegistroPage = () => {
           {/* Benefits */}
           <div className="mt-8 rounded-lg bg-card/50 p-6">
             <p className="text-center text-sm font-semibold text-foreground mb-4">
-              ¿Por qué crear una cuenta?
+              {t('whyCreateAccount')}
             </p>
             <div className="space-y-3">
               <div className="flex items-start gap-3">
@@ -262,10 +264,10 @@ const RegistroPage = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground">
-                    Proceso de compra más rápido
+                    {t('benefit1Title')}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Guarda tu información para compras futuras
+                    {t('benefit1Desc')}
                   </p>
                 </div>
               </div>
@@ -275,10 +277,10 @@ const RegistroPage = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground">
-                    Ofertas exclusivas
+                    {t('benefit2Title')}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Acceso anticipado a nuevas colecciones y descuentos
+                    {t('benefit2Desc')}
                   </p>
                 </div>
               </div>
@@ -288,10 +290,10 @@ const RegistroPage = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground">
-                    Seguimiento de pedidos
+                    {t('benefit3Title')}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Rastrea tus compras en tiempo real
+                    {t('benefit3Desc')}
                   </p>
                 </div>
               </div>

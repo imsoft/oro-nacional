@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from 'next-intl';
 import { useAuthStore } from "@/stores/auth-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ import {
 import type { UserProfile, UserAddress } from "@/types/profile";
 
 const ProfilePage = () => {
+  const t = useTranslations('profile');
   const router = useRouter();
   const { user, isAuthenticated } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
@@ -119,9 +121,9 @@ const ProfilePage = () => {
 
     if (result.success) {
       setUserProfile(result.profile || null);
-      showMessage("success", "Información personal actualizada correctamente");
+      showMessage("success", t('personalInfoUpdated'));
     } else {
-      showMessage("error", result.error || "Error al actualizar la información");
+      showMessage("error", result.error || t('errorUpdatingInfo'));
     }
   };
 
@@ -152,9 +154,9 @@ const ProfilePage = () => {
 
     if (result.success) {
       setUserAddress(result.address || null);
-      showMessage("success", "Dirección guardada correctamente");
+      showMessage("success", t('addressSaved'));
     } else {
-      showMessage("error", result.error || "Error al guardar la dirección");
+      showMessage("error", result.error || t('errorSavingAddress'));
     }
   };
 
@@ -162,12 +164,12 @@ const ProfilePage = () => {
     e.preventDefault();
 
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      showMessage("error", "Las contraseñas no coinciden");
+      showMessage("error", t('passwordsDontMatch'));
       return;
     }
 
     if (passwordForm.newPassword.length < 6) {
-      showMessage("error", "La contraseña debe tener al menos 6 caracteres");
+      showMessage("error", t('passwordMinLength'));
       return;
     }
 
@@ -183,9 +185,9 @@ const ProfilePage = () => {
         newPassword: "",
         confirmPassword: "",
       });
-      showMessage("success", "Contraseña actualizada correctamente");
+      showMessage("success", t('passwordUpdated'));
     } else {
-      showMessage("error", result.error || "Error al actualizar la contraseña");
+      showMessage("error", result.error || t('errorUpdatingPassword'));
     }
   };
 
@@ -209,9 +211,9 @@ const ProfilePage = () => {
     <div className="min-h-screen bg-background py-12 pt-32">
       <div className="mx-auto max-w-4xl px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-semibold text-foreground">Mi Perfil</h1>
+          <h1 className="text-3xl font-semibold text-foreground">{t('title')}</h1>
           <p className="mt-2 text-muted-foreground">
-            Administra tu información personal y preferencias
+            {t('subtitle')}
           </p>
         </div>
 
@@ -224,9 +226,9 @@ const ProfilePage = () => {
 
         <Tabs defaultValue="personal" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="personal">Información Personal</TabsTrigger>
-            <TabsTrigger value="address">Dirección de Envío</TabsTrigger>
-            <TabsTrigger value="password">Contraseña</TabsTrigger>
+            <TabsTrigger value="personal">{t('personalInfo')}</TabsTrigger>
+            <TabsTrigger value="address">{t('shippingAddress')}</TabsTrigger>
+            <TabsTrigger value="password">{t('changePassword')}</TabsTrigger>
           </TabsList>
 
           {/* Información Personal */}
@@ -235,16 +237,16 @@ const ProfilePage = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="h-5 w-5" />
-                  Información Personal
+                  {t('personalInfo')}
                 </CardTitle>
                 <CardDescription>
-                  Actualiza tu información de contacto
+                  {t('updateContactInfo')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSavePersonalInfo} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Nombre completo</Label>
+                    <Label htmlFor="name">{t('fullName')}</Label>
                     <Input
                       id="name"
                       type="text"
@@ -259,7 +261,7 @@ const ProfilePage = () => {
                   <div className="space-y-2">
                     <Label htmlFor="email" className="flex items-center gap-2">
                       <Mail className="h-4 w-4" />
-                      Correo electrónico
+                      {t('email')}
                     </Label>
                     <Input
                       id="email"
@@ -269,14 +271,14 @@ const ProfilePage = () => {
                       className="bg-muted"
                     />
                     <p className="text-xs text-muted-foreground">
-                      El correo electrónico no se puede modificar
+                      {t('emailCannotBeChanged')}
                     </p>
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="phone" className="flex items-center gap-2">
                       <Phone className="h-4 w-4" />
-                      Teléfono
+                      {t('phone')}
                     </Label>
                     <Input
                       id="phone"
@@ -297,12 +299,12 @@ const ProfilePage = () => {
                     {isLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Guardando...
+                        {t('saving')}
                       </>
                     ) : (
                       <>
                         <Save className="mr-2 h-4 w-4" />
-                        Guardar Cambios
+                        {t('saveChanges')}
                       </>
                     )}
                   </Button>
@@ -317,20 +319,20 @@ const ProfilePage = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <MapPin className="h-5 w-5" />
-                  Dirección de Envío
+                  {t('shippingAddress')}
                 </CardTitle>
                 <CardDescription>
-                  Guarda tu dirección para envíos más rápidos
+                  {t('saveAddressForFasterShipping')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSaveAddress} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="street">Calle y número</Label>
+                    <Label htmlFor="street">{t('streetAndNumber')}</Label>
                     <Input
                       id="street"
                       type="text"
-                      placeholder="Av. Juárez #123"
+                      placeholder={t('streetPlaceholder')}
                       value={address.street}
                       onChange={(e) =>
                         setAddress({ ...address, street: e.target.value })
@@ -341,11 +343,11 @@ const ProfilePage = () => {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="city">Ciudad</Label>
+                      <Label htmlFor="city">{t('city')}</Label>
                       <Input
                         id="city"
                         type="text"
-                        placeholder="Guadalajara"
+                        placeholder={t('cityPlaceholder')}
                         value={address.city}
                         onChange={(e) =>
                           setAddress({ ...address, city: e.target.value })
@@ -355,11 +357,11 @@ const ProfilePage = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="state">Estado</Label>
+                      <Label htmlFor="state">{t('state')}</Label>
                       <Input
                         id="state"
                         type="text"
-                        placeholder="Jalisco"
+                        placeholder={t('statePlaceholder')}
                         value={address.state}
                         onChange={(e) =>
                           setAddress({ ...address, state: e.target.value })
@@ -371,7 +373,7 @@ const ProfilePage = () => {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="zipCode">Código Postal</Label>
+                      <Label htmlFor="zipCode">{t('zipCode')}</Label>
                       <Input
                         id="zipCode"
                         type="text"
@@ -385,7 +387,7 @@ const ProfilePage = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="country">País</Label>
+                      <Label htmlFor="country">{t('country')}</Label>
                       <Input
                         id="country"
                         type="text"
@@ -406,12 +408,12 @@ const ProfilePage = () => {
                     {isLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Guardando...
+                        {t('saving')}
                       </>
                     ) : (
                       <>
                         <Save className="mr-2 h-4 w-4" />
-                        Guardar Dirección
+                        {t('saveAddress')}
                       </>
                     )}
                   </Button>
@@ -426,16 +428,16 @@ const ProfilePage = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Lock className="h-5 w-5" />
-                  Cambiar Contraseña
+                  {t('changePassword')}
                 </CardTitle>
                 <CardDescription>
-                  Actualiza tu contraseña de forma segura
+                  {t('updatePasswordSecurely')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleChangePassword} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="currentPassword">Contraseña actual</Label>
+                    <Label htmlFor="currentPassword">{t('currentPassword')}</Label>
                     <Input
                       id="currentPassword"
                       type="password"
@@ -449,12 +451,12 @@ const ProfilePage = () => {
                       required
                     />
                     <p className="text-xs text-muted-foreground">
-                      Por seguridad, ingresa tu contraseña actual
+                      {t('currentPasswordHelp')}
                     </p>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="newPassword">Nueva contraseña</Label>
+                    <Label htmlFor="newPassword">{t('newPassword')}</Label>
                     <Input
                       id="newPassword"
                       type="password"
@@ -468,13 +470,13 @@ const ProfilePage = () => {
                       required
                     />
                     <p className="text-xs text-muted-foreground">
-                      Mínimo 6 caracteres
+                      {t('passwordMinChars')}
                     </p>
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="confirmPassword">
-                      Confirmar nueva contraseña
+                      {t('confirmNewPassword')}
                     </Label>
                     <Input
                       id="confirmPassword"
@@ -498,12 +500,12 @@ const ProfilePage = () => {
                     {isLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Actualizando...
+                        {t('updating')}
                       </>
                     ) : (
                       <>
                         <Lock className="mr-2 h-4 w-4" />
-                        Cambiar Contraseña
+                        {t('changePasswordButton')}
                       </>
                     )}
                   </Button>

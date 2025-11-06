@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from 'next-intl';
 import { ShoppingBag, ArrowLeft } from "lucide-react";
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
@@ -10,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/stores/cart-store";
 
 const CarritoPage = () => {
+  const t = useTranslations('cart');
   const { items, clearCart } = useCartStore();
 
   if (items.length === 0) {
@@ -23,11 +25,10 @@ const CarritoPage = () => {
               <ShoppingBag className="h-12 w-12 text-muted-foreground" />
             </div>
             <h1 className="text-3xl font-semibold text-foreground mb-4">
-              Tu Lista está Vacía
+              {t('emptyTitle')}
             </h1>
             <p className="text-muted-foreground mb-8">
-              Parece que aún no has agregado ninguna joya a tu lista.
-              Explora nuestro catálogo y encuentra la pieza perfecta.
+              {t('emptyDescription')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
@@ -35,10 +36,10 @@ const CarritoPage = () => {
                 size="lg"
                 className="bg-[#D4AF37] hover:bg-[#B8941E] text-white"
               >
-                <Link href="/catalog">Ver Catálogo</Link>
+                <Link href="/catalog">{t('viewCatalog')}</Link>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <Link href="/">Ir al Inicio</Link>
+                <Link href="/">{t('goHome')}</Link>
               </Button>
             </div>
           </div>
@@ -61,14 +62,13 @@ const CarritoPage = () => {
             className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Continuar Comprando
+            {t('continueShopping')}
           </Link>
           <h1 className="text-3xl font-semibold text-foreground">
-            Lista de Compras
+            {t('title')}
           </h1>
           <p className="mt-2 text-muted-foreground">
-            {items.length} {items.length === 1 ? "producto" : "productos"} en tu
-            lista
+            {t('itemCount', { count: items.length })}
           </p>
         </div>
 
@@ -79,7 +79,7 @@ const CarritoPage = () => {
             <div className="rounded-2xl bg-card p-6 lg:p-8 shadow-lg">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-foreground">
-                  Productos
+                  {t('products')}
                 </h2>
                 <Button
                   variant="ghost"
@@ -87,7 +87,7 @@ const CarritoPage = () => {
                   onClick={clearCart}
                   className="text-red-600 hover:text-red-700 hover:bg-red-50"
                 >
-                  Vaciar Lista
+                  {t('clearCart')}
                 </Button>
               </div>
 
@@ -101,7 +101,7 @@ const CarritoPage = () => {
             {/* Métodos de pago aceptados */}
             <div className="mt-6 rounded-lg bg-muted/50 p-6">
               <h3 className="text-sm font-semibold text-foreground mb-4">
-                Métodos de Pago Aceptados
+                {t('acceptedPaymentMethods')}
               </h3>
               <div className="flex flex-wrap gap-4 items-center">
                 <div className="px-4 py-2 bg-white rounded border border-border">
@@ -114,14 +114,14 @@ const CarritoPage = () => {
                   <span className="text-xs font-medium">💳 American Express</span>
                 </div>
                 <div className="px-4 py-2 bg-white rounded border border-border">
-                  <span className="text-xs font-medium">🏦 Transferencia</span>
+                  <span className="text-xs font-medium">🏦 {t('transfer')}</span>
                 </div>
                 <div className="px-4 py-2 bg-white rounded border border-border">
-                  <span className="text-xs font-medium">💰 Efectivo</span>
+                  <span className="text-xs font-medium">💰 {t('cash')}</span>
                 </div>
               </div>
               <p className="mt-4 text-xs text-muted-foreground">
-                Aceptamos meses sin intereses en compras mayores a $3,000 MXN
+                {t('installmentsAvailable')}
               </p>
             </div>
           </div>
@@ -139,10 +139,10 @@ const CarritoPage = () => {
               <ShoppingBag className="h-6 w-6 text-[#D4AF37]" />
             </div>
             <h3 className="font-semibold text-foreground mb-2">
-              Compra Segura
+              {t('securePurchase')}
             </h3>
             <p className="text-sm text-muted-foreground">
-              Todas las transacciones están protegidas con encriptación SSL
+              {t('securePurchaseDesc')}
             </p>
           </div>
 
@@ -151,10 +151,10 @@ const CarritoPage = () => {
               <span className="text-2xl">📦</span>
             </div>
             <h3 className="font-semibold text-foreground mb-2">
-              Empaque Premium
+              {t('premiumPackaging')}
             </h3>
             <p className="text-sm text-muted-foreground">
-              Cada joya se envía en una elegante caja de regalo
+              {t('premiumPackagingDesc')}
             </p>
           </div>
 
@@ -163,10 +163,10 @@ const CarritoPage = () => {
               <span className="text-2xl">✓</span>
             </div>
             <h3 className="font-semibold text-foreground mb-2">
-              Certificado Incluido
+              {t('certificateIncluded')}
             </h3>
             <p className="text-sm text-muted-foreground">
-              Certificado de autenticidad con cada compra
+              {t('certificateIncludedDesc')}
             </p>
           </div>
         </div>

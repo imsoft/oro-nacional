@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { useTranslations } from 'next-intl';
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
 import OurStory from "@/components/about/our-story";
@@ -7,6 +10,7 @@ import ArtisanProcess from "@/components/about/artisan-process";
 import Certifications from "@/components/about/certifications";
 
 const NosotrosPage = () => {
+  const t = useTranslations('about');
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -26,15 +30,13 @@ const NosotrosPage = () => {
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
             <p className="text-sm font-semibold text-[#D4AF37] uppercase tracking-wide">
-              Conoce Oro Nacional
+              {t('title')}
             </p>
             <h1 className="mt-4 text-4xl font-semibold tracking-tight text-white sm:text-6xl">
-              Tradición, Pasión y Excelencia en Cada Pieza
+              {t('subtitle')}
             </h1>
             <p className="mt-6 text-lg text-gray-200 leading-relaxed">
-              Desde 1990, creamos joyería fina que celebra el arte artesanal
-              jalisciense. Cada pieza cuenta una historia de dedicación,
-              maestría y amor por el oficio.
+              {t('ourStoryText')}
             </p>
           </div>
         </div>

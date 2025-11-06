@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from 'next-intl';
 import { BookOpen, Calendar, Clock, Loader2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -10,6 +11,8 @@ import { getPublishedPosts, getBlogCategories } from "@/lib/supabase/blog";
 import type { BlogPostCard, BlogCategory } from "@/types/blog";
 
 const BlogPage = () => {
+  const t = useTranslations('blog');
+  const tCommon = useTranslations('common');
   const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [posts, setPosts] = useState<BlogPostCard[]>([]);
   const [categories, setCategories] = useState<BlogCategory[]>([]);
@@ -52,11 +55,10 @@ const BlogPage = () => {
             <BookOpen className="h-8 w-8 text-[#D4AF37]" />
           </div>
           <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
-            Blog de Oro Nacional
+            {t('title')}
           </h1>
           <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-            Tendencias, guías, historia y consejos de estilo en joyería de oro.
-            Aprende de los expertos en Guadalajara.
+            {t('subtitle')}
           </p>
         </div>
       </section>
@@ -74,7 +76,7 @@ const BlogPage = () => {
                   : "bg-muted text-muted-foreground hover:bg-muted/80"
               }`}
             >
-              Todos
+              {t('allCategories')}
             </button>
             {categories.map((category) => (
               <button
@@ -156,7 +158,7 @@ const BlogPage = () => {
                         )}
                         <div className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
-                          <span>{post.views} vistas</span>
+                          <span>{post.views} {tCommon('views')}</span>
                         </div>
                       </div>
 
@@ -177,7 +179,7 @@ const BlogPage = () => {
               {filteredPosts.length === 0 && (
                 <div className="text-center py-12">
                   <p className="text-muted-foreground">
-                    No hay artículos en esta categoría aún.
+                    {t('noPosts')}
                   </p>
                 </div>
               )}
