@@ -12,7 +12,7 @@ import { Loader2 } from "lucide-react";
 import { getProductsByCategory } from "@/lib/supabase/products";
 import type { Product } from "@/types/product";
 
-const AnillosPage = () => {
+const RingsPage = () => {
   const t = useTranslations('catalog.rings');
   const tCommon = useTranslations('catalog');
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -114,4 +114,4 @@ const AnillosPage = () => {
   );
 };
 
-export default AnillosPage;
+export default RingsPage;

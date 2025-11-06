@@ -50,7 +50,7 @@ import {
 } from "@/lib/supabase/contact";
 import type { ContactMessage, MessageStatus, ContactMessageStats } from "@/types/contact";
 
-const MensajesPage = () => {
+const MessagesPage = () => {
   const router = useRouter();
   const t = useTranslations('admin.messages');
   const { isAuthenticated, isAdmin } = useAuthStore();
@@ -448,4 +448,4 @@ const MensajesPage = () => {
   );
 };
 
-export default MensajesPage;
+export default MessagesPage;

@@ -2,7 +2,7 @@ import { Truck, Package, MapPin, Clock, Shield, CheckCircle2 } from "lucide-reac
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
 
-const EnviosPage = () => {
+const ShippingPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -249,4 +249,4 @@ const EnviosPage = () => {
   );
 };
 
-export default EnviosPage;
+export default ShippingPage;

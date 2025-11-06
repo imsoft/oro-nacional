@@ -9,7 +9,7 @@ import MasterJewelers from "@/components/about/master-jewelers";
 import ArtisanProcess from "@/components/about/artisan-process";
 import Certifications from "@/components/about/certifications";
 
-const NosotrosPage = () => {
+const AboutPage = () => {
   const t = useTranslations('about');
   return (
     <div className="min-h-screen bg-background">
@@ -66,4 +66,4 @@ const NosotrosPage = () => {
   );
 };
 
-export default NosotrosPage;
+export default AboutPage;

@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const RecuperarContrasenaPage = () => {
+const ResetPasswordPage = () => {
   const [email, setEmail] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState("");
@@ -221,4 +221,4 @@ const RecuperarContrasenaPage = () => {
   );
 };
 
-export default RecuperarContrasenaPage;
+export default ResetPasswordPage;

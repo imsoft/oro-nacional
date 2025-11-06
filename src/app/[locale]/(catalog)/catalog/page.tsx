@@ -29,7 +29,7 @@ const materialMap: Record<string, string> = {
   "oro-rosa": "Rosa",
 };
 
-const CatalogoPage = () => {
+const CatalogPage = () => {
   const t = useTranslations('catalog');
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -207,4 +207,4 @@ const CatalogoPage = () => {
   );
 };
 
-export default CatalogoPage;
+export default CatalogPage;

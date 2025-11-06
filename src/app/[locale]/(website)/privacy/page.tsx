@@ -8,7 +8,7 @@ export const metadata = {
   description: "Conoce cómo protegemos y manejamos tu información personal en Oro Nacional.",
 };
 
-const PrivacidadPage = () => {
+const PrivacyPage = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
@@ -262,4 +262,4 @@ const PrivacidadPage = () => {
   );
 };
 
-export default PrivacidadPage;
+export default PrivacyPage;

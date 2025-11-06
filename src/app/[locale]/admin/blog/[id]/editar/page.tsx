@@ -24,7 +24,7 @@ import {
 import { useAuthStore } from "@/stores/auth-store";
 import type { BlogCategory, BlogPostDetail } from "@/types/blog";
 
-export default function EditarPostPage({
+export default function EditPostPage({
   params,
 }: {
   params: { id: string };

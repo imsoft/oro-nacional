@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/stores/cart-store";
 import { useAuthStore } from "@/stores/auth-store";
 
-const ConfirmacionPage = () => {
+const ConfirmationPage = () => {
   const clearCart = useCartStore((state) => state.clearCart);
   const { user } = useAuthStore();
   const [orderNumber, setOrderNumber] = useState("");
@@ -173,4 +173,4 @@ const ConfirmacionPage = () => {
   );
 };
 
-export default ConfirmacionPage;
+export default ConfirmationPage;

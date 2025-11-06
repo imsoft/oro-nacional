@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 
-export default function ConfiguracionAdmin() {
+export default function AdminSettings() {
   const t = useTranslations('admin.settings');
   const locale = useLocale() as 'es' | 'en';
   const [isSaving, setIsSaving] = useState(false);

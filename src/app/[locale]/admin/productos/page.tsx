@@ -19,7 +19,7 @@ import {
 import { getAllProducts, softDeleteProduct } from "@/lib/supabase/products";
 import type { ProductListItem } from "@/types/product";
 
-export default function ProductosAdmin() {
+export default function ProductsAdmin() {
   const t = useTranslations('admin.products');
   const [searchTerm, setSearchTerm] = useState("");
   const [products, setProducts] = useState<ProductListItem[]>([]);

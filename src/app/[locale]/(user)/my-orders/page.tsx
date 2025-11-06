@@ -20,7 +20,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-const MisPedidosPage = () => {
+const MyOrdersPage = () => {
   const router = useRouter();
   const { isAuthenticated, user } = useAuthStore();
   const [orders, setOrders] = useState<Order[]>([]);
@@ -280,4 +280,4 @@ const MisPedidosPage = () => {
   );
 };
 
-export default MisPedidosPage;
+export default MyOrdersPage;

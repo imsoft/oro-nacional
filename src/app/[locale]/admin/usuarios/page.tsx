@@ -15,7 +15,7 @@ import {
 import { getUsersWithStats, getUserCountByRole } from "@/lib/supabase/user-management";
 import type { UserWithStats, UserCountByRole } from "@/types/user-management";
 
-export default function UsuariosAdmin() {
+export default function UsersAdmin() {
   const t = useTranslations('admin.users');
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");

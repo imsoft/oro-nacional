@@ -7,7 +7,7 @@ import ContactForm from "@/components/contact/contact-form";
 import ContactInfo from "@/components/contact/contact-info";
 import LocationMap from "@/components/contact/location-map";
 
-const ContactoPage = () => {
+const ContactPage = () => {
   const t = useTranslations('contact');
   return (
     <div className="min-h-screen bg-background">
@@ -104,4 +104,4 @@ const ContactoPage = () => {
   );
 };
 
-export default ContactoPage;
+export default ContactPage;

@@ -3,7 +3,7 @@ import { Link } from '@/i18n/routing';
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
 
-const PreguntasFrecuentesPage = () => {
+const FAQPage = () => {
   const faqCategories = [
     {
       title: "Sobre Nuestros Productos",
@@ -253,4 +253,4 @@ const PreguntasFrecuentesPage = () => {
   );
 };
 
-export default PreguntasFrecuentesPage;
+export default FAQPage;

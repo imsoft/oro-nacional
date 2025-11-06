@@ -23,7 +23,7 @@ import {
 import { getAllOrders, getOrderStats, updateOrderStatus } from "@/lib/supabase/orders";
 import type { OrderListItem, OrderStatus, OrderStats } from "@/types/order";
 
-export default function PedidosAdmin() {
+export default function OrdersAdmin() {
   const t = useTranslations('admin.orders');
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");

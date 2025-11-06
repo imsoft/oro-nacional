@@ -54,7 +54,7 @@ interface ProductPageProps {
   };
 }
 
-export default function EditarProducto({ params }: ProductPageProps) {
+export default function EditProduct({ params }: ProductPageProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);

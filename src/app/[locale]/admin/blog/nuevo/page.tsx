@@ -20,7 +20,7 @@ import { createBlogPost, getBlogCategories } from "@/lib/supabase/blog";
 import { useAuthStore } from "@/stores/auth-store";
 import type { BlogCategory } from "@/types/blog";
 
-export default function NuevoPostPage() {
+export default function NewPostPage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
 

@@ -8,7 +8,7 @@ export const metadata = {
   description: "Lee nuestros términos y condiciones de uso de la tienda Oro Nacional.",
 };
 
-const TerminosPage = () => {
+const TermsPage = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
@@ -207,4 +207,4 @@ const TerminosPage = () => {
   );
 };
 
-export default TerminosPage;
+export default TermsPage;

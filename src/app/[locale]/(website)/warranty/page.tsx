@@ -2,7 +2,7 @@ import { Shield, Award, FileCheck, RefreshCw, CheckCircle2, Sparkles } from "luc
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
 
-const GarantiaPage = () => {
+const WarrantyPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -398,4 +398,4 @@ const GarantiaPage = () => {
   );
 };
 
-export default GarantiaPage;
+export default WarrantyPage;

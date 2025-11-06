@@ -10,7 +10,7 @@ import OrderSummary from "@/components/cart/order-summary";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/stores/cart-store";
 
-const CarritoPage = () => {
+const CartPage = () => {
   const t = useTranslations('cart');
   const { items, clearCart } = useCartStore();
 
@@ -177,4 +177,4 @@ const CarritoPage = () => {
   );
 };
 
-export default CarritoPage;
+export default CartPage;

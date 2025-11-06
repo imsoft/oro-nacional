@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/stores/auth-store";
 
-const RegistroPage = () => {
+const RegisterPage = () => {
   const t = useTranslations('auth.register');
   const router = useRouter();
   const register = useAuthStore((state) => state.register);
@@ -307,4 +307,4 @@ const RegistroPage = () => {
   );
 };
 
-export default RegistroPage;
+export default RegisterPage;
