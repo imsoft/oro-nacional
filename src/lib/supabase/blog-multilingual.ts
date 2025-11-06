@@ -1,8 +1,5 @@
 import { supabase } from "./client";
 import type { 
-  MultilingualBlogPost, 
-  MultilingualBlogCategory, 
-  MultilingualBlogTag,
   CreateMultilingualBlogPostData,
   UpdateMultilingualBlogPostData,
   Locale
