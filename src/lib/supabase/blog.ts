@@ -175,7 +175,7 @@ export async function createBlogPost(
         category_id: postData.category_id || null,
         author_id: authorId,
         status: postData.status,
-        available_languages: postData.available_languages || ['es', 'en'],
+        available_languages: postData.available_languages || ['es'],
         published_at: postData.status === "published" ? new Date().toISOString() : null,
       })
       .select()

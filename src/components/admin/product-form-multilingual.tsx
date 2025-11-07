@@ -48,7 +48,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
     stock: 0,
     weight: 0,
     is_active: true,
-    available_languages: ['es', 'en'],
+    available_languages: ['es'],
     specifications: [],
     sizes: []
   };
@@ -311,10 +311,10 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
 
             <div className="space-y-3">
               <Label htmlFor="available_languages">{t('productForm.availableLanguages')}</Label>
-              <Select 
-                value={formData.available_languages.join(',')} 
+              <Select
+                value={formData.available_languages[0] || 'es'}
                 onValueChange={(value) => {
-                  const languages = value === 'both' ? ['es', 'en'] : value === 'es' ? ['es'] : ['en'];
+                  const languages = value === 'es' ? ['es'] : ['en'];
                   updateField("available_languages", languages);
                 }}
               >
@@ -322,7 +322,6 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
                   <SelectValue placeholder={t('productForm.selectLanguages')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="both">{t('productForm.bothLanguages')}</SelectItem>
                   <SelectItem value="es">{t('productForm.spanishOnly')}</SelectItem>
                   <SelectItem value="en">{t('productForm.englishOnly')}</SelectItem>
                 </SelectContent>

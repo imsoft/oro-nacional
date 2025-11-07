@@ -39,7 +39,7 @@ export default function EditPostPage({
   const [categoryId, setCategoryId] = useState<string>("");
   const [status, setStatus] = useState<"draft" | "published">("draft");
   const [tags, setTags] = useState<string>("");
-  const [availableLanguages, setAvailableLanguages] = useState<string[]>(["es", "en"]);
+  const [availableLanguages, setAvailableLanguages] = useState<string[]>(["es"]);
   const [currentFeaturedImage, setCurrentFeaturedImage] = useState<string | null>(null);
   const [newFeaturedImage, setNewFeaturedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -77,7 +77,7 @@ export default function EditPostPage({
       setContent(postData.content);
       setCategoryId(postData.category_id || "");
       setStatus(postData.status);
-      setAvailableLanguages(postData.available_languages || ["es", "en"]);
+      setAvailableLanguages(postData.available_languages || ["es"]);
       setCurrentFeaturedImage(postData.featured_image || null);
       setTags(postData.tags?.map((tag) => tag.name).join(", ") || "");
       setCategories(categoriesData);
@@ -414,25 +414,24 @@ export default function EditPostPage({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="available_languages">Idiomas Disponibles</Label>
+              <Label htmlFor="available_languages">Idioma</Label>
               <Select
-                value={availableLanguages.join(",")}
+                value={availableLanguages[0] || "es"}
                 onValueChange={(value) => {
-                  const languages = value === "both" ? ["es", "en"] : value === "es" ? ["es"] : ["en"];
+                  const languages = value === "es" ? ["es"] : ["en"];
                   setAvailableLanguages(languages);
                 }}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Selecciona idiomas" />
+                  <SelectValue placeholder="Selecciona idioma" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="both">Ambos idiomas (ES/EN)</SelectItem>
-                  <SelectItem value="es">Solo Español</SelectItem>
-                  <SelectItem value="en">Solo Inglés</SelectItem>
+                  <SelectItem value="es">Español</SelectItem>
+                  <SelectItem value="en">Inglés</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                El post se mostrará solo en los idiomas seleccionados
+                El post se mostrará solo en el idioma seleccionado
               </p>
             </div>
           </div>
