@@ -290,8 +290,8 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-3">
               <Label htmlFor="category">{t('productForm.category')}</Label>
-              <Select 
-                value={formData.category_id} 
+              <Select
+                value={formData.category_id}
                 onValueChange={(value) => {
                   updateField("category_id", value);
                 }}
@@ -310,20 +310,20 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
             </div>
 
             <div className="space-y-3">
-              <Label htmlFor="available_languages">{t('productForm.availableLanguages')}</Label>
+              <Label htmlFor="available_languages">Idioma</Label>
               <Select
-                value={formData.available_languages[0] || 'es'}
+                value={formData.available_languages?.[0] || 'es'}
                 onValueChange={(value) => {
                   const languages = value === 'es' ? ['es'] : ['en'];
                   updateField("available_languages", languages);
                 }}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={t('productForm.selectLanguages')} />
+                  <SelectValue placeholder="Selecciona idioma" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="es">{t('productForm.spanishOnly')}</SelectItem>
-                  <SelectItem value="en">{t('productForm.englishOnly')}</SelectItem>
+                  <SelectItem value="es">Español</SelectItem>
+                  <SelectItem value="en">Inglés</SelectItem>
                 </SelectContent>
               </Select>
             </div>
