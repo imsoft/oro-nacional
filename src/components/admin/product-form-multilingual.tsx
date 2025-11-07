@@ -59,6 +59,9 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
     validateForm,
   } = useMultilingualForm<ProductFormData>(defaultData);
 
+  // Debug: Log formData to check available_languages
+  console.log("ProductForm formData:", formData);
+
   // Cargar categorías
   useEffect(() => {
     const loadCategories = async () => {
