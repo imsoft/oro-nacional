@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter, Link } from "@/i18n/routing";
 import { useTranslations } from 'next-intl';
-import { Mail, Lock, User, AlertCircle, Loader2, CheckCircle2 } from "lucide-react";
+import { Mail, Lock, User, AlertCircle, Loader2, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,8 @@ const RegisterPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -148,13 +150,25 @@ const RegisterPage = () => {
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
                     id="password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 pr-10"
                     disabled={isLoading}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    disabled={isLoading}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
                 </div>
                 {password && (
                   <div className="flex items-center justify-between text-xs">
@@ -175,16 +189,29 @@ const RegisterPage = () => {
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
                     id="confirmPassword"
-                    type="password"
+                    type={showConfirmPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 pr-10"
                     disabled={isLoading}
                   />
-                  {confirmPassword && password === confirmPassword && (
-                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-green-600" />
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    disabled={isLoading}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      confirmPassword && password === confirmPassword ? (
+                        <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      ) : (
+                        <Eye className="h-5 w-5" />
+                      )
+                    )}
+                  </button>
                 </div>
               </div>
 
