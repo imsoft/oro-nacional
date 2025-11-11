@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Link } from '@/i18n/routing';
 import { Loader2 } from "lucide-react";
 import { getFeaturedCategories } from "@/lib/supabase/products";
@@ -18,6 +18,7 @@ const categoryRoutes: Record<string, string> = {
 
 const FeaturedCategories = () => {
   const t = useTranslations('featuredCategories');
+  const locale = useLocale();
   const [categories, setCategories] = useState<FeaturedCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -60,6 +61,14 @@ const FeaturedCategories = () => {
         <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-6 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-4">
           {categories.map((category) => {
             const href = categoryRoutes[category.slug] || `/catalog?category=${category.slug}`;
+            // Extract the correct translation based on locale
+            const categoryName = typeof category.name === 'object'
+              ? (category.name as Record<string, string>)[locale] || (category.name as Record<string, string>)['es'] || ''
+              : category.name;
+            const categoryDescription = typeof category.description === 'object'
+              ? (category.description as Record<string, string>)[locale] || (category.description as Record<string, string>)['es'] || ''
+              : category.description;
+
             return (
               <Link
                 key={category.id}
@@ -68,7 +77,7 @@ const FeaturedCategories = () => {
               >
                 <div className="relative aspect-square overflow-hidden">
                   <Image
-                    alt={t('imageAlt', { name: category.name })}
+                    alt={t('imageAlt', { name: categoryName })}
                     src={category.image_url}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-110"
@@ -77,10 +86,10 @@ const FeaturedCategories = () => {
                 </div>
                 <div className="absolute inset-x-0 bottom-0 p-6">
                   <h3 className="text-2xl font-semibold text-white">
-                    {category.name}
+                    {categoryName}
                   </h3>
                   <p className="mt-1 text-sm text-gray-200">
-                    {category.description}
+                    {categoryDescription}
                   </p>
                 </div>
               </Link>
