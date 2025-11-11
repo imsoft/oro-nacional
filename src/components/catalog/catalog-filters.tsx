@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 
 export interface CatalogFiltersState {
   categories: string[];
-  materials: string[];
   priceRange: [number, number];
 }
 
@@ -27,33 +26,14 @@ const CatalogFilters = ({ filters, onFiltersChange }: CatalogFiltersProps) => {
     { id: "pulseras", label: t("categoryBracelets") },
   ];
 
-  const materials = [
-    { id: "oro-14k", label: t("material14k") },
-    { id: "oro-18k", label: t("material18k") },
-    { id: "oro-blanco", label: t("materialWhite") },
-    { id: "oro-amarillo", label: t("materialYellow") },
-    { id: "oro-rosa", label: t("materialRose") },
-  ];
-
   const handleCategoryChange = (categoryId: string, checked: boolean) => {
     const newCategories = checked
       ? [...filters.categories, categoryId]
       : filters.categories.filter((id) => id !== categoryId);
-    
+
     onFiltersChange({
       ...filters,
       categories: newCategories,
-    });
-  };
-
-  const handleMaterialChange = (materialId: string, checked: boolean) => {
-    const newMaterials = checked
-      ? [...filters.materials, materialId]
-      : filters.materials.filter((id) => id !== materialId);
-    
-    onFiltersChange({
-      ...filters,
-      materials: newMaterials,
     });
   };
 
@@ -67,7 +47,6 @@ const CatalogFilters = ({ filters, onFiltersChange }: CatalogFiltersProps) => {
   const handleClearFilters = () => {
     onFiltersChange({
       categories: [],
-      materials: [],
       priceRange: [0, 50000],
     });
   };
@@ -102,31 +81,6 @@ const CatalogFilters = ({ filters, onFiltersChange }: CatalogFiltersProps) => {
                 className="text-sm font-normal cursor-pointer"
               >
                 {category.label}
-              </Label>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="rounded-2xl bg-card p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-foreground mb-4">
-          {t("material")}
-        </h3>
-        <div className="space-y-3">
-          {materials.map((material) => (
-            <div key={material.id} className="flex items-center space-x-2">
-              <Checkbox
-                id={material.id}
-                checked={filters.materials.includes(material.id)}
-                onCheckedChange={(checked) =>
-                  handleMaterialChange(material.id, checked === true)
-                }
-              />
-              <Label
-                htmlFor={material.id}
-                className="text-sm font-normal cursor-pointer"
-              >
-                {material.label}
               </Label>
             </div>
           ))}

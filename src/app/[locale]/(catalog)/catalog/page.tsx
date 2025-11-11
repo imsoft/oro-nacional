@@ -20,15 +20,6 @@ const categorySlugMap: Record<string, string> = {
   pulseras: "bracelets",
 };
 
-// Mapear materiales del filtro a materiales en la BD
-const materialMap: Record<string, string> = {
-  "oro-14k": "14k",
-  "oro-18k": "18k",
-  "oro-blanco": "Blanco",
-  "oro-amarillo": "Amarillo",
-  "oro-rosa": "Rosa",
-};
-
 const CatalogPage = () => {
   const t = useTranslations('catalog');
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -39,7 +30,6 @@ const CatalogPage = () => {
   const [sortBy, setSortBy] = useState<string>("featured");
   const [filters, setFilters] = useState<CatalogFiltersState>({
     categories: [],
-    materials: [],
     priceRange: [0, 50000],
   });
 
@@ -89,17 +79,6 @@ const CatalogPage = () => {
         return filters.categories.some(
           (filterCategory) => categorySlugMap[filterCategory] === categorySlug
         );
-      });
-    }
-
-    // Filtrar por materiales
-    if (filters.materials.length > 0) {
-      filtered = filtered.filter((product) => {
-        const productMaterial = product.material?.toLowerCase() || "";
-        return filters.materials.some((filterMaterial) => {
-          const mappedMaterial = materialMap[filterMaterial]?.toLowerCase() || "";
-          return productMaterial.includes(mappedMaterial);
-        });
       });
     }
 
