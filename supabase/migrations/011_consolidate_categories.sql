@@ -24,46 +24,19 @@ BEGIN
   ) THEN
     -- Loop through categories and update or insert into product_categories
     FOR category_record IN
-      SELECT id, name, slug, description, image_url, is_featured, display_order
+      SELECT id, name::text as name, slug, description::text as description, image_url, is_featured, display_order
       FROM public.categories
     LOOP
-      -- Try to find matching product_category by slug
+      -- Try to find matching product_category by slug and update featured status
       UPDATE public.product_categories
       SET
         is_featured = category_record.is_featured,
         display_order = category_record.display_order,
         image_url = COALESCE(image_url, category_record.image_url),
-        -- If name is jsonb in categories, use it; otherwise create jsonb from text
-        name_es = COALESCE(name_es,
-          CASE
-            WHEN jsonb_typeof(category_record.name::jsonb) = 'object'
-            THEN category_record.name::jsonb->>'es'
-            ELSE category_record.name
-          END
-        ),
-        name_en = COALESCE(name_en,
-          CASE
-            WHEN jsonb_typeof(category_record.name::jsonb) = 'object'
-            THEN category_record.name::jsonb->>'en'
-            ELSE category_record.name
-          END
-        ),
-        description_es = COALESCE(description_es,
-          CASE
-            WHEN category_record.description IS NOT NULL
-              AND jsonb_typeof(category_record.description::jsonb) = 'object'
-            THEN category_record.description::jsonb->>'es'
-            ELSE category_record.description
-          END
-        ),
-        description_en = COALESCE(description_en,
-          CASE
-            WHEN category_record.description IS NOT NULL
-              AND jsonb_typeof(category_record.description::jsonb) = 'object'
-            THEN category_record.description::jsonb->>'en'
-            ELSE category_record.description
-          END
-        )
+        name_es = COALESCE(name_es, category_record.name),
+        name_en = COALESCE(name_en, category_record.name),
+        description_es = COALESCE(description_es, category_record.description),
+        description_en = COALESCE(description_en, category_record.description)
       WHERE slug = category_record.slug OR slug_es = category_record.slug;
     END LOOP;
   END IF;
