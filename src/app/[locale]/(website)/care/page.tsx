@@ -1,8 +1,12 @@
 import { Sparkles, Droplet, Sun, Home, AlertTriangle, CheckCircle2 } from "lucide-react";
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
+import { useLocale } from "next-intl";
 
 const CarePage = () => {
+  const locale = useLocale();
+  const isSpanish = locale === "es";
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -14,11 +18,12 @@ const CarePage = () => {
             <Sparkles className="h-8 w-8 text-[#D4AF37]" />
           </div>
           <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
-            Cuidado de tu Joyería de Oro
+            {isSpanish ? "Cuidado de tu Joyería de Oro" : "Gold Jewelry Care"}
           </h1>
           <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-            Aprende a mantener tu joyería radiante y en perfectas condiciones
-            con estos consejos profesionales de nuestros maestros joyeros.
+            {isSpanish
+              ? "Aprende a mantener tu joyería radiante y en perfectas condiciones con estos consejos profesionales de nuestros maestros joyeros."
+              : "Learn how to keep your jewelry radiant and in perfect condition with these professional tips from our master jewelers."}
           </p>
         </div>
       </section>
@@ -35,11 +40,12 @@ const CarePage = () => {
                 </div>
                 <div>
                   <h2 className="text-2xl font-semibold text-foreground">
-                    Limpieza en Casa - Método Básico
+                    {isSpanish ? "Limpieza en Casa - Método Básico" : "At-Home Cleaning - Basic Method"}
                   </h2>
                   <p className="mt-2 text-muted-foreground mb-6">
-                    Limpia tu joyería de oro cada 2-4 semanas con este método
-                    simple y seguro que puedes hacer en casa.
+                    {isSpanish
+                      ? "Limpia tu joyería de oro cada 2-4 semanas con este método simple y seguro que puedes hacer en casa."
+                      : "Clean your gold jewelry every 2-4 weeks with this simple and safe method you can do at home."}
                   </p>
                   <div className="space-y-4">
                     <div className="flex items-start gap-3">
@@ -48,11 +54,12 @@ const CarePage = () => {
                       </div>
                       <div>
                         <p className="font-medium text-foreground">
-                          Prepara la solución
+                          {isSpanish ? "Prepara la solución" : "Prepare the solution"}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          Mezcla agua tibia con unas gotas de jabón suave (lava
-                          trastes neutro). NO uses detergentes agresivos.
+                          {isSpanish
+                            ? "Mezcla agua tibia con unas gotas de jabón suave (lava trastes neutro). NO uses detergentes agresivos."
+                            : "Mix warm water with a few drops of mild soap (neutral dish soap). DO NOT use harsh detergents."}
                         </p>
                       </div>
                     </div>
@@ -61,11 +68,13 @@ const CarePage = () => {
                         2
                       </div>
                       <div>
-                        <p className="font-medium text-foreground">Remoja</p>
+                        <p className="font-medium text-foreground">
+                          {isSpanish ? "Remoja" : "Soak"}
+                        </p>
                         <p className="text-sm text-muted-foreground">
-                          Sumerge tu joya por 10-15 minutos. Para piezas muy
-                          sucias, usa un cepillo de dientes suave en las áreas
-                          difíciles.
+                          {isSpanish
+                            ? "Sumerge tu joya por 10-15 minutos. Para piezas muy sucias, usa un cepillo de dientes suave en las áreas difíciles."
+                            : "Submerge your jewelry for 10-15 minutes. For very dirty pieces, use a soft toothbrush on hard-to-reach areas."}
                         </p>
                       </div>
                     </div>
@@ -75,11 +84,12 @@ const CarePage = () => {
                       </div>
                       <div>
                         <p className="font-medium text-foreground">
-                          Enjuaga bien
+                          {isSpanish ? "Enjuaga bien" : "Rinse thoroughly"}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          Enjuaga con agua tibia. IMPORTANTE: Tapa el drenaje
-                          para evitar que se caiga la joya.
+                          {isSpanish
+                            ? "Enjuaga con agua tibia. IMPORTANTE: Tapa el drenaje para evitar que se caiga la joya."
+                            : "Rinse with warm water. IMPORTANT: Cover the drain to prevent your jewelry from falling."}
                         </p>
                       </div>
                     </div>
@@ -89,12 +99,12 @@ const CarePage = () => {
                       </div>
                       <div>
                         <p className="font-medium text-foreground">
-                          Seca completamente
+                          {isSpanish ? "Seca completamente" : "Dry completely"}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          Usa un paño suave y seco (preferentemente el paño de
-                          microfibra incluido con tu compra). Deja secar al aire
-                          antes de guardar.
+                          {isSpanish
+                            ? "Usa un paño suave y seco (preferentemente el paño de microfibra incluido con tu compra). Deja secar al aire antes de guardar."
+                            : "Use a soft, dry cloth (preferably the microfiber cloth included with your purchase). Let air dry before storing."}
                         </p>
                       </div>
                     </div>
@@ -107,7 +117,7 @@ const CarePage = () => {
           {/* Qué EVITAR */}
           <div className="mb-12">
             <h2 className="text-2xl font-semibold text-foreground mb-6">
-              ⚠️ Qué Evitar para Proteger tu Joyería
+              {isSpanish ? "⚠️ Qué Evitar para Proteger tu Joyería" : "⚠️ What to Avoid to Protect Your Jewelry"}
             </h2>
             <div className="space-y-4">
               <div className="rounded-lg bg-red-50 dark:bg-red-950/20 p-6 border border-red-200 dark:border-red-800">
@@ -115,18 +125,19 @@ const CarePage = () => {
                   <AlertTriangle className="h-6 w-6 text-red-600 mt-1 flex-shrink-0" />
                   <div className="flex-1">
                     <h3 className="font-semibold text-foreground mb-2">
-                      Químicos Agresivos
+                      {isSpanish ? "Químicos Agresivos" : "Harsh Chemicals"}
                     </h3>
                     <p className="text-sm text-muted-foreground mb-3">
-                      Evita el contacto con estas sustancias que pueden dañar tu
-                      oro:
+                      {isSpanish
+                        ? "Evita el contacto con estas sustancias que pueden dañar tu oro:"
+                        : "Avoid contact with these substances that can damage your gold:"}
                     </p>
                     <ul className="text-sm text-muted-foreground space-y-1">
-                      <li>• Cloro (albercas, tinas de hidromasaje)</li>
-                      <li>• Blanqueador y productos de limpieza del hogar</li>
-                      <li>• Perfumes, lociones y hairspray (aplícalos ANTES de ponerte las joyas)</li>
-                      <li>• Acetona (quitaesmalte)</li>
-                      <li>• Productos abrasivos o ácidos</li>
+                      <li>• {isSpanish ? "Cloro (albercas, tinas de hidromasaje)" : "Chlorine (pools, hot tubs)"}</li>
+                      <li>• {isSpanish ? "Blanqueador y productos de limpieza del hogar" : "Bleach and household cleaning products"}</li>
+                      <li>• {isSpanish ? "Perfumes, lociones y hairspray (aplícalos ANTES de ponerte las joyas)" : "Perfumes, lotions and hairspray (apply BEFORE putting on jewelry)"}</li>
+                      <li>• {isSpanish ? "Acetona (quitaesmalte)" : "Acetone (nail polish remover)"}</li>
+                      <li>• {isSpanish ? "Productos abrasivos o ácidos" : "Abrasive or acidic products"}</li>
                     </ul>
                   </div>
                 </div>
@@ -137,17 +148,17 @@ const CarePage = () => {
                   <AlertTriangle className="h-6 w-6 text-red-600 mt-1 flex-shrink-0" />
                   <div className="flex-1">
                     <h3 className="font-semibold text-foreground mb-2">
-                      Actividades de Riesgo
+                      {isSpanish ? "Actividades de Riesgo" : "Risky Activities"}
                     </h3>
                     <p className="text-sm text-muted-foreground mb-3">
-                      Quítate tus joyas antes de:
+                      {isSpanish ? "Quítate tus joyas antes de:" : "Remove your jewelry before:"}
                     </p>
                     <ul className="text-sm text-muted-foreground space-y-1">
-                      <li>• Hacer ejercicio o deportes</li>
-                      <li>• Trabajos de jardinería o construcción</li>
-                      <li>• Nadar en alberca o playa</li>
-                      <li>• Bañarte (el jabón puede acumularse)</li>
-                      <li>• Dormir (puede deformarse o engancharse)</li>
+                      <li>• {isSpanish ? "Hacer ejercicio o deportes" : "Exercising or playing sports"}</li>
+                      <li>• {isSpanish ? "Trabajos de jardinería o construcción" : "Gardening or construction work"}</li>
+                      <li>• {isSpanish ? "Nadar en alberca o playa" : "Swimming in pool or beach"}</li>
+                      <li>• {isSpanish ? "Bañarte (el jabón puede acumularse)" : "Bathing (soap can accumulate)"}</li>
+                      <li>• {isSpanish ? "Dormir (puede deformarse o engancharse)" : "Sleeping (can deform or snag)"}</li>
                     </ul>
                   </div>
                 </div>
@@ -158,12 +169,12 @@ const CarePage = () => {
                   <Sun className="h-6 w-6 text-red-600 mt-1 flex-shrink-0" />
                   <div className="flex-1">
                     <h3 className="font-semibold text-foreground mb-2">
-                      Calor y Luz Extremos
+                      {isSpanish ? "Calor y Luz Extremos" : "Extreme Heat and Light"}
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      No expongas tu joyería a temperaturas extremas o luz solar
-                      directa prolongada. Las piedras preciosas pueden
-                      decolorarse y el oro puede debilitarse.
+                      {isSpanish
+                        ? "No expongas tu joyería a temperaturas extremas o luz solar directa prolongada. Las piedras preciosas pueden decolorarse y el oro puede debilitarse."
+                        : "Do not expose your jewelry to extreme temperatures or prolonged direct sunlight. Precious stones can fade and gold can weaken."}
                     </p>
                   </div>
                 </div>
@@ -174,7 +185,7 @@ const CarePage = () => {
           {/* Almacenamiento */}
           <div className="mb-12">
             <h2 className="text-2xl font-semibold text-foreground mb-6">
-              Almacenamiento Correcto
+              {isSpanish ? "Almacenamiento Correcto" : "Proper Storage"}
             </h2>
             <div className="space-y-4">
               <div className="rounded-lg bg-card p-6 shadow-sm">
@@ -182,12 +193,12 @@ const CarePage = () => {
                   <Home className="h-6 w-6 text-[#D4AF37] mt-1" />
                   <div className="flex-1">
                     <h3 className="font-semibold text-foreground mb-2">
-                      Separación de Piezas
+                      {isSpanish ? "Separación de Piezas" : "Separate Pieces"}
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      Guarda cada pieza por separado en bolsitas de tela suave o
-                      compartimentos individuales. Esto evita rayones y
-                      enredos. El oro es un metal suave que se raya fácilmente.
+                      {isSpanish
+                        ? "Guarda cada pieza por separado en bolsitas de tela suave o compartimentos individuales. Esto evita rayones y enredos. El oro es un metal suave que se raya fácilmente."
+                        : "Store each piece separately in soft cloth pouches or individual compartments. This prevents scratches and tangles. Gold is a soft metal that scratches easily."}
                     </p>
                   </div>
                 </div>
@@ -198,12 +209,12 @@ const CarePage = () => {
                   <Home className="h-6 w-6 text-[#D4AF37] mt-1" />
                   <div className="flex-1">
                     <h3 className="font-semibold text-foreground mb-2">
-                      Lugar Seco y Oscuro
+                      {isSpanish ? "Lugar Seco y Oscuro" : "Dry and Dark Place"}
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      Almacena en un lugar fresco, seco y alejado de la luz
-                      directa. El baño NO es ideal por la humedad. Considera
-                      incluir paquetes de sílica gel para absorber humedad.
+                      {isSpanish
+                        ? "Almacena en un lugar fresco, seco y alejado de la luz directa. El baño NO es ideal por la humedad. Considera incluir paquetes de sílica gel para absorber humedad."
+                        : "Store in a cool, dry place away from direct light. The bathroom is NOT ideal due to humidity. Consider including silica gel packets to absorb moisture."}
                     </p>
                   </div>
                 </div>
@@ -214,12 +225,12 @@ const CarePage = () => {
                   <Home className="h-6 w-6 text-[#D4AF37] mt-1" />
                   <div className="flex-1">
                     <h3 className="font-semibold text-foreground mb-2">
-                      Cierra los Broches
+                      {isSpanish ? "Cierra los Broches" : "Fasten Clasps"}
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      Abrocha collares y pulseras antes de guardarlos para
-                      evitar nudos. Para cadenas, cuélgalas o guárdalas
-                      extendidas.
+                      {isSpanish
+                        ? "Abrocha collares y pulseras antes de guardarlos para evitar nudos. Para cadenas, cuélgalas o guárdalas extendidas."
+                        : "Fasten necklaces and bracelets before storing to avoid knots. For chains, hang them or store them laid out."}
                     </p>
                   </div>
                 </div>
@@ -230,7 +241,7 @@ const CarePage = () => {
           {/* Cuidados específicos por tipo */}
           <div className="mb-12">
             <h2 className="text-2xl font-semibold text-foreground mb-6">
-              Cuidados Específicos por Tipo de Joya
+              {isSpanish ? "Cuidados Específicos por Tipo de Joya" : "Specific Care by Jewelry Type"}
             </h2>
 
             <div className="space-y-6">
@@ -238,27 +249,31 @@ const CarePage = () => {
               <div className="rounded-lg bg-card p-6 shadow-sm">
                 <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                   <span className="text-2xl">💍</span>
-                  Anillos
+                  {isSpanish ? "Anillos" : "Rings"}
                 </h3>
                 <ul className="text-sm text-muted-foreground space-y-2">
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                     <span>
-                      Quítatelos antes de aplicar cremas o lociones (se acumulan
-                      debajo)
+                      {isSpanish
+                        ? "Quítatelos antes de aplicar cremas o lociones (se acumulan debajo)"
+                        : "Remove them before applying creams or lotions (they accumulate underneath)"}
                     </span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                     <span>
-                      Revisa regularmente que las piedras estén bien engarzadas
+                      {isSpanish
+                        ? "Revisa regularmente que las piedras estén bien engarzadas"
+                        : "Check regularly that stones are securely set"}
                     </span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                     <span>
-                      Si sientes que está apretado o flojo, visítanos para
-                      ajustar la talla
+                      {isSpanish
+                        ? "Si sientes que está apretado o flojo, visítanos para ajustar la talla"
+                        : "If it feels tight or loose, visit us to adjust the size"}
                     </span>
                   </li>
                 </ul>
@@ -268,26 +283,31 @@ const CarePage = () => {
               <div className="rounded-lg bg-card p-6 shadow-sm">
                 <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                   <span className="text-2xl">📿</span>
-                  Collares y Cadenas
+                  {isSpanish ? "Collares y Cadenas" : "Necklaces and Chains"}
                 </h3>
                 <ul className="text-sm text-muted-foreground space-y-2">
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                     <span>
-                      Nunca jales de la cadena para quitártelo, usa el broche
+                      {isSpanish
+                        ? "Nunca jales de la cadena para quitártelo, usa el broche"
+                        : "Never pull the chain to remove it, use the clasp"}
                     </span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                     <span>
-                      Si se enreda, usa un alfiler para desenredar suavemente
+                      {isSpanish
+                        ? "Si se enreda, usa un alfiler para desenredar suavemente"
+                        : "If it tangles, use a pin to gently untangle"}
                     </span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                     <span>
-                      Revisa el broche periódicamente; si está flojo, llévalo a
-                      reparar
+                      {isSpanish
+                        ? "Revisa el broche periódicamente; si está flojo, llévalo a reparar"
+                        : "Check the clasp periodically; if it's loose, have it repaired"}
                     </span>
                   </li>
                 </ul>
@@ -297,26 +317,31 @@ const CarePage = () => {
               <div className="rounded-lg bg-card p-6 shadow-sm">
                 <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                   <span className="text-2xl">👂</span>
-                  Aretes
+                  {isSpanish ? "Aretes" : "Earrings"}
                 </h3>
                 <ul className="text-sm text-muted-foreground space-y-2">
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                     <span>
-                      Límpialos después de cada uso para remover aceites y
-                      maquillaje
+                      {isSpanish
+                        ? "Límpialos después de cada uso para remover aceites y maquillaje"
+                        : "Clean them after each use to remove oils and makeup"}
                     </span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                     <span>
-                      Asegúrate de que los seguros estén bien colocados
+                      {isSpanish
+                        ? "Asegúrate de que los seguros estén bien colocados"
+                        : "Make sure the backs are securely fastened"}
                     </span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                     <span>
-                      Quítatelos antes de dormir o hacer deporte
+                      {isSpanish
+                        ? "Quítatelos antes de dormir o hacer deporte"
+                        : "Remove them before sleeping or exercising"}
                     </span>
                   </li>
                 </ul>
@@ -326,26 +351,31 @@ const CarePage = () => {
               <div className="rounded-lg bg-card p-6 shadow-sm">
                 <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                   <span className="text-2xl">📿</span>
-                  Pulseras y Brazaletes
+                  {isSpanish ? "Pulseras y Brazaletes" : "Bracelets and Bangles"}
                 </h3>
                 <ul className="text-sm text-muted-foreground space-y-2">
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                     <span>
-                      Evita golpes contra superficies duras (escritorios, mesas)
+                      {isSpanish
+                        ? "Evita golpes contra superficies duras (escritorios, mesas)"
+                        : "Avoid hitting hard surfaces (desks, tables)"}
                     </span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                     <span>
-                      Quítatelas antes de usar computadora o escribir para
-                      prevenir deformaciones
+                      {isSpanish
+                        ? "Quítatelas antes de usar computadora o escribir para prevenir deformaciones"
+                        : "Remove them before using computer or writing to prevent deformations"}
                     </span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                     <span>
-                      Revisa que los eslabones no estén débiles o rotos
+                      {isSpanish
+                        ? "Revisa que los eslabones no estén débiles o rotos"
+                        : "Check that links are not weak or broken"}
                     </span>
                   </li>
                 </ul>
@@ -356,51 +386,59 @@ const CarePage = () => {
           {/* Mantenimiento profesional */}
           <div className="mb-12">
             <h2 className="text-2xl font-semibold text-foreground mb-6">
-              Mantenimiento Profesional
+              {isSpanish ? "Mantenimiento Profesional" : "Professional Maintenance"}
             </h2>
             <div className="rounded-lg bg-card p-6 shadow-sm">
               <div className="flex items-start gap-4 mb-4">
                 <Sparkles className="h-6 w-6 text-[#D4AF37] mt-1" />
                 <div className="flex-1">
                   <h3 className="font-semibold text-foreground mb-2">
-                    Servicio Anual Recomendado
+                    {isSpanish ? "Servicio Anual Recomendado" : "Recommended Annual Service"}
                   </h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Visítanos una vez al año para una limpieza profesional y
-                    revisión completa. En Oro Nacional, la primera limpieza
-                    profesional es GRATIS.
+                    {isSpanish
+                      ? "Visítanos una vez al año para una limpieza profesional y revisión completa. En Oro Nacional, la primera limpieza profesional es GRATIS."
+                      : "Visit us once a year for professional cleaning and complete inspection. At Oro Nacional, the first professional cleaning is FREE."}
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="bg-muted/50 rounded-lg p-4">
                       <p className="font-medium text-foreground text-sm mb-1">
-                        Limpieza Ultrasónica
+                        {isSpanish ? "Limpieza Ultrasónica" : "Ultrasonic Cleaning"}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Remueve suciedad profunda de áreas inaccesibles
+                        {isSpanish
+                          ? "Remueve suciedad profunda de áreas inaccesibles"
+                          : "Removes deep dirt from inaccessible areas"}
                       </p>
                     </div>
                     <div className="bg-muted/50 rounded-lg p-4">
                       <p className="font-medium text-foreground text-sm mb-1">
-                        Revisión de Engastes
+                        {isSpanish ? "Revisión de Engastes" : "Setting Inspection"}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Aseguramos que todas las piedras estén seguras
+                        {isSpanish
+                          ? "Aseguramos que todas las piedras estén seguras"
+                          : "We ensure all stones are secure"}
                       </p>
                     </div>
                     <div className="bg-muted/50 rounded-lg p-4">
                       <p className="font-medium text-foreground text-sm mb-1">
-                        Pulido Profesional
+                        {isSpanish ? "Pulido Profesional" : "Professional Polishing"}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Restaura el brillo y elimina rayones superficiales
+                        {isSpanish
+                          ? "Restaura el brillo y elimina rayones superficiales"
+                          : "Restores shine and removes superficial scratches"}
                       </p>
                     </div>
                     <div className="bg-muted/50 rounded-lg p-4">
                       <p className="font-medium text-foreground text-sm mb-1">
-                        Revisión de Cierres
+                        {isSpanish ? "Revisión de Cierres" : "Clasp Inspection"}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Verificamos que broches funcionen correctamente
+                        {isSpanish
+                          ? "Verificamos que broches funcionen correctamente"
+                          : "We verify that clasps work properly"}
                       </p>
                     </div>
                   </div>
@@ -412,49 +450,61 @@ const CarePage = () => {
           {/* Tips rápidos */}
           <div className="rounded-2xl bg-muted/30 p-8">
             <h2 className="text-xl font-semibold text-foreground mb-6">
-              Tips Rápidos para el Día a Día
+              {isSpanish ? "Tips Rápidos para el Día a Día" : "Quick Daily Tips"}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex items-start gap-3">
                 <span className="text-[#D4AF37] text-xl">✓</span>
                 <p className="text-sm text-muted-foreground">
-                  <strong>Regla de oro:</strong> Las joyas son lo último que te
-                  pones y lo primero que te quitas
+                  <strong>{isSpanish ? "Regla de oro:" : "Golden rule:"}</strong>{" "}
+                  {isSpanish
+                    ? "Las joyas son lo último que te pones y lo primero que te quitas"
+                    : "Jewelry is the last thing you put on and the first thing you take off"}
                 </p>
               </div>
               <div className="flex items-start gap-3">
                 <span className="text-[#D4AF37] text-xl">✓</span>
                 <p className="text-sm text-muted-foreground">
-                  <strong>Lava tus manos:</strong> Quítate los anillos antes de
-                  lavarte las manos con jabón
+                  <strong>{isSpanish ? "Lava tus manos:" : "Wash your hands:"}</strong>{" "}
+                  {isSpanish
+                    ? "Quítate los anillos antes de lavarte las manos con jabón"
+                    : "Remove rings before washing your hands with soap"}
                 </p>
               </div>
               <div className="flex items-start gap-3">
                 <span className="text-[#D4AF37] text-xl">✓</span>
                 <p className="text-sm text-muted-foreground">
-                  <strong>Viajes:</strong> Lleva tus joyas en tu equipaje de
-                  mano, nunca documentado
+                  <strong>{isSpanish ? "Viajes:" : "Travel:"}</strong>{" "}
+                  {isSpanish
+                    ? "Lleva tus joyas en tu equipaje de mano, nunca documentado"
+                    : "Carry your jewelry in your carry-on luggage, never checked"}
                 </p>
               </div>
               <div className="flex items-start gap-3">
                 <span className="text-[#D4AF37] text-xl">✓</span>
                 <p className="text-sm text-muted-foreground">
-                  <strong>Inspección regular:</strong> Revisa tus joyas cada mes
-                  para detectar problemas temprano
+                  <strong>{isSpanish ? "Inspección regular:" : "Regular inspection:"}</strong>{" "}
+                  {isSpanish
+                    ? "Revisa tus joyas cada mes para detectar problemas temprano"
+                    : "Check your jewelry monthly to detect problems early"}
                 </p>
               </div>
               <div className="flex items-start gap-3">
                 <span className="text-[#D4AF37] text-xl">✓</span>
                 <p className="text-sm text-muted-foreground">
-                  <strong>Usa el paño incluido:</strong> Pasa el paño de
-                  microfibra después de cada uso
+                  <strong>{isSpanish ? "Usa el paño incluido:" : "Use the included cloth:"}</strong>{" "}
+                  {isSpanish
+                    ? "Pasa el paño de microfibra después de cada uso"
+                    : "Use the microfiber cloth after each use"}
                 </p>
               </div>
               <div className="flex items-start gap-3">
                 <span className="text-[#D4AF37] text-xl">✓</span>
                 <p className="text-sm text-muted-foreground">
-                  <strong>Ante dudas:</strong> Consúltanos antes de intentar
-                  limpiar joyas con piedras delicadas
+                  <strong>{isSpanish ? "Ante dudas:" : "When in doubt:"}</strong>{" "}
+                  {isSpanish
+                    ? "Consúltanos antes de intentar limpiar joyas con piedras delicadas"
+                    : "Consult us before attempting to clean jewelry with delicate stones"}
                 </p>
               </div>
             </div>
