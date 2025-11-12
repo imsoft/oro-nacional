@@ -144,7 +144,8 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
   const addSize = () => {
     const newSize = {
       size: "",
-      stock: 0
+      stock: 0,
+      price: formData.price || 0 // Default to base price
     };
     updateField("sizes", [...formData.sizes, newSize]);
   };
@@ -153,7 +154,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
     updateField("sizes", formData.sizes.filter((_, i) => i !== index));
   };
 
-  const updateSize = (index: number, field: "size" | "stock", value: string | number) => {
+  const updateSize = (index: number, field: "size" | "stock" | "price", value: string | number) => {
     const newSizes = [...formData.sizes];
     newSizes[index] = { ...newSizes[index], [field]: value };
     updateField("sizes", newSizes);
@@ -442,7 +443,18 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
                     id={`size-${index}`}
                     value={size.size}
                     onChange={(e) => updateSize(index, "size", e.target.value)}
-                    placeholder="Ej: M, L, XL"
+                    placeholder="Ej: 5, 6, 7, 8"
+                  />
+                </div>
+                <div className="flex-1">
+                  <Label htmlFor={`price-${index}`}>Precio (MXN)</Label>
+                  <Input
+                    id={`price-${index}`}
+                    type="number"
+                    value={size.price}
+                    onChange={(e) => updateSize(index, "price", parseFloat(e.target.value) || 0)}
+                    placeholder="0.00"
+                    step="0.01"
                   />
                 </div>
                 <div className="flex-1">

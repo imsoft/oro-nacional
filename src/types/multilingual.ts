@@ -71,6 +71,7 @@ export interface ProductSize {
   product_id: string;
   size: string;
   stock: number;
+  price?: number; // Individual price for this size
   created_at: string;
 }
 
@@ -140,6 +141,7 @@ export interface CreateMultilingualProductData {
   sizes?: Array<{
     size: string;
     stock: number;
+    price?: number;
   }>;
 }
 
@@ -205,6 +207,7 @@ export interface ProductFormData {
   sizes: Array<{
     size: string;
     stock: number;
+    price: number;
   }>;
 }
 

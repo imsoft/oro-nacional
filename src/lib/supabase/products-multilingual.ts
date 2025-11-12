@@ -452,6 +452,7 @@ export async function createProduct(
         product_id: product.id,
         size: size.size,
         stock: size.stock,
+        price: size.price || productData.price, // Use size price or fall back to base price
       }));
 
       const { error: sizesError } = await supabase
