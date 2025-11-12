@@ -40,12 +40,23 @@ ALTER COLUMN slug_es SET NOT NULL;
 ALTER TABLE public.product_categories
 ALTER COLUMN slug_en SET NOT NULL;
 
--- Step 5: Add unique constraints to multilingual slug columns
-ALTER TABLE public.product_categories
-ADD CONSTRAINT product_categories_slug_es_key UNIQUE (slug_es);
+-- Step 5: Add unique constraints to multilingual slug columns (if they don't exist)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'product_categories_slug_es_key'
+  ) THEN
+    ALTER TABLE public.product_categories
+    ADD CONSTRAINT product_categories_slug_es_key UNIQUE (slug_es);
+  END IF;
 
-ALTER TABLE public.product_categories
-ADD CONSTRAINT product_categories_slug_en_key UNIQUE (slug_en);
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'product_categories_slug_en_key'
+  ) THEN
+    ALTER TABLE public.product_categories
+    ADD CONSTRAINT product_categories_slug_en_key UNIQUE (slug_en);
+  END IF;
+END $$;
 
 -- Step 6: Drop old single-language columns (optional - uncomment if you want to remove them)
 -- ALTER TABLE public.product_categories DROP COLUMN IF EXISTS name;
