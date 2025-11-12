@@ -847,7 +847,12 @@
       "selectLanguages": "Seleccionar idiomas",
       "bothLanguages": "Español e Inglés",
       "spanishOnly": "Solo Español",
-      "englishOnly": "Solo Inglés"
+      "englishOnly": "Solo Inglés",
+      "images": "Imágenes del Producto",
+      "uploadImages": "Subir Imágenes",
+      "imagesHint": "Puedes subir múltiples imágenes. La primera será la imagen principal.",
+      "existingImages": "Imágenes Actuales",
+      "primaryImage": "Principal"
     },
     "settings": {
       "title": "Configuración",

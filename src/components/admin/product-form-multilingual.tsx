@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Trash2, Save, Eye } from "lucide-react";
+import { Plus, Trash2, Save, Eye, X } from "lucide-react";
 import { 
   MultilingualInput, 
   MultilingualForm, 
@@ -50,7 +50,9 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
     is_active: true,
     available_languages: ['es'],
     specifications: [],
-    sizes: []
+    sizes: [],
+    images: [],
+    existing_images: []
   };
 
   const {
@@ -104,8 +106,10 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
         })),
         sizes: formData.sizes.map(size => ({
           size: size.size,
-          stock: size.stock
-        }))
+          stock: size.stock,
+          price: size.price
+        })),
+        images: formData.images
       };
 
       if (productId) {
@@ -386,6 +390,91 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
               }}
             />
             <Label htmlFor="is_active" className="cursor-pointer">{t('productForm.activeProduct')}</Label>
+          </div>
+        </MultilingualCard>
+
+        <MultilingualCard title={t('productForm.images')}>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="images">{t('productForm.uploadImages')}</Label>
+              <Input
+                id="images"
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => {
+                  const files = Array.from(e.target.files || []);
+                  updateField("images", [...(formData.images || []), ...files]);
+                }}
+                className="mt-2"
+              />
+              <p className="text-sm text-muted-foreground mt-1">
+                {t('productForm.imagesHint')}
+              </p>
+            </div>
+
+            {/* Preview de imágenes nuevas */}
+            {formData.images && formData.images.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {formData.images.map((file, index) => (
+                  <div key={index} className="relative border rounded-lg p-2">
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt={`Preview ${index + 1}`}
+                      className="w-full h-32 object-cover rounded"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      className="absolute top-1 right-1"
+                      onClick={() => {
+                        const newImages = formData.images?.filter((_, i) => i !== index);
+                        updateField("images", newImages);
+                      }}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                    <p className="text-xs text-center mt-1 truncate">{file.name}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Preview de imágenes existentes */}
+            {formData.existing_images && formData.existing_images.length > 0 && (
+              <div className="mt-4">
+                <h4 className="font-medium mb-2">{t('productForm.existingImages')}</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {formData.existing_images.map((img, index) => (
+                    <div key={img.id || index} className="relative border rounded-lg p-2">
+                      <img
+                        src={img.image_url}
+                        alt={`Existing ${index + 1}`}
+                        className="w-full h-32 object-cover rounded"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-1 right-1"
+                        onClick={() => {
+                          const newImages = formData.existing_images?.filter((_, i) => i !== index);
+                          updateField("existing_images", newImages);
+                        }}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                      {img.is_primary && (
+                        <span className="absolute bottom-1 left-1 bg-primary text-primary-foreground text-xs px-2 py-1 rounded">
+                          {t('productForm.primaryImage')}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </MultilingualCard>
 

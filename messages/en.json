@@ -855,7 +855,12 @@
       "selectLanguages": "Select languages",
       "bothLanguages": "Spanish and English",
       "spanishOnly": "Spanish Only",
-      "englishOnly": "English Only"
+      "englishOnly": "English Only",
+      "images": "Product Images",
+      "uploadImages": "Upload Images",
+      "imagesHint": "You can upload multiple images. The first one will be the primary image.",
+      "existingImages": "Current Images",
+      "primaryImage": "Primary"
     },
     "settings": {
       "title": "Settings",

@@ -509,6 +509,44 @@ export async function createProduct(
       }
     }
 
+    // Subir imágenes si existen
+    if (productData.images && productData.images.length > 0) {
+      for (let i = 0; i < productData.images.length; i++) {
+        const file = productData.images[i];
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${product.id}/${Date.now()}-${i}.${fileExt}`;
+
+        // Subir a Supabase Storage
+        const { error: uploadError } = await supabase.storage
+          .from("product-images")
+          .upload(fileName, file);
+
+        if (uploadError) {
+          console.error("Error uploading image:", uploadError);
+          continue;
+        }
+
+        // Obtener URL pública
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("product-images").getPublicUrl(fileName);
+
+        // Insertar registro en product_images
+        const { error: imageError } = await supabase
+          .from("product_images")
+          .insert({
+            product_id: product.id,
+            image_url: publicUrl,
+            display_order: i,
+            is_primary: i === 0, // Primera imagen es la principal
+          });
+
+        if (imageError) {
+          console.error("Error creating image record:", imageError);
+        }
+      }
+    }
+
     return product;
   } catch (error) {
     console.error("Error in createProduct:", error);

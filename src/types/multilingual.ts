@@ -143,6 +143,7 @@ export interface CreateMultilingualProductData {
     stock: number;
     price?: number;
   }>;
+  images?: File[]; // Files to upload
 }
 
 export interface UpdateMultilingualProductData {
@@ -208,6 +209,14 @@ export interface ProductFormData {
     size: string;
     stock: number;
     price: number;
+  }>;
+  images?: File[]; // Files to upload
+  existing_images?: Array<{
+    id?: string;
+    image_url: string;
+    alt_text?: MultilingualFormData;
+    display_order: number;
+    is_primary: boolean;
   }>;
 }
 
