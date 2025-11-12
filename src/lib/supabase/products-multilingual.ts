@@ -344,6 +344,51 @@ export async function getCategories(locale: Locale = 'es') {
 }
 
 /**
+ * Obtener todas las categorías para formularios de admin (retorna datos multilingües completos)
+ */
+export async function getCategoriesForAdmin() {
+  const { data, error } = await supabase
+    .from("product_categories")
+    .select(`
+      id,
+      name_es,
+      name_en,
+      slug_es,
+      slug_en,
+      description_es,
+      description_en,
+      image_url,
+      created_at,
+      updated_at
+    `)
+    .order("name_es", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching categories:", error);
+    return [];
+  }
+
+  return data.map((category: Record<string, unknown>) => ({
+    id: category.id,
+    name: {
+      es: category.name_es as string,
+      en: category.name_en as string
+    },
+    slug: {
+      es: category.slug_es as string,
+      en: category.slug_en as string
+    },
+    description: {
+      es: category.description_es as string || '',
+      en: category.description_en as string || ''
+    },
+    image_url: category.image_url,
+    created_at: category.created_at,
+    updated_at: category.updated_at,
+  }));
+}
+
+/**
  * Buscar productos con contenido localizado
  */
 export async function searchProducts(query: string, locale: Locale = 'es') {

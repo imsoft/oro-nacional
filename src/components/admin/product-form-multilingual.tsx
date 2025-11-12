@@ -22,7 +22,7 @@ import type {
   MultilingualFormData, 
   Locale
 } from "@/types/multilingual";
-import { createProduct, updateProduct, getCategories } from "@/lib/supabase/products-multilingual";
+import { createProduct, updateProduct, getCategoriesForAdmin } from "@/lib/supabase/products-multilingual";
 
 interface ProductFormProps {
   productId?: string;
@@ -66,7 +66,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
   useEffect(() => {
     const loadCategories = async () => {
       try {
-        const cats = await getCategories("es");
+        const cats = await getCategoriesForAdmin();
         setCategories(cats);
       } catch (error) {
         console.error("Error loading categories:", error);
@@ -500,7 +500,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
           )}
           <Button type="submit" disabled={isLoading}>
             <Save className="w-4 h-4 mr-2" />
-            {isLoading ? t('admin.products.saving') : t('admin.products.saveProduct')}
+            {isLoading ? t('products.saving') : t('products.saveProduct')}
           </Button>
         </div>
       </MultilingualForm>
