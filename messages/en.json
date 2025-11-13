@@ -830,6 +830,8 @@
       "available": "available",
       "editProduct": "Edit Product",
       "newProduct": "New Product",
+      "newProductSubtitle": "Complete the product information in both languages",
+      "editProductSubtitle": "Update the product information",
       "preview": "Preview",
       "basicInfo": "Basic Information",
       "productName": "Product Name",

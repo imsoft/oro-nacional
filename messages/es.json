@@ -822,6 +822,8 @@
       "available": "disponibles",
       "editProduct": "Editar Producto",
       "newProduct": "Nuevo Producto",
+      "newProductSubtitle": "Completa la información del producto en ambos idiomas",
+      "editProductSubtitle": "Actualiza la información del producto",
       "preview": "Vista Previa",
       "basicInfo": "Información Básica",
       "productName": "Nombre del Producto",
