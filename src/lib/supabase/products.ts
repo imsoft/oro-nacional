@@ -42,14 +42,17 @@ export async function getAllProducts() {
     .select(
       `
       id,
-      name,
-      slug,
+      name_es,
+      name_en,
+      slug_es,
+      slug_en,
       price,
       stock,
-      material,
+      material_es,
+      material_en,
       is_active,
       created_at,
-      category:product_categories(id, name),
+      category:product_categories(id, name_es, name_en),
       images:product_images(image_url, is_primary)
     `
     )
@@ -64,24 +67,27 @@ export async function getAllProducts() {
   const products: ProductListItem[] = (data as unknown[]).map((product: unknown) => {
     const p = product as {
       id: string;
-      name: string;
-      slug: string;
+      name_es: string;
+      name_en: string;
+      slug_es: string;
+      slug_en: string;
       price: number;
       stock: number;
-      material: string;
+      material_es: string;
+      material_en: string;
       is_active: boolean;
-      category?: { name: string };
+      category?: { name_es: string; name_en: string };
       images?: Array<{ is_primary: boolean; image_url: string }>;
     };
     return {
       id: p.id,
-      name: p.name,
-      slug: p.slug,
+      name: p.name_es || p.name_en || 'Sin nombre', // Preferir español, fallback a inglés
+      slug: p.slug_es || p.slug_en || '',
       price: p.price,
       stock: p.stock,
-      material: p.material,
+      material: p.material_es || p.material_en || 'Sin material',
       is_active: p.is_active,
-      category_name: p.category?.name,
+      category_name: p.category?.name_es || p.category?.name_en,
       primary_image: p.images?.find((img) => img.is_primary)?.image_url,
     };
   });
