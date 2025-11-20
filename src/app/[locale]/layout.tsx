@@ -39,6 +39,8 @@ export async function generateMetadata({
       description: descriptions[locale as 'es' | 'en'] || descriptions.es,
       type: "website",
       locale: locale === 'en' ? 'en_US' : 'es_MX',
+      url: `https://www.oronacional.com/${locale}`,
+      siteName: 'Oro Nacional',
       images: [
         {
           url: '/logos/logo-oro-nacional.png',
@@ -47,6 +49,21 @@ export async function generateMetadata({
           alt: 'Oro Nacional - Joyería Elegante en Jalisco',
         },
       ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: titles[locale as 'es' | 'en'] || titles.es,
+      description: descriptions[locale as 'es' | 'en'] || descriptions.es,
+      images: ['/logos/logo-oro-nacional.png'],
+      creator: '@OroNacional',
+      site: '@OroNacional',
+    },
+    alternates: {
+      canonical: `/${locale}`,
+      languages: {
+        'es-MX': '/es',
+        'en-US': '/en',
+      },
     },
   };
 }

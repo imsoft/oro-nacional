@@ -1,0 +1,24 @@
+# *
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://www.oronacional.com/sitemap.xml
+
+# Disallow admin pages
+Disallow: /admin/
+Disallow: /api/
+
+# Allow specific paths
+Allow: /es/
+Allow: /en/
+
+# Disallow checkout for better crawling
+Disallow: /*/checkout
+Disallow: /*/cart
+
+# Block specific bots if needed (uncomment if necessary)
+# User-agent: AhrefsBot
+# Disallow: /
+# User-agent: SemrushBot
+# Disallow: /
