@@ -187,3 +187,107 @@ export function getWhatsAppLink(settings: SiteSettings | null): string {
 
   return `https://wa.me/${settings.whatsapp_phone}`;
 }
+
+// ============================================================================
+// Store Settings (for /admin/configuracion page)
+// ============================================================================
+
+export interface StoreSettings {
+  id: string;
+  store_name: string;
+  contact_email: string;
+  phone: string;
+  website: string;
+  address: string;
+  description: string;
+  free_shipping_from: number;
+  standard_shipping_cost: number;
+  express_shipping_cost: number;
+  delivery_time: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UpdateStoreSettingsData {
+  store_name?: string;
+  contact_email?: string;
+  phone?: string;
+  website?: string;
+  address?: string;
+  description?: string;
+  free_shipping_from?: number;
+  standard_shipping_cost?: number;
+  express_shipping_cost?: number;
+  delivery_time?: string;
+}
+
+/**
+ * Get store settings from store_settings table
+ * Returns the first (and only) row from store_settings table
+ */
+export async function getStoreSettings(): Promise<StoreSettings | null> {
+  try {
+    const { data, error } = await supabase
+      .from("store_settings")
+      .select("*")
+      .limit(1)
+      .single();
+
+    if (error) {
+      console.error("Error fetching store settings:", error);
+      return null;
+    }
+
+    return data as StoreSettings;
+  } catch (error) {
+    console.error("Error in getStoreSettings:", error);
+    return null;
+  }
+}
+
+/**
+ * Update store settings
+ * Updates the first row in store_settings table
+ */
+export async function updateStoreSettings(
+  settings: UpdateStoreSettingsData
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // First, get the ID of the settings row
+    const { data: existingSettings, error: fetchError } = await supabase
+      .from("store_settings")
+      .select("id")
+      .limit(1)
+      .single();
+
+    if (fetchError || !existingSettings) {
+      console.error("Error fetching existing settings:", fetchError);
+      return {
+        success: false,
+        error: "No se pudieron cargar las configuraciones existentes",
+      };
+    }
+
+    // Update the settings
+    const { error: updateError } = await supabase
+      .from("store_settings")
+      .update(settings)
+      .eq("id", existingSettings.id);
+
+    if (updateError) {
+      console.error("Error updating store settings:", updateError);
+      return {
+        success: false,
+        error: "Error al actualizar las configuraciones",
+      };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Unexpected error updating settings:", error);
+    return {
+      success: false,
+      error: "Error inesperado al actualizar las configuraciones",
+    };
+  }
+}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { Save, Store, Mail, MapPin, Phone, Globe, RefreshCw } from "lucide-react";
+import { Save, Store, Mail, MapPin, Phone, Globe, RefreshCw, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,23 +15,68 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { getStoreSettings, updateStoreSettings } from "@/lib/supabase/settings";
 
 export default function AdminSettings() {
   const t = useTranslations('admin.settings');
   const locale = useLocale() as 'es' | 'en';
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [detectedCountry, setDetectedCountry] = useState<string>('MX');
   const [countryName, setCountryName] = useState<string>('México');
   const [isDetectingCountry, setIsDetectingCountry] = useState(false);
 
+  // Store settings state
+  const [storeName, setStoreName] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [website, setWebsite] = useState('');
+  const [address, setAddress] = useState('');
+  const [description, setDescription] = useState('');
+  const [freeShippingFrom, setFreeShippingFrom] = useState('');
+  const [standardShippingCost, setStandardShippingCost] = useState('');
+  const [expressShippingCost, setExpressShippingCost] = useState('');
+  const [deliveryTime, setDeliveryTime] = useState('');
+
   // Moneda basada en el idioma: Español -> USD, Inglés -> MXN
   const currency = locale === 'es' ? 'USD' : 'MXN';
-  
+
   // Zona horaria siempre Ciudad de México
   const timezone = 'America/Mexico_City';
-  
+
   // Idioma basado en el locale actual
   const language = locale;
+
+  // Load settings on mount
+  useEffect(() => {
+    const loadSettings = async () => {
+      setIsLoading(true);
+      try {
+        const settings = await getStoreSettings();
+        if (settings) {
+          setStoreName(settings.store_name);
+          setContactEmail(settings.contact_email);
+          setPhone(settings.phone);
+          setWebsite(settings.website);
+          setAddress(settings.address);
+          setDescription(settings.description);
+          setFreeShippingFrom(settings.free_shipping_from.toString());
+          setStandardShippingCost(settings.standard_shipping_cost.toString());
+          setExpressShippingCost(settings.express_shipping_cost.toString());
+          setDeliveryTime(settings.delivery_time);
+        }
+      } catch (error) {
+        console.error('Error loading settings:', error);
+        alert(locale === 'es'
+          ? 'Error al cargar las configuraciones'
+          : 'Error loading settings');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadSettings();
+  }, [locale]);
 
   // Detectar país automáticamente
   useEffect(() => {
@@ -76,10 +121,46 @@ export default function AdminSettings() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    // Simular guardado
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsSaving(false);
+    try {
+      const result = await updateStoreSettings({
+        store_name: storeName,
+        contact_email: contactEmail,
+        phone: phone,
+        website: website,
+        address: address,
+        description: description,
+        free_shipping_from: parseFloat(freeShippingFrom) || 0,
+        standard_shipping_cost: parseFloat(standardShippingCost) || 0,
+        express_shipping_cost: parseFloat(expressShippingCost) || 0,
+        delivery_time: deliveryTime,
+      });
+
+      if (result.success) {
+        alert(locale === 'es'
+          ? 'Configuración guardada exitosamente'
+          : 'Settings saved successfully');
+      } else {
+        alert(result.error || (locale === 'es'
+          ? 'Error al guardar la configuración'
+          : 'Error saving settings'));
+      }
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      alert(locale === 'es'
+        ? 'Error al guardar la configuración'
+        : 'Error saving settings');
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-[#D4AF37]" />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -118,7 +199,8 @@ export default function AdminSettings() {
               <Label htmlFor="storeName">{t('storeInfo.storeName')}</Label>
               <Input
                 id="storeName"
-                defaultValue="Oro Nacional"
+                value={storeName}
+                onChange={(e) => setStoreName(e.target.value)}
                 placeholder={t('storeInfo.storeNamePlaceholder')}
               />
             </div>
@@ -130,7 +212,8 @@ export default function AdminSettings() {
                 <Input
                   id="storeEmail"
                   type="email"
-                  defaultValue="contacto@oronacional.com"
+                  value={contactEmail}
+                  onChange={(e) => setContactEmail(e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -143,7 +226,8 @@ export default function AdminSettings() {
                 <Input
                   id="storePhone"
                   type="tel"
-                  defaultValue="+52 33 1234 5678"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -156,7 +240,8 @@ export default function AdminSettings() {
                 <Input
                   id="storeWebsite"
                   type="url"
-                  defaultValue="https://oronacional.com"
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -168,7 +253,8 @@ export default function AdminSettings() {
                 <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Textarea
                   id="storeAddress"
-                  defaultValue="Guadalajara, Jalisco, México"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
                   className="pl-10"
                   rows={2}
                 />
@@ -179,7 +265,8 @@ export default function AdminSettings() {
               <Label htmlFor="storeDescription">{t('storeInfo.description')}</Label>
               <Textarea
                 id="storeDescription"
-                defaultValue="Elegancia y tradición jalisciense desde 1990. Especialistas en joyería fina de oro."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
                 rows={3}
               />
             </div>
@@ -203,7 +290,8 @@ export default function AdminSettings() {
               <Input
                 id="freeShipping"
                 type="number"
-                defaultValue="3000"
+                value={freeShippingFrom}
+                onChange={(e) => setFreeShippingFrom(e.target.value)}
                 placeholder={t('shipping.freeShippingPlaceholder')}
               />
               <p className="text-xs text-muted-foreground">
@@ -216,7 +304,8 @@ export default function AdminSettings() {
               <Input
                 id="shippingCost"
                 type="number"
-                defaultValue="0"
+                value={standardShippingCost}
+                onChange={(e) => setStandardShippingCost(e.target.value)}
                 placeholder={t('shipping.shippingCostPlaceholder')}
               />
             </div>
@@ -226,7 +315,8 @@ export default function AdminSettings() {
               <Input
                 id="expressShipping"
                 type="number"
-                defaultValue="200"
+                value={expressShippingCost}
+                onChange={(e) => setExpressShippingCost(e.target.value)}
                 placeholder={t('shipping.expressCostPlaceholder')}
               />
             </div>
@@ -235,7 +325,8 @@ export default function AdminSettings() {
               <Label htmlFor="deliveryTime">{t('shipping.deliveryTime')}</Label>
               <Input
                 id="deliveryTime"
-                defaultValue="3-5"
+                value={deliveryTime}
+                onChange={(e) => setDeliveryTime(e.target.value)}
                 placeholder={t('shipping.deliveryTimePlaceholder')}
               />
             </div>
