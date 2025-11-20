@@ -3,9 +3,21 @@
 import { useTranslations } from "next-intl";
 import { Mail, Phone, MapPin, Clock, Facebook, Instagram, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
+import { getStoreSettings, type StoreSettings } from "@/lib/supabase/settings";
 
 const ContactInfo = () => {
   const t = useTranslations('contact');
+  const [settings, setSettings] = useState<StoreSettings | null>(null);
+
+  // Load store settings on mount
+  useEffect(() => {
+    const loadSettings = async () => {
+      const data = await getStoreSettings();
+      setSettings(data);
+    };
+    loadSettings();
+  }, []);
   
   return (
     <div className="space-y-8">
@@ -24,7 +36,7 @@ const ContactInfo = () => {
             <div>
               <p className="font-semibold text-foreground">{t('address')}</p>
               <p className="mt-1 text-sm text-muted-foreground whitespace-pre-line">
-                {t('addressFull')}
+                {settings?.address || t('addressFull')}
               </p>
             </div>
           </div>
@@ -37,10 +49,10 @@ const ContactInfo = () => {
             <div>
               <p className="font-semibold text-foreground">{t('phoneNumber')}</p>
               <a
-                href="tel:+523312345678"
+                href={`tel:${settings?.phone?.replace(/\s/g, '') || '+523312345678'}`}
                 className="mt-1 text-sm text-muted-foreground hover:text-[#D4AF37] transition-colors"
               >
-                +52 33 1234 5678
+                {settings?.phone || '+52 33 1234 5678'}
               </a>
               <p className="text-xs text-muted-foreground mt-1">
                 {t('phoneHours')}
@@ -56,10 +68,10 @@ const ContactInfo = () => {
             <div>
               <p className="font-semibold text-foreground">{t('emailAddress')}</p>
               <a
-                href="mailto:contacto@oronacional.com"
+                href={`mailto:${settings?.contact_email || 'contacto@oronacional.com'}`}
                 className="mt-1 text-sm text-muted-foreground hover:text-[#D4AF37] transition-colors"
               >
-                contacto@oronacional.com
+                {settings?.contact_email || 'contacto@oronacional.com'}
               </a>
               <p className="text-xs text-muted-foreground mt-1">
                 {t('emailResponse')}
@@ -100,7 +112,7 @@ const ContactInfo = () => {
           className="w-full bg-green-600 hover:bg-green-700 text-white"
         >
           <a
-            href="https://wa.me/523312345678"
+            href={`https://wa.me/${settings?.phone?.replace(/[\s+-]/g, '') || '523312345678'}`}
             target="_blank"
             rel="noopener noreferrer"
           >

@@ -4,10 +4,22 @@ import { Link } from "@/i18n/routing";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from "lucide-react";
+import { useState, useEffect } from "react";
+import { getStoreSettings, type StoreSettings } from "@/lib/supabase/settings";
 
 const Footer = () => {
   const t = useTranslations("footer");
-  
+  const [settings, setSettings] = useState<StoreSettings | null>(null);
+
+  // Load store settings on mount
+  useEffect(() => {
+    const loadSettings = async () => {
+      const data = await getStoreSettings();
+      setSettings(data);
+    };
+    loadSettings();
+  }, []);
+
   const navigation = {
     tienda: [
       { name: t("shop.rings"), href: "/rings" },
@@ -79,21 +91,24 @@ const Footer = () => {
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <MapPin className="h-4 w-4" />
-                <span>{t("location")}</span>
+                <span>{settings?.address || t("location")}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Phone className="h-4 w-4" />
-                <Link href="tel:+523312345678" className="hover:text-foreground">
-                  {t("phoneNumber")}
+                <Link
+                  href={`tel:${settings?.phone?.replace(/\s/g, '') || '+523312345678'}`}
+                  className="hover:text-foreground"
+                >
+                  {settings?.phone || t("phoneNumber")}
                 </Link>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Mail className="h-4 w-4" />
                 <Link
-                  href="mailto:contacto@oronacional.com"
+                  href={`mailto:${settings?.contact_email || 'contacto@oronacional.com'}`}
                   className="hover:text-foreground"
                 >
-                  {t("emailAddress")}
+                  {settings?.contact_email || t("emailAddress")}
                 </Link>
               </div>
             </div>
