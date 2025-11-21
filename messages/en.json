@@ -562,6 +562,7 @@
   },
   "admin": {
     "title": "Admin Panel",
+    "back": "Back",
     "navigation": {
       "dashboard": "Dashboard",
       "products": "Products",
