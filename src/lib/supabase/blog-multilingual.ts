@@ -520,7 +520,50 @@ export async function updateBlogPost(
       dataToUpdate.content_en = updates.content.en;
     }
 
+    // Manejar actualización de imagen destacada
     if (updates.featured_image) {
+      // Obtener la imagen antigua para eliminarla del storage
+      const { data: currentPost } = await supabase
+        .from("blog_posts")
+        .select("featured_image")
+        .eq("id", postId)
+        .single();
+
+      // Eliminar la imagen antigua del storage si existe
+      if (currentPost?.featured_image) {
+        try {
+          const oldImageUrl = currentPost.featured_image;
+
+          if (oldImageUrl.includes('http')) {
+            const url = new URL(oldImageUrl);
+            const pathParts = url.pathname.split('/');
+            const bucketIndex = pathParts.findIndex(part => part === 'blog-images');
+
+            if (bucketIndex !== -1 && bucketIndex < pathParts.length - 1) {
+              const filePath = pathParts.slice(bucketIndex + 1).join('/');
+
+              const { error: storageError } = await supabase.storage
+                .from("blog-images")
+                .remove([filePath]);
+
+              if (storageError) {
+                console.error("Error deleting old blog image from storage:", storageError);
+              }
+            }
+          } else {
+            const { error: storageError } = await supabase.storage
+              .from("blog-images")
+              .remove([oldImageUrl]);
+
+            if (storageError) {
+              console.error("Error deleting old blog image from storage:", storageError);
+            }
+          }
+        } catch (error) {
+          console.error("Error parsing old blog image URL:", error);
+        }
+      }
+
       dataToUpdate.featured_image = updates.featured_image.name;
     }
 
@@ -591,17 +634,29 @@ export async function updateBlogPost(
 }
 
 /**
- * Eliminar un post de blog
+ * Eliminar un post de blog (incluyendo imagen del storage)
  */
 export async function deleteBlogPost(postId: string) {
   try {
+    // Obtener el post para conseguir la URL de la imagen
+    const { data: post, error: fetchError } = await supabase
+      .from("blog_posts")
+      .select("featured_image")
+      .eq("id", postId)
+      .single();
+
+    if (fetchError) {
+      console.error("Error fetching blog post for deletion:", fetchError);
+      throw fetchError;
+    }
+
     // Eliminar etiquetas asociadas primero
     await supabase
       .from("blog_post_tags")
       .delete()
       .eq("post_id", postId);
 
-    // Eliminar el post
+    // Eliminar el post de la base de datos
     const { error } = await supabase
       .from("blog_posts")
       .delete()
@@ -610,6 +665,45 @@ export async function deleteBlogPost(postId: string) {
     if (error) {
       console.error("Error deleting blog post:", error);
       throw error;
+    }
+
+    // Eliminar la imagen del storage si existe
+    if (post?.featured_image) {
+      try {
+        const imageUrl = post.featured_image;
+
+        // Si es una URL completa, extraer el path
+        if (imageUrl.includes('http')) {
+          const url = new URL(imageUrl);
+          const pathParts = url.pathname.split('/');
+          const bucketIndex = pathParts.findIndex(part => part === 'blog-images');
+
+          if (bucketIndex !== -1 && bucketIndex < pathParts.length - 1) {
+            const filePath = pathParts.slice(bucketIndex + 1).join('/');
+
+            const { error: storageError } = await supabase.storage
+              .from("blog-images")
+              .remove([filePath]);
+
+            if (storageError) {
+              console.error("Error deleting blog image from storage:", storageError);
+              // No lanzar error, continuar con la eliminación
+            }
+          }
+        } else {
+          // Si es solo el path, eliminar directamente
+          const { error: storageError } = await supabase.storage
+            .from("blog-images")
+            .remove([imageUrl]);
+
+          if (storageError) {
+            console.error("Error deleting blog image from storage:", storageError);
+          }
+        }
+      } catch (error) {
+        console.error("Error parsing blog image URL:", error);
+        // Continuar sin lanzar error
+      }
     }
 
     return true;
