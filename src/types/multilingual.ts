@@ -157,6 +157,16 @@ export interface UpdateMultilingualProductData {
   has_engraving?: boolean;
   is_active?: boolean;
   available_languages?: string[]; // ['es', 'en'] o ['es'] o ['en']
+  specifications?: Array<{
+    spec_key: MultilingualText;
+    spec_value: MultilingualText;
+    display_order: number;
+  }>;
+  sizes?: Array<{
+    size: string;
+    stock: number;
+    price?: number;
+  }>;
 }
 
 export interface CreateMultilingualBlogPostData {

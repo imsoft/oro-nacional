@@ -475,6 +475,8 @@ export async function createProduct(
     if (productData.specifications && productData.specifications.length > 0) {
       const specifications = productData.specifications.map((spec) => ({
         product_id: product.id,
+        spec_key: spec.spec_key.es || spec.spec_key.en || '', // Usar español como fallback para columna legacy
+        spec_value: spec.spec_value.es || spec.spec_value.en || '', // Usar español como fallback para columna legacy
         spec_key_es: spec.spec_key.es,
         spec_key_en: spec.spec_key.en,
         spec_value_es: spec.spec_value.es,
@@ -602,6 +604,72 @@ export async function updateProduct(
     if (error) {
       console.error("Error updating product:", error);
       throw error;
+    }
+
+    // Actualizar especificaciones si se proporcionaron
+    if (updates.specifications !== undefined) {
+      // Eliminar especificaciones existentes
+      const { error: deleteSpecsError } = await supabase
+        .from("product_specifications")
+        .delete()
+        .eq("product_id", productId);
+
+      if (deleteSpecsError) {
+        console.error("Error deleting old specifications:", deleteSpecsError);
+      }
+
+      // Insertar nuevas especificaciones si hay alguna
+      if (updates.specifications.length > 0) {
+        const specifications = updates.specifications.map((spec) => ({
+          product_id: productId,
+          spec_key: spec.spec_key.es || spec.spec_key.en || '', // Usar español como fallback para columna legacy
+          spec_value: spec.spec_value.es || spec.spec_value.en || '', // Usar español como fallback para columna legacy
+          spec_key_es: spec.spec_key.es,
+          spec_key_en: spec.spec_key.en,
+          spec_value_es: spec.spec_value.es,
+          spec_value_en: spec.spec_value.en,
+          display_order: spec.display_order,
+        }));
+
+        const { error: insertSpecsError } = await supabase
+          .from("product_specifications")
+          .insert(specifications);
+
+        if (insertSpecsError) {
+          console.error("Error inserting specifications:", insertSpecsError);
+        }
+      }
+    }
+
+    // Actualizar tallas si se proporcionaron
+    if (updates.sizes !== undefined) {
+      // Eliminar tallas existentes
+      const { error: deleteSizesError } = await supabase
+        .from("product_sizes")
+        .delete()
+        .eq("product_id", productId);
+
+      if (deleteSizesError) {
+        console.error("Error deleting old sizes:", deleteSizesError);
+      }
+
+      // Insertar nuevas tallas si hay alguna
+      if (updates.sizes.length > 0) {
+        const sizes = updates.sizes.map((size) => ({
+          product_id: productId,
+          size: size.size,
+          stock: size.stock,
+          price: size.price || updates.price || 0,
+        }));
+
+        const { error: insertSizesError } = await supabase
+          .from("product_sizes")
+          .insert(sizes);
+
+        if (insertSizesError) {
+          console.error("Error inserting sizes:", insertSizesError);
+        }
+      }
     }
 
     return data;
