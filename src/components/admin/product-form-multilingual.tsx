@@ -62,9 +62,6 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
     validateForm,
   } = useMultilingualForm<ProductFormData>(defaultData);
 
-  // Debug: Log formData to check available_languages
-  console.log("ProductForm formData:", formData);
-
   // Cargar categorías
   useEffect(() => {
     const loadCategories = async () => {
@@ -91,9 +88,6 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
           setIsLoading(false);
           return;
         }
-
-        console.log("Producto cargado:", product);
-        console.log("Especificaciones del producto:", product.specifications);
 
         // Cargar los datos del producto en el formulario
         updateField("name", { es: product.name_es || "", en: product.name_en || "" });
@@ -123,23 +117,28 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
           })));
         }
 
-        // Cargar especificaciones
+        // Cargar especificaciones (filtrar las que estén vacías)
         if (product.specifications && Array.isArray(product.specifications)) {
-          const specs = product.specifications.map((spec: {
-            spec_key_es?: string;
-            spec_key_en?: string;
-            spec_value_es?: string;
-            spec_value_en?: string;
-            display_order: number;
-          }) => ({
-            spec_key: { es: spec.spec_key_es || "", en: spec.spec_key_en || "" },
-            spec_value: { es: spec.spec_value_es || "", en: spec.spec_value_en || "" },
-            display_order: spec.display_order
-          }));
-          console.log("Especificaciones mapeadas:", specs);
+          const specs = product.specifications
+            .map((spec: {
+              spec_key_es?: string;
+              spec_key_en?: string;
+              spec_value_es?: string;
+              spec_value_en?: string;
+              display_order: number;
+            }) => ({
+              spec_key: { es: spec.spec_key_es || "", en: spec.spec_key_en || "" },
+              spec_value: { es: spec.spec_value_es || "", en: spec.spec_value_en || "" },
+              display_order: spec.display_order
+            }))
+            .filter(spec =>
+              // Solo incluir especificaciones que tengan al menos un valor no vacío
+              spec.spec_key.es.trim() !== "" ||
+              spec.spec_key.en.trim() !== "" ||
+              spec.spec_value.es.trim() !== "" ||
+              spec.spec_value.en.trim() !== ""
+            );
           updateField("specifications", specs);
-        } else {
-          console.log("El producto no tiene especificaciones o no es un array");
         }
 
         // Cargar tallas/variantes
