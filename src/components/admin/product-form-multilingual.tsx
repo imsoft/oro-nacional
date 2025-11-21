@@ -527,7 +527,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
             {formData.sizes.map((size, index) => (
               <div key={index} className="flex items-center gap-4 border rounded-lg p-4">
                 <div className="flex-1">
-                  <Label htmlFor={`size-${index}`}>{t('productForm.size')}</Label>
+                  <Label htmlFor={`size-${index}`} className="mb-2 block">{t('productForm.size')}</Label>
                   <Input
                     id={`size-${index}`}
                     value={size.size}
@@ -536,7 +536,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
                   />
                 </div>
                 <div className="flex-1">
-                  <Label htmlFor={`price-${index}`}>Precio (MXN)</Label>
+                  <Label htmlFor={`price-${index}`} className="mb-2 block">Precio (MXN)</Label>
                   <Input
                     id={`price-${index}`}
                     type="number"
@@ -547,7 +547,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
                   />
                 </div>
                 <div className="flex-1">
-                  <Label htmlFor={`stock-${index}`}>{t('productForm.stock')}</Label>
+                  <Label htmlFor={`stock-${index}`} className="mb-2 block">{t('productForm.stock')}</Label>
                   <Input
                     id={`stock-${index}`}
                     type="number"
