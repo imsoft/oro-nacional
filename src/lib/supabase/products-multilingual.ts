@@ -835,6 +835,11 @@ export async function createCategory(
     const { data, error } = await supabase
       .from("product_categories")
       .insert({
+        // Columnas legacy (usar español como fallback)
+        name: categoryData.name.es || categoryData.name.en || '',
+        slug: slugs.es || slugs.en || '',
+        description: categoryData.description?.es || categoryData.description?.en || null,
+        // Columnas multilingües
         name_es: categoryData.name.es,
         name_en: categoryData.name.en,
         slug_es: slugs.es,
@@ -873,14 +878,19 @@ export async function updateCategory(
     const dataToUpdate: Record<string, unknown> = {};
 
     if (updates.name) {
+      // Columnas legacy (usar español como fallback)
+      dataToUpdate.name = updates.name.es || updates.name.en || '';
+      // Columnas multilingües
       dataToUpdate.name_es = updates.name.es;
       dataToUpdate.name_en = updates.name.en;
       const slugs = generateMultilingualSlug(updates.name);
+      dataToUpdate.slug = slugs.es || slugs.en || ''; // Columna legacy
       dataToUpdate.slug_es = slugs.es;
       dataToUpdate.slug_en = slugs.en;
     }
 
     if (updates.description) {
+      dataToUpdate.description = updates.description.es || updates.description.en || null; // Columna legacy
       dataToUpdate.description_es = updates.description.es;
       dataToUpdate.description_en = updates.description.en;
     }

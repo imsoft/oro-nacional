@@ -432,6 +432,12 @@ export async function createBlogPost(
     const { data: post, error: postError } = await supabase
       .from("blog_posts")
       .insert({
+        // Columnas legacy (usar español como fallback)
+        title: postData.title.es || postData.title.en || '',
+        slug: slugs.es || slugs.en || '',
+        excerpt: postData.excerpt?.es || postData.excerpt?.en || null,
+        content: postData.content.es || postData.content.en || '',
+        // Columnas multilingües
         title_es: postData.title.es,
         title_en: postData.title.en,
         slug_es: slugs.es,
@@ -490,20 +496,26 @@ export async function updateBlogPost(
 
     // Actualizar campos básicos
     if (updates.title) {
+      // Columnas legacy (usar español como fallback)
+      dataToUpdate.title = updates.title.es || updates.title.en || '';
+      // Columnas multilingües
       dataToUpdate.title_es = updates.title.es;
       dataToUpdate.title_en = updates.title.en;
       // Regenerar slugs
       const slugs = generateMultilingualSlug(updates.title);
+      dataToUpdate.slug = slugs.es || slugs.en || ''; // Columna legacy
       dataToUpdate.slug_es = slugs.es;
       dataToUpdate.slug_en = slugs.en;
     }
 
     if (updates.excerpt) {
+      dataToUpdate.excerpt = updates.excerpt.es || updates.excerpt.en || null; // Columna legacy
       dataToUpdate.excerpt_es = updates.excerpt.es;
       dataToUpdate.excerpt_en = updates.excerpt.en;
     }
 
     if (updates.content) {
+      dataToUpdate.content = updates.content.es || updates.content.en || ''; // Columna legacy
       dataToUpdate.content_es = updates.content.es;
       dataToUpdate.content_en = updates.content.en;
     }
@@ -761,6 +773,11 @@ export async function createBlogCategory(
     const { data, error } = await supabase
       .from("blog_categories")
       .insert({
+        // Columnas legacy (usar español como fallback)
+        name: categoryData.name.es || categoryData.name.en || '',
+        slug: slugs.es || slugs.en || '',
+        description: categoryData.description?.es || categoryData.description?.en || null,
+        // Columnas multilingües
         name_es: categoryData.name.es,
         name_en: categoryData.name.en,
         slug_es: slugs.es,
@@ -797,15 +814,20 @@ export async function updateBlogCategory(
     const dataToUpdate: Record<string, unknown> = {};
 
     if (updates.name) {
+      // Columnas legacy (usar español como fallback)
+      dataToUpdate.name = updates.name.es || updates.name.en || '';
+      // Columnas multilingües
       dataToUpdate.name_es = updates.name.es;
       dataToUpdate.name_en = updates.name.en;
       // Regenerar slugs
       const slugs = generateMultilingualSlug(updates.name);
+      dataToUpdate.slug = slugs.es || slugs.en || ''; // Columna legacy
       dataToUpdate.slug_es = slugs.es;
       dataToUpdate.slug_en = slugs.en;
     }
 
     if (updates.description !== undefined) {
+      dataToUpdate.description = updates.description?.es || updates.description?.en || null; // Columna legacy
       dataToUpdate.description_es = updates.description?.es || null;
       dataToUpdate.description_en = updates.description?.en || null;
     }
@@ -881,6 +903,10 @@ export async function createBlogTag(
     const { data, error } = await supabase
       .from("blog_tags")
       .insert({
+        // Columnas legacy (usar español como fallback)
+        name: tagData.name.es || tagData.name.en || '',
+        slug: slugs.es || slugs.en || '',
+        // Columnas multilingües
         name_es: tagData.name.es,
         name_en: tagData.name.en,
         slug_es: slugs.es,
