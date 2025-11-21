@@ -23,7 +23,7 @@ import type {
   Locale
 } from "@/types/multilingual";
 import { createProduct, updateProduct, getCategoriesForAdmin } from "@/lib/supabase/products-multilingual";
-import { getProductById } from "@/lib/supabase/products";
+import { getProductById, deleteProductImages } from "@/lib/supabase/products";
 
 interface ProductFormProps {
   productId?: string;
@@ -163,6 +163,26 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
 
     loadProduct();
   }, [productId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleDeleteImage = async (imageId: string, index: number) => {
+    if (!window.confirm(t('productForm.confirmDeleteImage') || '¿Estás seguro de que deseas eliminar esta imagen?')) {
+      return;
+    }
+
+    try {
+      // Eliminar de la base de datos y storage
+      await deleteProductImages([imageId]);
+
+      // Actualizar el estado local
+      const newImages = formData.existing_images?.filter((_, i) => i !== index);
+      updateField("existing_images", newImages);
+
+      alert(t('productForm.imageDeleted') || 'Imagen eliminada exitosamente');
+    } catch (error) {
+      console.error('Error deleting image:', error);
+      alert(t('productForm.errorDeletingImage') || 'Error al eliminar la imagen. Por favor intenta de nuevo.');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -545,10 +565,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
                         variant="destructive"
                         size="sm"
                         className="absolute top-1 right-1"
-                        onClick={() => {
-                          const newImages = formData.existing_images?.filter((_, i) => i !== index);
-                          updateField("existing_images", newImages);
-                        }}
+                        onClick={() => handleDeleteImage(img.id!, index)}
                       >
                         <X className="w-4 h-4" />
                       </Button>

@@ -855,7 +855,10 @@
       "uploadImages": "Subir Imágenes",
       "imagesHint": "Puedes subir múltiples imágenes. La primera será la imagen principal.",
       "existingImages": "Imágenes Actuales",
-      "primaryImage": "Principal"
+      "primaryImage": "Principal",
+      "confirmDeleteImage": "¿Estás seguro de que deseas eliminar esta imagen? Esta acción no se puede deshacer.",
+      "imageDeleted": "Imagen eliminada exitosamente",
+      "errorDeletingImage": "Error al eliminar la imagen. Por favor intenta de nuevo."
     },
     "settings": {
       "title": "Configuración",

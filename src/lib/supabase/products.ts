@@ -301,17 +301,57 @@ export async function updateProduct(
 }
 
 /**
- * Delete product images
+ * Delete product images from database and storage
  */
 export async function deleteProductImages(imageIds: string[]) {
-  const { error } = await supabase
+  // First, get the image URLs to delete from storage
+  const { data: images, error: fetchError } = await supabase
+    .from("product_images")
+    .select("image_url")
+    .in("id", imageIds);
+
+  if (fetchError) {
+    console.error("Error fetching images for deletion:", fetchError);
+    throw fetchError;
+  }
+
+  // Delete from database
+  const { error: dbError } = await supabase
     .from("product_images")
     .delete()
     .in("id", imageIds);
 
-  if (error) {
-    console.error("Error deleting product images:", error);
-    throw error;
+  if (dbError) {
+    console.error("Error deleting product images from database:", dbError);
+    throw dbError;
+  }
+
+  // Delete from storage
+  if (images && images.length > 0) {
+    for (const image of images) {
+      try {
+        // Extract the file path from the public URL
+        const url = new URL(image.image_url);
+        const pathParts = url.pathname.split('/');
+        const bucketIndex = pathParts.findIndex(part => part === 'product-images');
+
+        if (bucketIndex !== -1 && bucketIndex < pathParts.length - 1) {
+          const filePath = pathParts.slice(bucketIndex + 1).join('/');
+
+          const { error: storageError } = await supabase.storage
+            .from("product-images")
+            .remove([filePath]);
+
+          if (storageError) {
+            console.error("Error deleting image from storage:", storageError);
+            // Don't throw here, continue with other deletions
+          }
+        }
+      } catch (error) {
+        console.error("Error parsing image URL:", error);
+        // Continue with other deletions
+      }
+    }
   }
 }
 
