@@ -125,7 +125,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
 
         // Cargar especificaciones
         if (product.specifications && Array.isArray(product.specifications)) {
-          updateField("specifications", product.specifications.map((spec: {
+          const specs = product.specifications.map((spec: {
             spec_key_es?: string;
             spec_key_en?: string;
             spec_value_es?: string;
@@ -135,7 +135,11 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
             spec_key: { es: spec.spec_key_es || "", en: spec.spec_key_en || "" },
             spec_value: { es: spec.spec_value_es || "", en: spec.spec_value_en || "" },
             display_order: spec.display_order
-          })));
+          }));
+          console.log("Especificaciones mapeadas:", specs);
+          updateField("specifications", specs);
+        } else {
+          console.log("El producto no tiene especificaciones o no es un array");
         }
 
         // Cargar tallas/variantes
