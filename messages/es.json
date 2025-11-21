@@ -708,7 +708,8 @@
       "statusLabel": "Estado:",
       "viewsLabel": "Vistas:",
       "deleting": "Eliminando...",
-      "deleteError": "Error al eliminar el post. Por favor intenta de nuevo."
+      "deleteError": "Error al eliminar el post. Por favor intenta de nuevo.",
+      "cancel": "Cancelar"
     },
     "blogCategories": {
       "title": "Categorías de Blog",

@@ -716,7 +716,8 @@
       "statusLabel": "Status:",
       "viewsLabel": "Views:",
       "deleting": "Deleting...",
-      "deleteError": "Error deleting post. Please try again."
+      "deleteError": "Error deleting post. Please try again.",
+      "cancel": "Cancel"
     },
     "blogCategories": {
       "title": "Blog Categories",
