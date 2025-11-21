@@ -5,14 +5,16 @@ import { useTranslations } from "next-intl";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProductForm } from "@/components/admin/product-form-multilingual";
+import { use } from "react";
 
 interface EditProductPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default function EditProductPage({ params }: EditProductPageProps) {
+  const { id } = use(params);
   const router = useRouter();
   const t = useTranslations("admin");
 
@@ -44,7 +46,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
 
       {/* Product Form */}
       <ProductForm
-        productId={params.id}
+        productId={id}
         onSuccess={handleSuccess}
         onCancel={handleCancel}
       />

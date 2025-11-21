@@ -135,7 +135,7 @@ export async function getProductBySlug(slug: string) {
 }
 
 /**
- * Get a single product by ID (for admin)
+ * Get a single product by ID (for admin) - with multilingual fields
  */
 export async function getProductById(id: string) {
   const { data, error } = await supabase
@@ -143,22 +143,26 @@ export async function getProductById(id: string) {
     .select(
       `
       id,
-      name,
-      slug,
-      description,
+      name_es,
+      name_en,
+      slug_es,
+      slug_en,
+      description_es,
+      description_en,
       price,
       stock,
-      material,
+      material_es,
+      material_en,
       weight,
       has_engraving,
       is_active,
       category_id,
       created_at,
       updated_at,
-      category:product_categories(id, name, slug),
-      images:product_images(id, image_url, alt_text, display_order, is_primary),
-      specifications:product_specifications(id, spec_key, spec_value, display_order),
-      sizes:product_sizes(id, size, stock)
+      category:product_categories(id, name_es, name_en, slug_es, slug_en),
+      images:product_images(id, image_url, alt_text_es, alt_text_en, display_order, is_primary),
+      specifications:product_specifications(id, spec_key_es, spec_key_en, spec_value_es, spec_value_en, display_order),
+      sizes:product_sizes(id, size, price, stock)
     `
     )
     .eq("id", id)
@@ -169,7 +173,7 @@ export async function getProductById(id: string) {
     return null;
   }
 
-  return data as unknown as ProductDetail;
+  return data;
 }
 
 /**

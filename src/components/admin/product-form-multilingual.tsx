@@ -23,6 +23,7 @@ import type {
   Locale
 } from "@/types/multilingual";
 import { createProduct, updateProduct, getCategoriesForAdmin } from "@/lib/supabase/products-multilingual";
+import { getProductById } from "@/lib/supabase/products";
 
 interface ProductFormProps {
   productId?: string;
@@ -76,6 +77,86 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
     };
     loadCategories();
   }, []);
+
+  // Cargar producto existente para edición
+  useEffect(() => {
+    const loadProduct = async () => {
+      if (!productId) return;
+
+      setIsLoading(true);
+      try {
+        const product = await getProductById(productId);
+        if (!product) {
+          console.error("Product not found");
+          setIsLoading(false);
+          return;
+        }
+
+        // Cargar los datos del producto en el formulario
+        updateField("name", { es: product.name_es || "", en: product.name_en || "" });
+        updateField("description", { es: product.description_es || "", en: product.description_en || "" });
+        updateField("material", { es: product.material_es || "", en: product.material_en || "" });
+        updateField("category_id", product.category_id || "");
+        updateField("price", product.price || 0);
+        updateField("stock", product.stock || 0);
+        updateField("weight", product.weight || 0);
+        updateField("is_active", product.is_active);
+
+        // Cargar imágenes existentes
+        if (product.images && Array.isArray(product.images)) {
+          updateField("existing_images", product.images.map((img: {
+            id: string;
+            image_url: string;
+            alt_text_es?: string;
+            alt_text_en?: string;
+            display_order: number;
+            is_primary: boolean;
+          }) => ({
+            id: img.id,
+            image_url: img.image_url,
+            alt_text: { es: img.alt_text_es || "", en: img.alt_text_en || "" },
+            display_order: img.display_order,
+            is_primary: img.is_primary
+          })));
+        }
+
+        // Cargar especificaciones
+        if (product.specifications && Array.isArray(product.specifications)) {
+          updateField("specifications", product.specifications.map((spec: {
+            spec_key_es?: string;
+            spec_key_en?: string;
+            spec_value_es?: string;
+            spec_value_en?: string;
+            display_order: number;
+          }) => ({
+            spec_key: { es: spec.spec_key_es || "", en: spec.spec_key_en || "" },
+            spec_value: { es: spec.spec_value_es || "", en: spec.spec_value_en || "" },
+            display_order: spec.display_order
+          })));
+        }
+
+        // Cargar tallas/variantes
+        if (product.sizes && Array.isArray(product.sizes)) {
+          updateField("sizes", product.sizes.map((size: {
+            size: string;
+            price?: number;
+            stock: number;
+          }) => ({
+            size: size.size,
+            price: size.price || product.price || 0,
+            stock: size.stock
+          })));
+        }
+
+      } catch (error) {
+        console.error("Error loading product:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProduct();
+  }, [productId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
