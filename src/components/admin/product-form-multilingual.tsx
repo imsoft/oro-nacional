@@ -92,6 +92,9 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
           return;
         }
 
+        console.log("Producto cargado:", product);
+        console.log("Especificaciones del producto:", product.specifications);
+
         // Cargar los datos del producto en el formulario
         updateField("name", { es: product.name_es || "", en: product.name_en || "" });
         updateField("description", { es: product.description_es || "", en: product.description_en || "" });
