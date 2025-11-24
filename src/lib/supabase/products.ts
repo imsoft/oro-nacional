@@ -557,21 +557,123 @@ export async function softDeleteProduct(productId: string) {
 
 /**
  * Delete a product permanently (hard delete)
- * This will also delete all related records due to CASCADE
+ * This will delete:
+ * - All product images from storage bucket
+ * - All product records from database (CASCADE will handle related tables)
  */
 export async function hardDeleteProduct(productId: string) {
   // Validar que productId sea un UUID válido
   if (!productId || productId.trim() === "") {
-    throw new Error("Invalid product ID: ID cannot be empty");
+    const error = new Error("Invalid product ID: ID cannot be empty");
+    console.error("Validation error:", error);
+    throw error;
   }
 
-  const { error } = await supabase
-    .from("products")
-    .delete()
-    .eq("id", productId);
+  console.log("Hard deleting product with ID:", productId);
 
-  if (error) {
-    console.error("Error deleting product:", error);
+  try {
+    // PASO 1: Obtener todas las imágenes del producto
+    const { data: images, error: fetchError } = await supabase
+      .from("product_images")
+      .select("image_url")
+      .eq("product_id", productId);
+
+    if (fetchError) {
+      console.error("Error fetching product images:", fetchError);
+      throw new Error(`Failed to fetch product images: ${fetchError.message}`);
+    }
+
+    // PASO 2: Eliminar todas las imágenes del storage
+    if (images && images.length > 0) {
+      console.log(`Deleting ${images.length} images from storage for product ${productId}`);
+
+      for (const img of images) {
+        try {
+          const imageUrl = img.image_url;
+
+          // Extraer el path del archivo desde la URL
+          if (imageUrl.includes('http')) {
+            const url = new URL(imageUrl);
+            const pathParts = url.pathname.split('/');
+            const bucketIndex = pathParts.findIndex(part => part === 'product-images');
+
+            if (bucketIndex !== -1 && bucketIndex < pathParts.length - 1) {
+              const filePath = pathParts.slice(bucketIndex + 1).join('/');
+
+              const { error: storageError } = await supabase.storage
+                .from("product-images")
+                .remove([filePath]);
+
+              if (storageError) {
+                console.error("Error deleting image from storage:", storageError);
+              } else {
+                console.log("Deleted image from storage:", filePath);
+              }
+            }
+          } else {
+            // Si es un path relativo, usarlo directamente
+            const { error: storageError } = await supabase.storage
+              .from("product-images")
+              .remove([imageUrl]);
+
+            if (storageError) {
+              console.error("Error deleting image from storage:", storageError);
+            } else {
+              console.log("Deleted image from storage:", imageUrl);
+            }
+          }
+        } catch (err) {
+          console.error("Error parsing image URL:", err);
+        }
+      }
+
+      // PASO 3: Eliminar la carpeta del producto en el storage (si existe)
+      try {
+        const { data: folderFiles, error: listError } = await supabase.storage
+          .from("product-images")
+          .list(productId);
+
+        if (!listError && folderFiles && folderFiles.length > 0) {
+          const filePaths = folderFiles.map(file => `${productId}/${file.name}`);
+          const { error: removeFolderError } = await supabase.storage
+            .from("product-images")
+            .remove(filePaths);
+
+          if (removeFolderError) {
+            console.error("Error removing product folder:", removeFolderError);
+          } else {
+            console.log("Deleted product folder from storage:", productId);
+          }
+        }
+      } catch (err) {
+        console.error("Error cleaning up product folder:", err);
+      }
+    }
+
+    // PASO 4: Eliminar el producto de la base de datos
+    // CASCADE eliminará automáticamente:
+    // - product_images
+    // - product_specifications
+    // - product_sizes
+    const { error: deleteError } = await supabase
+      .from("products")
+      .delete()
+      .eq("id", productId);
+
+    if (deleteError) {
+      console.error("Error deleting product from database:", {
+        productId,
+        error: deleteError,
+        code: deleteError.code,
+        message: deleteError.message,
+        details: deleteError.details
+      });
+      throw new Error(`Failed to delete product: ${deleteError.message}`);
+    }
+
+    console.log("Product hard deleted successfully:", productId);
+  } catch (error) {
+    console.error("Error in hardDeleteProduct:", error);
     throw error;
   }
 }

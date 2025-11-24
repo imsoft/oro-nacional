@@ -17,7 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { getAllProducts, softDeleteProduct } from "@/lib/supabase/products";
+import { getAllProducts, hardDeleteProduct } from "@/lib/supabase/products";
 import type { ProductListItem } from "@/types/product";
 import { useMemo } from "react";
 
@@ -62,15 +62,16 @@ export default function ProductsAdmin() {
     try {
       const deletedProductId = productToDelete.id;
 
-      console.log("Attempting to delete product:", {
+      console.log("Attempting to permanently delete product:", {
         id: deletedProductId,
         name: productToDelete.name
       });
 
-      // Delete the product
-      await softDeleteProduct(deletedProductId);
+      // Delete the product permanently (hard delete)
+      // This will delete the product, all images from storage, and all related records
+      await hardDeleteProduct(deletedProductId);
 
-      console.log("Product soft-deleted successfully");
+      console.log("Product permanently deleted successfully");
 
       // Remove the product from the list immediately for better UX
       setProducts(prevProducts => prevProducts.filter(p => p.id !== deletedProductId));
