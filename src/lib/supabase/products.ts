@@ -435,6 +435,11 @@ export async function updateProductImage(
  * Delete all specifications for a product
  */
 export async function deleteProductSpecifications(productId: string) {
+  // Validar que productId sea un UUID válido
+  if (!productId || productId.trim() === "") {
+    throw new Error("Invalid product ID: ID cannot be empty");
+  }
+
   const { error } = await supabase
     .from("product_specifications")
     .delete()
@@ -472,6 +477,11 @@ export async function addProductSpecifications(
  * Delete all sizes for a product
  */
 export async function deleteProductSizes(productId: string) {
+  // Validar que productId sea un UUID válido
+  if (!productId || productId.trim() === "") {
+    throw new Error("Invalid product ID: ID cannot be empty");
+  }
+
   const { error } = await supabase
     .from("product_sizes")
     .delete()
@@ -508,6 +518,11 @@ export async function addProductSizes(
  * Delete a product (soft delete by setting is_active to false)
  */
 export async function softDeleteProduct(productId: string) {
+  // Validar que productId sea un UUID válido
+  if (!productId || productId.trim() === "") {
+    throw new Error("Invalid product ID: ID cannot be empty");
+  }
+
   const { data, error } = await supabase
     .from("products")
     .update({ is_active: false })
@@ -528,6 +543,11 @@ export async function softDeleteProduct(productId: string) {
  * This will also delete all related records due to CASCADE
  */
 export async function hardDeleteProduct(productId: string) {
+  // Validar que productId sea un UUID válido
+  if (!productId || productId.trim() === "") {
+    throw new Error("Invalid product ID: ID cannot be empty");
+  }
+
   const { error } = await supabase
     .from("products")
     .delete()

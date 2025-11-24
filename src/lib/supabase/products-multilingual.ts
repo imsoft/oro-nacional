@@ -926,6 +926,11 @@ export async function updateCategory(
  */
 export async function deleteProductCategory(categoryId: string) {
   try {
+    // Validar que categoryId sea un UUID válido
+    if (!categoryId || categoryId.trim() === "") {
+      throw new Error("Invalid category ID: ID cannot be empty");
+    }
+
     // Verificar si hay productos usando esta categoría
     const { data: products, error: checkError } = await supabase
       .from("products")

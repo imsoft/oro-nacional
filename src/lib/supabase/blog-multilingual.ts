@@ -638,6 +638,11 @@ export async function updateBlogPost(
  */
 export async function deleteBlogPost(postId: string) {
   try {
+    // Validar que postId sea un UUID válido
+    if (!postId || postId.trim() === "") {
+      throw new Error("Invalid post ID: ID cannot be empty");
+    }
+
     // Obtener el post para conseguir la URL de la imagen
     const { data: post, error: fetchError } = await supabase
       .from("blog_posts")
@@ -950,6 +955,11 @@ export async function updateBlogCategory(
  */
 export async function deleteBlogCategory(categoryId: string) {
   try {
+    // Validar que categoryId sea un UUID válido
+    if (!categoryId || categoryId.trim() === "") {
+      throw new Error("Invalid category ID: ID cannot be empty");
+    }
+
     // Verificar si hay posts usando esta categoría
     const { data: posts, error: checkError } = await supabase
       .from("blog_posts")
