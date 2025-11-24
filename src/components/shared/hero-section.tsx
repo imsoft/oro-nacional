@@ -1,11 +1,25 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState } from "react";
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
 import Navbar from "@/components/shared/navbar";
+import HeroCarousel from "@/components/shared/hero-carousel";
 import { Button } from "@/components/ui/button";
+import { getActiveHeroImages } from "@/lib/supabase/hero-images";
+import type { HeroImage } from "@/lib/supabase/hero-images";
 
 const HeroSection = () => {
   const t = useTranslations('hero');
+  const [heroImages, setHeroImages] = useState<HeroImage[]>([]);
+
+  useEffect(() => {
+    const loadHeroImages = async () => {
+      const images = await getActiveHeroImages();
+      setHeroImages(images);
+    };
+    loadHeroImages();
+  }, []);
 
   return (
     <>
@@ -13,14 +27,7 @@ const HeroSection = () => {
         <Navbar />
 
         <div className="relative isolate overflow-hidden flex-1 flex items-center">
-          <Image
-            alt={t('imageAlt')}
-            src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?ixlib=rb-4.0.3&auto=format&fit=crop&w=2830&q=80"
-            fill
-            priority
-            className="absolute inset-0 -z-10 size-full object-cover animate-[scale-in_2s_ease-out_forwards] dark:brightness-50"
-          />
-          <div className="absolute inset-0 -z-10 bg-gradient-to-b from-background/80 via-background/50 to-background/80" />
+          <HeroCarousel images={heroImages} imageAlt={t('imageAlt')} />
           <div
             aria-hidden="true"
             className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"

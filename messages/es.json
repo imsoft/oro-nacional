@@ -557,6 +557,7 @@
     "back": "Volver",
     "navigation": {
       "dashboard": "Dashboard",
+      "heroImages": "Imágenes del Hero",
       "products": "Productos",
       "productCategories": "Categorías de Productos",
       "blog": "Blog",
@@ -588,6 +589,30 @@
       "activeProducts": "Productos Activos",
       "currentMonthSales": "Ventas del Mes",
       "errorLoading": "Error al cargar los datos del dashboard"
+    },
+    "hero": {
+      "title": "Imágenes del Hero",
+      "subtitle": "Gestiona las imágenes principales que se muestran en la página de inicio (máximo 3)",
+      "imagesTitle": "Imágenes del Carousel",
+      "imagesDescription": "Sube hasta 3 imágenes que se mostrarán en rotación en la sección hero de tu página principal. Recomendamos imágenes de alta calidad.",
+      "image": "Imagen",
+      "active": "Activa",
+      "replace": "Reemplazar",
+      "uploadNew": "Subir nueva imagen",
+      "tips": "Consejos",
+      "tip1": "Usa imágenes de al menos 2830x1600px para mejor calidad",
+      "tip2": "Las imágenes se mostrarán en el orden indicado",
+      "tip3": "El carousel cambia automáticamente cada 5 segundos",
+      "deleteTitle": "Eliminar imagen del hero",
+      "deleteDescription": "¿Estás seguro de que deseas eliminar esta imagen? Esta acción no se puede deshacer.",
+      "cancel": "Cancelar",
+      "delete": "Eliminar",
+      "deleting": "Eliminando...",
+      "invalidFileType": "Por favor selecciona un archivo de imagen válido",
+      "fileTooLarge": "El archivo es demasiado grande. Máximo 5MB",
+      "uploadError": "Error al subir la imagen. Por favor intenta de nuevo",
+      "deleteError": "Error al eliminar la imagen. Por favor intenta de nuevo",
+      "maxImagesReached": "Ya tienes el máximo de 3 imágenes"
     },
     "products": {
       "title": "Productos",

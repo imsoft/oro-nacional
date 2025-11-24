@@ -12,7 +12,8 @@ import {
   Menu,
   X,
   Users,
-  Settings
+  Settings,
+  Image as ImageIcon
 } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,7 @@ export default function AdminLayout({
 
   const navigation = [
     { name: t('dashboard'), href: "/admin", icon: LayoutDashboard },
+    { name: t('heroImages'), href: "/admin/hero", icon: ImageIcon },
     { name: t('products'), href: "/admin/productos", icon: Package },
     { name: t('productCategories'), href: "/admin/productos/categorias", icon: Package },
     { name: t('blog'), href: "/admin/blog", icon: FileText },
