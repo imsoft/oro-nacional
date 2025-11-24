@@ -502,6 +502,21 @@
     "quantity": "Cantidad",
     "updateCart": "Actualizar Carrito"
   },
+  "checkout": {
+    "paymentOptions": "Opciones de Pago",
+    "payInFull": "Pago de Contado",
+    "installments": "{count} Meses Sin Intereses",
+    "noInterest": "Sin intereses",
+    "saveOnProcessing": "Ahorra en procesamiento",
+    "perMonth": "por mes",
+    "total": "Total",
+    "paymentSummary": "Resumen de tu Plan de Pago",
+    "subtotal": "Subtotal",
+    "selectedPlan": "Plan seleccionado",
+    "monthlyPayment": "Pago mensual",
+    "totalToPay": "Total a pagar",
+    "zeroInterest": "Cero intereses"
+  },
   "catalog": {
     "title": "Catálogo de Joyería",
     "subtitle": "Descubre nuestra colección de joyería fina en oro",

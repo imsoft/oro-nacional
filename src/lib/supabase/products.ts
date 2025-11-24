@@ -5,20 +5,24 @@ import type { Product, ProductDetail, ProductListItem, FeaturedCategory } from "
  * Get all active products with their categories and primary images
  * For catalog and general listing
  */
-export async function getProducts() {
+export async function getProducts(locale: 'es' | 'en' = 'es') {
   const { data, error } = await supabase
     .from("products")
     .select(
       `
       id,
-      name,
-      slug,
-      description,
+      name_es,
+      name_en,
+      slug_es,
+      slug_en,
+      description_es,
+      description_en,
       price,
       stock,
-      material,
+      material_es,
+      material_en,
       is_active,
-      category:product_categories(id, name, slug),
+      category:product_categories(id, name_es, name_en, slug_es, slug_en),
       images:product_images(id, image_url, is_primary)
     `
     )
@@ -30,7 +34,43 @@ export async function getProducts() {
     return [];
   }
 
-  return data as unknown as Product[];
+  // Transform data to use locale-specific fields
+  const products = (data as unknown[]).map((product: unknown) => {
+    const p = product as {
+      id: string;
+      name_es: string;
+      name_en: string;
+      slug_es: string;
+      slug_en: string;
+      description_es: string;
+      description_en: string;
+      price: number;
+      stock: number;
+      material_es: string;
+      material_en: string;
+      is_active: boolean;
+      category?: { id: string; name_es: string; name_en: string; slug_es: string; slug_en: string };
+      images?: Array<{ id: string; image_url: string; is_primary: boolean }>;
+    };
+    return {
+      id: p.id,
+      name: locale === 'es' ? (p.name_es || p.name_en) : (p.name_en || p.name_es),
+      slug: locale === 'es' ? (p.slug_es || p.slug_en) : (p.slug_en || p.slug_es),
+      description: locale === 'es' ? (p.description_es || p.description_en) : (p.description_en || p.description_es),
+      price: p.price,
+      stock: p.stock,
+      material: locale === 'es' ? (p.material_es || p.material_en) : (p.material_en || p.material_es),
+      is_active: p.is_active,
+      category: p.category ? {
+        id: p.category.id,
+        name: locale === 'es' ? (p.category.name_es || p.category.name_en) : (p.category.name_en || p.category.name_es),
+        slug: locale === 'es' ? (p.category.slug_es || p.category.slug_en) : (p.category.slug_en || p.category.slug_es),
+      } : null,
+      images: p.images || [],
+    } as Product;
+  });
+
+  return products;
 }
 
 /**
@@ -99,39 +139,153 @@ export async function getAllProducts() {
  * Get a single product by slug with all related data
  * For product detail page
  */
-export async function getProductBySlug(slug: string) {
-  const { data, error } = await supabase
+export async function getProductBySlug(slug: string, locale: 'es' | 'en' = 'es') {
+  // Try to find product by slug in either language
+  const slugField = locale === 'es' ? 'slug_es' : 'slug_en';
+  const alternateSlugField = locale === 'es' ? 'slug_en' : 'slug_es';
+
+  let { data, error } = await supabase
     .from("products")
     .select(
       `
       id,
-      name,
-      slug,
-      description,
+      name_es,
+      name_en,
+      slug_es,
+      slug_en,
+      description_es,
+      description_en,
       price,
       stock,
-      material,
+      material_es,
+      material_en,
       weight,
       has_engraving,
       is_active,
       created_at,
       updated_at,
-      category:product_categories(id, name, slug, description),
-      images:product_images(id, image_url, alt_text, display_order, is_primary, created_at),
-      specifications:product_specifications(id, spec_key, spec_value, display_order),
+      category:product_categories(id, name_es, name_en, slug_es, slug_en, description_es, description_en),
+      images:product_images(id, image_url, alt_text_es, alt_text_en, display_order, is_primary, created_at),
+      specifications:product_specifications(id, spec_key_es, spec_key_en, spec_value_es, spec_value_en, display_order),
       sizes:product_sizes(id, size, stock)
     `
     )
-    .eq("slug", slug)
+    .eq(slugField, slug)
     .eq("is_active", true)
     .single();
+
+  // If not found, try alternate language slug
+  if (error && error.code === 'PGRST116') {
+    const result = await supabase
+      .from("products")
+      .select(
+        `
+        id,
+        name_es,
+        name_en,
+        slug_es,
+        slug_en,
+        description_es,
+        description_en,
+        price,
+        stock,
+        material_es,
+        material_en,
+        weight,
+        has_engraving,
+        is_active,
+        created_at,
+        updated_at,
+        category:product_categories(id, name_es, name_en, slug_es, slug_en, description_es, description_en),
+        images:product_images(id, image_url, alt_text_es, alt_text_en, display_order, is_primary, created_at),
+        specifications:product_specifications(id, spec_key_es, spec_key_en, spec_value_es, spec_value_en, display_order),
+        sizes:product_sizes(id, size, stock)
+      `
+      )
+      .eq(alternateSlugField, slug)
+      .eq("is_active", true)
+      .single();
+
+    data = result.data;
+    error = result.error;
+  }
 
   if (error) {
     console.error("Error fetching product by slug:", error);
     return null;
   }
 
-  return data as unknown as ProductDetail;
+  // Transform to use locale-specific fields
+  const p = data as unknown as {
+    id: string;
+    name_es: string;
+    name_en: string;
+    slug_es: string;
+    slug_en: string;
+    description_es: string;
+    description_en: string;
+    price: number;
+    stock: number;
+    material_es: string;
+    material_en: string;
+    weight?: number;
+    has_engraving?: boolean;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+    category?: { id: string; name_es: string; name_en: string; slug_es: string; slug_en: string; description_es: string; description_en: string } | null;
+    images?: Array<{ id: string; image_url: string; alt_text_es?: string; alt_text_en?: string; display_order: number; is_primary: boolean; created_at: string }>;
+    specifications?: Array<{ id: string; spec_key_es: string; spec_key_en: string; spec_value_es: string; spec_value_en: string; display_order: number }>;
+    sizes?: Array<{ id: string; size: string; stock: number }>;
+  };
+
+  const product: ProductDetail = {
+    id: p.id,
+    name: locale === 'es' ? (p.name_es || p.name_en) : (p.name_en || p.name_es),
+    slug: locale === 'es' ? (p.slug_es || p.slug_en) : (p.slug_en || p.slug_es),
+    description: locale === 'es' ? (p.description_es || p.description_en) : (p.description_en || p.description_es),
+    price: p.price,
+    stock: p.stock,
+    material: locale === 'es' ? (p.material_es || p.material_en) : (p.material_en || p.material_es),
+    weight: p.weight,
+    is_active: p.is_active,
+    created_at: p.created_at,
+    updated_at: p.updated_at,
+    category: p.category ? {
+      id: p.category.id,
+      name: locale === 'es' ? (p.category.name_es || p.category.name_en) : (p.category.name_en || p.category.name_es),
+      slug: locale === 'es' ? (p.category.slug_es || p.category.slug_en) : (p.category.slug_en || p.category.slug_es),
+      description: locale === 'es' ? (p.category.description_es || p.category.description_en) : (p.category.description_en || p.category.description_es),
+      created_at: '',
+      updated_at: '',
+    } : null,
+    images: (p.images || []).map(img => ({
+      id: img.id,
+      product_id: p.id,
+      image_url: img.image_url,
+      alt_text: locale === 'es' ? (img.alt_text_es || img.alt_text_en) : (img.alt_text_en || img.alt_text_es),
+      display_order: img.display_order,
+      is_primary: img.is_primary,
+      created_at: img.created_at,
+    })),
+    specifications: (p.specifications || []).map(spec => ({
+      id: spec.id,
+      product_id: p.id,
+      spec_key: locale === 'es' ? (spec.spec_key_es || spec.spec_key_en) : (spec.spec_key_en || spec.spec_key_es),
+      spec_value: locale === 'es' ? (spec.spec_value_es || spec.spec_value_en) : (spec.spec_value_en || spec.spec_value_es),
+      display_order: spec.display_order,
+      created_at: '',
+    })),
+    sizes: (p.sizes || []).map(size => ({
+      id: size.id,
+      product_id: p.id,
+      size: size.size,
+      stock: size.stock,
+      created_at: '',
+    })),
+  };
+
+  return product;
 }
 
 /**
@@ -179,33 +333,107 @@ export async function getProductById(id: string) {
 /**
  * Get products by category
  */
-export async function getProductsByCategory(categorySlug: string) {
-  const { data, error } = await supabase
+export async function getProductsByCategory(categorySlug: string, locale: 'es' | 'en' = 'es') {
+  // Try to find category by slug in either language
+  const slugField = locale === 'es' ? 'slug_es' : 'slug_en';
+  const alternateSlugField = locale === 'es' ? 'slug_en' : 'slug_es';
+
+  let { data, error } = await supabase
     .from("products")
     .select(
       `
       id,
-      name,
-      slug,
-      description,
+      name_es,
+      name_en,
+      slug_es,
+      slug_en,
+      description_es,
+      description_en,
       price,
       stock,
-      material,
+      material_es,
+      material_en,
       is_active,
-      category:product_categories!inner(id, name, slug),
+      category:product_categories!inner(id, name_es, name_en, slug_es, slug_en),
       images:product_images(id, image_url, is_primary)
     `
     )
     .eq("is_active", true)
-    .eq("category.slug", categorySlug)
+    .eq(`category.${slugField}`, categorySlug)
     .order("created_at", { ascending: false });
+
+  // If not found, try alternate language slug
+  if ((!data || data.length === 0) && !error) {
+    const result = await supabase
+      .from("products")
+      .select(
+        `
+        id,
+        name_es,
+        name_en,
+        slug_es,
+        slug_en,
+        description_es,
+        description_en,
+        price,
+        stock,
+        material_es,
+        material_en,
+        is_active,
+        category:product_categories!inner(id, name_es, name_en, slug_es, slug_en),
+        images:product_images(id, image_url, is_primary)
+      `
+      )
+      .eq("is_active", true)
+      .eq(`category.${alternateSlugField}`, categorySlug)
+      .order("created_at", { ascending: false });
+
+    data = result.data;
+    error = result.error;
+  }
 
   if (error) {
     console.error("Error fetching products by category:", error);
     return [];
   }
 
-  return data as unknown as Product[];
+  // Transform data to use locale-specific fields
+  const products = (data as unknown[]).map((product: unknown) => {
+    const p = product as {
+      id: string;
+      name_es: string;
+      name_en: string;
+      slug_es: string;
+      slug_en: string;
+      description_es: string;
+      description_en: string;
+      price: number;
+      stock: number;
+      material_es: string;
+      material_en: string;
+      is_active: boolean;
+      category?: { id: string; name_es: string; name_en: string; slug_es: string; slug_en: string };
+      images?: Array<{ id: string; image_url: string; is_primary: boolean }>;
+    };
+    return {
+      id: p.id,
+      name: locale === 'es' ? (p.name_es || p.name_en) : (p.name_en || p.name_es),
+      slug: locale === 'es' ? (p.slug_es || p.slug_en) : (p.slug_en || p.slug_es),
+      description: locale === 'es' ? (p.description_es || p.description_en) : (p.description_en || p.description_es),
+      price: p.price,
+      stock: p.stock,
+      material: locale === 'es' ? (p.material_es || p.material_en) : (p.material_en || p.material_es),
+      is_active: p.is_active,
+      category: p.category ? {
+        id: p.category.id,
+        name: locale === 'es' ? (p.category.name_es || p.category.name_en) : (p.category.name_en || p.category.name_es),
+        slug: locale === 'es' ? (p.category.slug_es || p.category.slug_en) : (p.category.slug_en || p.category.slug_es),
+      } : null,
+      images: p.images || [],
+    } as Product;
+  });
+
+  return products;
 }
 
 /**

@@ -510,6 +510,21 @@
     "quantity": "Quantity",
     "updateCart": "Update Cart"
   },
+  "checkout": {
+    "paymentOptions": "Payment Options",
+    "payInFull": "Pay in Full",
+    "installments": "{count} Interest-Free Months",
+    "noInterest": "No interest",
+    "saveOnProcessing": "Save on processing",
+    "perMonth": "per month",
+    "total": "Total",
+    "paymentSummary": "Payment Plan Summary",
+    "subtotal": "Subtotal",
+    "selectedPlan": "Selected plan",
+    "monthlyPayment": "Monthly payment",
+    "totalToPay": "Total to pay",
+    "zeroInterest": "Zero interest"
+  },
   "catalog": {
     "title": "Jewelry Catalog",
     "subtitle": "Discover our collection of fine gold jewelry",

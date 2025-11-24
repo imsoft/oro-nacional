@@ -12,9 +12,10 @@ import { Loader2 } from "lucide-react";
 import { getProductsByCategory } from "@/lib/supabase/products";
 import type { Product } from "@/types/product";
 
-const RingsPage = () => {
+const RingsPage = ({ params }: { params: { locale: 'es' | 'en' } }) => {
   const t = useTranslations('catalog.rings');
   const tCommon = useTranslations('catalog');
+  const locale = params.locale || 'es';
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
@@ -22,11 +23,12 @@ const RingsPage = () => {
 
   useEffect(() => {
     loadProducts();
-  }, []);
+  }, [locale]);
 
   const loadProducts = async () => {
     setIsLoading(true);
-    const data = await getProductsByCategory("anillos");
+    const categorySlug = locale === 'es' ? 'anillos' : 'rings';
+    const data = await getProductsByCategory(categorySlug, locale);
     setProducts(data);
     setIsLoading(false);
   };

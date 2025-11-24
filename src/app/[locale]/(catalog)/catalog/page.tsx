@@ -20,8 +20,9 @@ const categorySlugMap: Record<string, string> = {
   pulseras: "bracelets",
 };
 
-const CatalogPage = () => {
+const CatalogPage = ({ params }: { params: { locale: 'es' | 'en' } }) => {
   const t = useTranslations('catalog');
+  const locale = params.locale || 'es';
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
@@ -35,11 +36,11 @@ const CatalogPage = () => {
 
   useEffect(() => {
     loadProducts();
-  }, []);
+  }, [locale]);
 
   const loadProducts = async () => {
     setIsLoading(true);
-    const data = await getProducts();
+    const data = await getProducts(locale);
     setProducts(data);
     setIsLoading(false);
   };

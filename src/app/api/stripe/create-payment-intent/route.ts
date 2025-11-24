@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import Stripe from 'stripe';
 import { getStripe, isStripeConfigured } from '@/lib/stripe/config';
 
 export async function POST(request: NextRequest) {
@@ -20,7 +21,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { amount, currency = 'mxn', orderId, customerEmail, metadata = {} } = body;
+    const { amount, currency = 'mxn', orderId, customerEmail, installments, metadata = {} } = body;
 
     // Validar que el monto sea válido
     if (!amount || amount < 1) {
@@ -30,8 +31,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Crear el Payment Intent
-    const paymentIntent = await stripe.paymentIntents.create({
+    // Configurar opciones de pago según los meses sin intereses
+    // Si se especifican meses sin intereses (mayor a 1), configurar Stripe
+    const paymentIntentParams: Stripe.PaymentIntentCreateParams = {
       amount: Math.round(amount * 100), // Convertir a centavos
       currency: currency.toLowerCase(),
       automatic_payment_methods: {
@@ -40,9 +42,29 @@ export async function POST(request: NextRequest) {
       metadata: {
         orderId: orderId || '',
         customerEmail: customerEmail || '',
+        installments: installments?.toString() || '1',
         ...metadata,
       },
-    });
+    };
+
+    // Agregar configuración de MSI solo si se solicitan meses sin intereses
+    if (installments && installments > 1) {
+      paymentIntentParams.payment_method_options = {
+        card: {
+          installments: {
+            enabled: true,
+            plan: {
+              count: installments,
+              interval: 'month',
+              type: 'fixed_count',
+            },
+          },
+        },
+      };
+    }
+
+    // Crear el Payment Intent
+    const paymentIntent = await stripe.paymentIntents.create(paymentIntentParams);
 
     return NextResponse.json({
       clientSecret: paymentIntent.client_secret,

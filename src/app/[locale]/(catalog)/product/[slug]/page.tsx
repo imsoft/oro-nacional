@@ -16,6 +16,7 @@ import type { ProductDetail, Product } from "@/types/product";
 interface ProductPageProps {
   params: {
     slug: string;
+    locale: 'es' | 'en';
   };
 }
 
@@ -23,17 +24,18 @@ export default function ProductPage({ params }: ProductPageProps) {
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const locale = params.locale || 'es';
 
   useEffect(() => {
     loadProduct();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.slug]);
+  }, [params.slug, locale]);
 
   const loadProduct = async () => {
     setIsLoading(true);
 
     // Fetch product
-    const productData = await getProductBySlug(params.slug);
+    const productData = await getProductBySlug(params.slug, locale);
 
     if (!productData) {
       setIsLoading(false);
@@ -45,7 +47,7 @@ export default function ProductPage({ params }: ProductPageProps) {
 
     // Fetch related products from the same category
     if (productData.category?.slug) {
-      const related = await getProductsByCategory(productData.category.slug);
+      const related = await getProductsByCategory(productData.category.slug, locale);
       // Filter out current product and limit to 4
       const filtered = related
         .filter((p) => p.id !== productData.id)

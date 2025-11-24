@@ -18,6 +18,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { createOrder } from "@/lib/supabase/orders";
 import { getStripeClient } from "@/lib/stripe/client";
 import { StripePaymentElement } from "@/components/checkout/stripe-payment-element";
+import { InstallmentSelector, type InstallmentOption } from "@/components/checkout/installment-selector";
 import type { CreateOrderData, PaymentMethod } from "@/types/order";
 
 const CheckoutPage = () => {
@@ -50,6 +51,9 @@ const CheckoutPage = () => {
 
   // Método de pago
   const [paymentMethod, setPaymentMethod] = useState<"card" | "transfer" | "cash">("card");
+
+  // Meses sin intereses
+  const [selectedInstallments, setSelectedInstallments] = useState<InstallmentOption>(1);
 
   const shippingCost = 0; // Envío gratis
   const finalTotal = total + shippingCost;
@@ -171,6 +175,7 @@ const CheckoutPage = () => {
             currency: 'mxn',
             orderId: createdOrderId,
             customerEmail: shippingData.email,
+            installments: selectedInstallments,
           }),
         });
 
@@ -195,7 +200,7 @@ const CheckoutPage = () => {
 
     return () => clearTimeout(timeoutId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paymentMethod, stripeEnabled, finalTotal, shippingData, items, clientSecret]);
+  }, [paymentMethod, stripeEnabled, finalTotal, shippingData, items, clientSecret, selectedInstallments]);
 
   // Manejar pago exitoso con Stripe
   const handleStripePaymentSuccess = async (paymentIntentId: string) => {
@@ -517,6 +522,8 @@ const CheckoutPage = () => {
                   setPaymentMethod(value as "card" | "transfer" | "cash");
                   setClientSecret(null);
                   setOrderId(null);
+                  // Resetear MSI al cambiar de método de pago
+                  setSelectedInstallments(1);
                 }}>
                   <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="card">Tarjeta</TabsTrigger>
@@ -525,6 +532,20 @@ const CheckoutPage = () => {
                   </TabsList>
 
                   <TabsContent value="card" className="space-y-4 mt-6">
+                    {/* Selector de Meses Sin Intereses */}
+                    {stripeEnabled && (
+                      <InstallmentSelector
+                        total={finalTotal}
+                        selectedInstallments={selectedInstallments}
+                        onInstallmentChange={(installments) => {
+                          setSelectedInstallments(installments);
+                          // Resetear clientSecret para forzar la creación de un nuevo payment intent
+                          setClientSecret(null);
+                          setOrderId(null);
+                        }}
+                      />
+                    )}
+
                     {stripeEnabled && clientSecret && stripeClient ? (
                       <Elements stripe={stripeClient} options={{ clientSecret }}>
                         <StripePaymentElement
@@ -537,7 +558,7 @@ const CheckoutPage = () => {
                     ) : stripeEnabled ? (
                       <div className="p-4 rounded-lg bg-muted">
                         <p className="text-sm text-muted-foreground">
-                          {clientSecret === null 
+                          {clientSecret === null
                             ? "Completa la información de envío para continuar con el pago"
                             : "Cargando método de pago..."}
                         </p>
