@@ -25,7 +25,7 @@
     "badge": "Elegant Jewelry Crafted in Jalisco - Spring 2025 Collection",
     "badgeLink": "View collection",
     "title": "Elegant Jewelry from the Heart of Jalisco",
-    "description": "Discover elegant jewelry designed in Guadalajara, Jalisco. Engagement rings, exclusive necklaces, bracelets, and earrings in 14k and 18k gold. Over 30 years creating unique pieces with Jalisco's artisan tradition. Secure shipping throughout Mexico.",
+    "description": "Discover elegant jewelry designed in Guadalajara, Jalisco. Engagement rings, exclusive necklaces, bracelets, and earrings in 10k gold. Over 30 years creating unique pieces with Jalisco's artisan tradition. Secure shipping throughout Mexico.",
     "ctaPrimary": "View Elegant Jewelry",
     "ctaSecondary": "Learn more",
     "imageAlt": "Elegant gold jewelry from Jalisco - Rings, necklaces, bracelets and earrings from Oro Nacional"
@@ -40,7 +40,7 @@
     "subtitle": "Your trusted jeweler in Guadalajara with guarantee, secure shipping and artisan tradition",
     "certified": {
       "title": "Certified Gold",
-      "description": "14k and 18k gold jewelry with guaranteed authenticity certificate"
+      "description": "10k gold jewelry with guaranteed authenticity certificate"
     },
     "shipping": {
       "title": "Secure National Shipping",
@@ -198,7 +198,7 @@
     "step1Title": "Design and Concept",
     "step1Description": "Each piece begins with a detailed sketch. Our designers work with you to capture your vision and create a unique design that reflects your story.",
     "step2Title": "Material Selection",
-    "step2Description": "We carefully choose certified 14k or 18k gold and the highest quality precious stones. We only work with reliable and ethical suppliers.",
+    "step2Description": "We carefully choose certified 10k gold and the highest quality precious stones. We only work with reliable and ethical suppliers.",
     "step3Title": "Artisan Crafting",
     "step3Description": "Our master jewelers bring the design to life using traditional techniques refined over decades. Every detail is worked by hand with millimeter precision.",
     "step4Title": "Setting and Finishing",
@@ -211,7 +211,7 @@
     "certificationsTitle": "Certifications and Warranties",
     "certificationsDescription": "Your trust is our greatest treasure. We back each piece with certifications and warranties that ensure your investment.",
     "cert1Title": "Authenticity Certificate",
-    "cert1Description": "Each piece includes a certificate that guarantees the purity of the gold (14k or 18k) and the authenticity of the precious stones.",
+    "cert1Description": "Each piece includes a certificate that guarantees the purity of 10k gold and the authenticity of the precious stones.",
     "cert2Title": "Lifetime Warranty",
     "cert2Description": "We offer a lifetime warranty on manufacturing and finishes. Free repairs for manufacturing defects.",
     "cert3Title": "Diamond Certification",
@@ -240,7 +240,7 @@
     "ourMissionText": "To create the highest quality gold jewelry that captures the essence of special moments, keeping Jalisco's artisan tradition alive and offering exceptional service to each customer.",
     "whyChooseUs": "Why Choose Us?",
     "authenticGold": "Authentic Gold",
-    "authenticGoldDesc": "We work exclusively with certified 14k and 18k gold. Each piece includes an authenticity certificate.",
+    "authenticGoldDesc": "We work exclusively with certified 10k gold. Each piece includes an authenticity certificate.",
     "artisanTradition": "Artisan Tradition",
     "artisanTraditionDesc": "Our master jewelers have decades of experience in traditional Jalisco techniques.",
     "customDesign": "Custom Design",
@@ -538,26 +538,25 @@
     "categoryNecklaces": "Oro Nacional Necklaces",
     "categoryEarrings": "Oro Nacional Earrings",
     "categoryBracelets": "Oro Nacional Bracelets",
-    "material14k": "14k Gold",
-    "material18k": "18k Gold",
+    "material10k": "10k Gold",
     "materialWhite": "White Gold",
     "materialYellow": "Yellow Gold",
     "materialRose": "Rose Gold",
     "rings": {
       "title": "Gold Rings in Guadalajara",
-      "description": "Discover our exclusive collection of engagement rings, wedding bands and unique designs in 14k and 18k gold. Artisan jewelry from Jalisco with authenticity certificate."
+      "description": "Discover our exclusive collection of engagement rings, wedding bands and unique designs in 10k gold. Artisan jewelry from Jalisco with authenticity certificate."
     },
     "necklaces": {
       "title": "Gold Necklaces in Guadalajara",
-      "description": "Explore our collection of necklaces and chains in 14k and 18k gold. From elegant chains to necklaces with unique charms. Artisan designs from Jalisco with authenticity certificate."
+      "description": "Explore our collection of necklaces and chains in 10k gold. From elegant chains to necklaces with unique charms. Artisan designs from Jalisco with authenticity certificate."
     },
     "earrings": {
       "title": "Gold Earrings in Guadalajara",
-      "description": "Find elegant earrings in 14k and 18k gold. From classic hoops to drop designs with diamonds and precious stones. Artisan jewelry from Jalisco of the highest quality."
+      "description": "Find elegant earrings in 10k gold. From classic hoops to drop designs with diamonds and precious stones. Artisan jewelry from Jalisco of the highest quality."
     },
     "bracelets": {
       "title": "Gold Bracelets in Guadalajara",
-      "description": "Discover bracelets and bangles in 14k and 18k gold. From elegant tennis bracelets to personalized bangles. Artisan jewelry from Jalisco with the highest quality and authenticity certificate."
+      "description": "Discover bracelets and bangles in 10k gold. From elegant tennis bracelets to personalized bangles. Artisan jewelry from Jalisco with the highest quality and authenticity certificate."
     }
   },
   "admin": {

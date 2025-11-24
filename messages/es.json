@@ -25,7 +25,7 @@
     "badge": "Joyería elegante hecha en Jalisco - Colección Primavera 2025",
     "badgeLink": "Ver colección",
     "title": "Joyería Elegante en el Corazón de Jalisco",
-    "description": "Descubre joyería elegante diseñada en Guadalajara, Jalisco. Anillos de compromiso, collares exclusivos, esclavas y aretes de oro de 14k y 18k. Más de 30 años creando piezas únicas con la tradición artesanal jalisciense. Envíos seguros a toda la República Mexicana.",
+    "description": "Descubre joyería elegante diseñada en Guadalajara, Jalisco. Anillos de compromiso, collares exclusivos, esclavas y aretes de oro de 10k. Más de 30 años creando piezas únicas con la tradición artesanal jalisciense. Envíos seguros a toda la República Mexicana.",
     "ctaPrimary": "Ver Joyería Elegante",
     "ctaSecondary": "Conocer más",
     "imageAlt": "Joyería elegante de oro en Jalisco - Anillos, collares, esclavas y aretes de Oro Nacional"
@@ -40,7 +40,7 @@
     "subtitle": "Tu joyería de confianza en Guadalajara con garantía, envíos seguros y tradición artesanal",
     "certified": {
       "title": "Oro Certificado",
-      "description": "Joyería de oro 14k y 18k con certificado de autenticidad garantizado"
+      "description": "Joyería de oro 10k con certificado de autenticidad garantizado"
     },
     "shipping": {
       "title": "Envío Nacional Seguro",
@@ -198,7 +198,7 @@
     "step1Title": "Diseño y Concepto",
     "step1Description": "Cada pieza comienza con un boceto detallado. Nuestros diseñadores trabajan contigo para capturar tu visión y crear un diseño único que refleje tu historia.",
     "step2Title": "Selección de Materiales",
-    "step2Description": "Elegimos cuidadosamente oro certificado de 14k o 18k y piedras preciosas de la más alta calidad. Solo trabajamos con proveedores confiables y éticos.",
+    "step2Description": "Elegimos cuidadosamente oro certificado de 10k y piedras preciosas de la más alta calidad. Solo trabajamos con proveedores confiables y éticos.",
     "step3Title": "Elaboración Artesanal",
     "step3Description": "Nuestros maestros joyeros dan vida al diseño usando técnicas tradicionales refinadas durante décadas. Cada detalle se trabaja a mano con precisión milimétrica.",
     "step4Title": "Engaste y Acabado",
@@ -211,7 +211,7 @@
     "certificationsTitle": "Certificaciones y Garantías",
     "certificationsDescription": "Tu confianza es nuestro mayor tesoro. Respaldamos cada pieza con certificaciones y garantías que aseguran tu inversión.",
     "cert1Title": "Certificado de Autenticidad",
-    "cert1Description": "Cada pieza incluye un certificado que garantiza la pureza del oro (14k o 18k) y la autenticidad de las piedras preciosas.",
+    "cert1Description": "Cada pieza incluye un certificado que garantiza la pureza del oro 10k y la autenticidad de las piedras preciosas.",
     "cert2Title": "Garantía de Por Vida",
     "cert2Description": "Ofrecemos garantía de por vida en manufactura y acabados. Reparaciones sin costo por defectos de fabricación.",
     "cert3Title": "Certificación de Diamantes",
@@ -240,7 +240,7 @@
     "ourMissionText": "Crear joyería de oro de la más alta calidad que capture la esencia de los momentos especiales, manteniendo viva la tradición artesanal jalisciense y ofreciendo un servicio excepcional a cada cliente.",
     "whyChooseUs": "¿Por Qué Elegirnos?",
     "authenticGold": "Oro Auténtico",
-    "authenticGoldDesc": "Trabajamos exclusivamente con oro 14k y 18k certificado. Cada pieza incluye certificado de autenticidad.",
+    "authenticGoldDesc": "Trabajamos exclusivamente con oro 10k certificado. Cada pieza incluye certificado de autenticidad.",
     "artisanTradition": "Tradición Artesanal",
     "artisanTraditionDesc": "Nuestros maestros joyeros cuentan con décadas de experiencia en técnicas tradicionales jaliscienses.",
     "customDesign": "Diseño Personalizado",
@@ -530,26 +530,25 @@
     "categoryNecklaces": "Collares de Oro Nacional",
     "categoryEarrings": "Aretes de Oro Nacional",
     "categoryBracelets": "Pulseras de Oro Nacional",
-    "material14k": "Oro 14k",
-    "material18k": "Oro 18k",
+    "material10k": "Oro 10k",
     "materialWhite": "Oro Blanco",
     "materialYellow": "Oro Amarillo",
     "materialRose": "Oro Rosa",
     "rings": {
       "title": "Anillos de Oro en Guadalajara",
-      "description": "Descubre nuestra exclusiva colección de anillos de compromiso, matrimonio y diseños únicos en oro 14k y 18k. Joyería artesanal jalisciense con certificado de autenticidad."
+      "description": "Descubre nuestra exclusiva colección de anillos de compromiso, matrimonio y diseños únicos en oro 10k. Joyería artesanal jalisciense con certificado de autenticidad."
     },
     "necklaces": {
       "title": "Collares de Oro en Guadalajara",
-      "description": "Explora nuestra colección de collares y cadenas de oro 14k y 18k. Desde elegantes cadenas hasta collares con dijes únicos. Diseños artesanales jaliscienses con certificado de autenticidad."
+      "description": "Explora nuestra colección de collares y cadenas de oro 10k. Desde elegantes cadenas hasta collares con dijes únicos. Diseños artesanales jaliscienses con certificado de autenticidad."
     },
     "earrings": {
       "title": "Aretes de Oro en Guadalajara",
-      "description": "Encuentra aretes elegantes de oro 14k y 18k. Desde argollas clásicas hasta diseños colgantes con diamantes y piedras preciosas. Joyería artesanal jalisciense de la más alta calidad."
+      "description": "Encuentra aretes elegantes de oro 10k. Desde argollas clásicas hasta diseños colgantes con diamantes y piedras preciosas. Joyería artesanal jalisciense de la más alta calidad."
     },
     "bracelets": {
       "title": "Pulseras de Oro en Guadalajara",
-      "description": "Descubre pulseras y brazaletes de oro 14k y 18k. Desde elegantes pulseras tenis hasta brazaletes personalizados. Joyería artesanal jalisciense con la más alta calidad y certificado de autenticidad."
+      "description": "Descubre pulseras y brazaletes de oro 10k. Desde elegantes pulseras tenis hasta brazaletes personalizados. Joyería artesanal jalisciense con la más alta calidad y certificado de autenticidad."
     }
   },
   "admin": {
