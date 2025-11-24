@@ -78,7 +78,8 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
   // Cargar producto existente para edición
   useEffect(() => {
     const loadProduct = async () => {
-      if (!productId) return;
+      // Validar que productId exista y no sea una cadena vacía
+      if (!productId || productId.trim() === "") return;
 
       setIsLoading(true);
       try {
@@ -219,7 +220,8 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
         images: formData.images
       };
 
-      if (productId) {
+      // Validar que productId sea un UUID válido si existe
+      if (productId && productId.trim() !== "") {
         await updateProduct(productId, productData);
       } else {
         await createProduct(productData);

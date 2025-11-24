@@ -564,6 +564,11 @@ export async function updateProduct(
   updates: UpdateMultilingualProductData
 ) {
   try {
+    // Validar que productId sea un UUID válido
+    if (!productId || productId.trim() === "") {
+      throw new Error("Invalid product ID: ID cannot be empty");
+    }
+
     const dataToUpdate: Record<string, unknown> = {};
 
     // Actualizar campos básicos
