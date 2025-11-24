@@ -77,11 +77,8 @@ export default function ProductsAdmin() {
     return products.filter((product) => {
       // Filter by search term
       const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      // Only show active products (soft deleted products have is_active: false)
-      const isActive = product.is_active !== false;
-      
-      return matchesSearch && isActive;
+
+      return matchesSearch;
     });
   }, [products, searchTerm]);
 
@@ -158,6 +155,9 @@ export default function ProductsAdmin() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   {t('material')}
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  {t('status')}
+                </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   {t('actionsColumn')}
                 </th>
@@ -166,7 +166,7 @@ export default function ProductsAdmin() {
             <tbody className="bg-card divide-y divide-border">
               {filteredProducts.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
+                  <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground">
                     {searchTerm
                       ? t('noProductsFound')
                       : t('noProducts')}
@@ -221,6 +221,17 @@ export default function ProductsAdmin() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                     {product.material}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span
+                      className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                        product.is_active !== false
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
+                      {product.is_active !== false ? t('active') : t('inactive')}
+                    </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center justify-end gap-2">

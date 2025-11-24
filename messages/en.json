@@ -636,7 +636,10 @@
       "deleteWarning": "Note: The product will be deactivated and will no longer appear in the public catalog. Data will be kept in the system.",
       "deleting": "Deleting...",
       "deleteError": "Error deleting product. Please try again.",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "status": "Status",
+      "active": "Active",
+      "inactive": "Inactive"
     },
     "orders": {
       "title": "Orders",
