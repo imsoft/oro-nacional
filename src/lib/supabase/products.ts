@@ -520,8 +520,12 @@ export async function addProductSizes(
 export async function softDeleteProduct(productId: string) {
   // Validar que productId sea un UUID válido
   if (!productId || productId.trim() === "") {
-    throw new Error("Invalid product ID: ID cannot be empty");
+    const error = new Error("Invalid product ID: ID cannot be empty");
+    console.error("Validation error:", error);
+    throw error;
   }
+
+  console.log("Soft deleting product with ID:", productId);
 
   const { data, error } = await supabase
     .from("products")
@@ -531,10 +535,23 @@ export async function softDeleteProduct(productId: string) {
     .single();
 
   if (error) {
-    console.error("Error soft deleting product:", error);
+    console.error("Error soft deleting product:", {
+      productId,
+      error,
+      code: error.code,
+      message: error.message,
+      details: error.details
+    });
+    throw new Error(`Failed to delete product: ${error.message}`);
+  }
+
+  if (!data) {
+    const error = new Error("Product not found or already deleted");
+    console.error("No data returned after soft delete:", productId);
     throw error;
   }
 
+  console.log("Product soft deleted successfully:", data);
   return data;
 }
 

@@ -49,25 +49,42 @@ export default function ProductsAdmin() {
   const handleDeleteConfirm = async () => {
     if (!productToDelete) return;
 
+    // Validar que el ID del producto sea válido
+    if (!productToDelete.id || productToDelete.id.trim() === "") {
+      console.error("Invalid product ID:", productToDelete);
+      alert(t('deleteError') || "Error: ID de producto inválido. Por favor recarga la página e intenta de nuevo.");
+      setDeleteDialogOpen(false);
+      setProductToDelete(null);
+      return;
+    }
+
     setIsDeleting(true);
     try {
       const deletedProductId = productToDelete.id;
-      
+
+      console.log("Attempting to delete product:", {
+        id: deletedProductId,
+        name: productToDelete.name
+      });
+
       // Delete the product
       await softDeleteProduct(deletedProductId);
-      
+
+      console.log("Product soft-deleted successfully");
+
       // Remove the product from the list immediately for better UX
       setProducts(prevProducts => prevProducts.filter(p => p.id !== deletedProductId));
-      
+
       // Close dialog
       setDeleteDialogOpen(false);
       setProductToDelete(null);
-      
+
       // Reload to ensure sync with database (will include inactive products, which is fine for admin)
       await loadProducts();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error deleting product:", error);
-      alert(t('deleteError') || "Error al eliminar el producto. Por favor intenta de nuevo.");
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido";
+      alert(t('deleteError') || `Error al eliminar el producto: ${errorMessage}. Por favor intenta de nuevo.`);
     } finally {
       setIsDeleting(false);
     }
