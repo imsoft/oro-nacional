@@ -230,7 +230,8 @@ export function useMultilingualForm<T>(
     requiredFields.forEach(field => {
       const value = formData[field] as MultilingualFormData;
       if (value && typeof value === 'object' && 'es' in value && 'en' in value) {
-        if (!value.es.trim() || !value.en.trim()) {
+        // Solo requerir español, inglés es opcional
+        if (!value.es.trim()) {
           newErrors[field as string] = t('multilingual.required');
           isValid = false;
         }

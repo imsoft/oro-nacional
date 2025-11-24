@@ -449,13 +449,13 @@ export async function createProduct(
       .from("products")
       .insert({
         name_es: productData.name.es,
-        name_en: productData.name.en,
+        name_en: productData.name.en || productData.name.es, // Usar español como fallback si inglés está vacío
         slug_es: slugs.es,
-        slug_en: slugs.en,
+        slug_en: slugs.en || slugs.es, // Usar español como fallback
         description_es: productData.description.es,
-        description_en: productData.description.en,
+        description_en: productData.description.en || productData.description.es, // Usar español como fallback
         material_es: productData.material.es,
-        material_en: productData.material.en,
+        material_en: productData.material.en || productData.material.es, // Usar español como fallback
         category_id: productData.category_id,
         price: productData.price,
         stock: productData.stock,
@@ -569,21 +569,21 @@ export async function updateProduct(
     // Actualizar campos básicos
     if (updates.name) {
       dataToUpdate.name_es = updates.name.es;
-      dataToUpdate.name_en = updates.name.en;
+      dataToUpdate.name_en = updates.name.en || updates.name.es; // Usar español como fallback
       // Regenerar slugs
       const slugs = generateMultilingualSlug(updates.name);
       dataToUpdate.slug_es = slugs.es;
-      dataToUpdate.slug_en = slugs.en;
+      dataToUpdate.slug_en = slugs.en || slugs.es; // Usar español como fallback
     }
 
     if (updates.description) {
       dataToUpdate.description_es = updates.description.es;
-      dataToUpdate.description_en = updates.description.en;
+      dataToUpdate.description_en = updates.description.en || updates.description.es; // Usar español como fallback
     }
 
     if (updates.material) {
       dataToUpdate.material_es = updates.material.es;
-      dataToUpdate.material_en = updates.material.en;
+      dataToUpdate.material_en = updates.material.en || updates.material.es; // Usar español como fallback
     }
 
     if (updates.category_id !== undefined) dataToUpdate.category_id = updates.category_id;

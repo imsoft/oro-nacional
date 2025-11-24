@@ -437,15 +437,15 @@ export async function createBlogPost(
         slug: slugs.es || slugs.en || '',
         excerpt: postData.excerpt?.es || postData.excerpt?.en || null,
         content: postData.content.es || postData.content.en || '',
-        // Columnas multilingües
+        // Columnas multilingües (usar español como fallback si inglés está vacío)
         title_es: postData.title.es,
-        title_en: postData.title.en,
+        title_en: postData.title.en || postData.title.es,
         slug_es: slugs.es,
-        slug_en: slugs.en,
+        slug_en: slugs.en || slugs.es,
         excerpt_es: postData.excerpt?.es,
-        excerpt_en: postData.excerpt?.en,
+        excerpt_en: postData.excerpt?.en || postData.excerpt?.es || null,
         content_es: postData.content.es,
-        content_en: postData.content.en,
+        content_en: postData.content.en || postData.content.es,
         featured_image: postData.featured_image?.name,
         category_id: postData.category_id,
         author_id: authorId,
@@ -498,26 +498,26 @@ export async function updateBlogPost(
     if (updates.title) {
       // Columnas legacy (usar español como fallback)
       dataToUpdate.title = updates.title.es || updates.title.en || '';
-      // Columnas multilingües
+      // Columnas multilingües (usar español como fallback si inglés está vacío)
       dataToUpdate.title_es = updates.title.es;
-      dataToUpdate.title_en = updates.title.en;
+      dataToUpdate.title_en = updates.title.en || updates.title.es;
       // Regenerar slugs
       const slugs = generateMultilingualSlug(updates.title);
       dataToUpdate.slug = slugs.es || slugs.en || ''; // Columna legacy
       dataToUpdate.slug_es = slugs.es;
-      dataToUpdate.slug_en = slugs.en;
+      dataToUpdate.slug_en = slugs.en || slugs.es;
     }
 
     if (updates.excerpt) {
       dataToUpdate.excerpt = updates.excerpt.es || updates.excerpt.en || null; // Columna legacy
       dataToUpdate.excerpt_es = updates.excerpt.es;
-      dataToUpdate.excerpt_en = updates.excerpt.en;
+      dataToUpdate.excerpt_en = updates.excerpt.en || updates.excerpt.es || null;
     }
 
     if (updates.content) {
       dataToUpdate.content = updates.content.es || updates.content.en || ''; // Columna legacy
       dataToUpdate.content_es = updates.content.es;
-      dataToUpdate.content_en = updates.content.en;
+      dataToUpdate.content_en = updates.content.en || updates.content.es;
     }
 
     // Manejar actualización de imagen destacada
