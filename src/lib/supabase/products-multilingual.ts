@@ -456,7 +456,7 @@ export async function createProduct(
         description_en: productData.description.en || productData.description.es, // Usar español como fallback
         material_es: productData.material.es,
         material_en: productData.material.en || productData.material.es, // Usar español como fallback
-        category_id: productData.category_id,
+        category_id: productData.category_id && productData.category_id.trim() !== "" ? productData.category_id : null, // Convertir vacío a null
         price: productData.price,
         stock: productData.stock,
         weight: productData.weight,
@@ -591,7 +591,10 @@ export async function updateProduct(
       dataToUpdate.material_en = updates.material.en || updates.material.es; // Usar español como fallback
     }
 
-    if (updates.category_id !== undefined) dataToUpdate.category_id = updates.category_id;
+    // Convertir category_id vacío a null
+    if (updates.category_id !== undefined) {
+      dataToUpdate.category_id = updates.category_id && updates.category_id.trim() !== "" ? updates.category_id : null;
+    }
     if (updates.price !== undefined) dataToUpdate.price = updates.price;
     if (updates.stock !== undefined) dataToUpdate.stock = updates.stock;
     if (updates.weight !== undefined) dataToUpdate.weight = updates.weight;

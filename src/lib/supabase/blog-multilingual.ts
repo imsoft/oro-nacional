@@ -447,7 +447,7 @@ export async function createBlogPost(
         content_es: postData.content.es,
         content_en: postData.content.en || postData.content.es,
         featured_image: postData.featured_image?.name,
-        category_id: postData.category_id,
+        category_id: postData.category_id && postData.category_id.trim() !== "" ? postData.category_id : null, // Convertir vacío a null
         author_id: authorId,
         status: postData.status,
         available_languages: postData.available_languages || ['es', 'en'],
@@ -567,8 +567,11 @@ export async function updateBlogPost(
       dataToUpdate.featured_image = updates.featured_image.name;
     }
 
-    if (updates.category_id !== undefined) dataToUpdate.category_id = updates.category_id;
-    
+    // Convertir category_id vacío a null
+    if (updates.category_id !== undefined) {
+      dataToUpdate.category_id = updates.category_id && updates.category_id.trim() !== "" ? updates.category_id : null;
+    }
+
     if (updates.status !== undefined) {
       dataToUpdate.status = updates.status;
       // Si se está publicando por primera vez, establecer published_at
