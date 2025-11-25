@@ -471,25 +471,33 @@ export async function createProduct(
       throw productError;
     }
 
-    // Insertar especificaciones si existen
+    // Insertar especificaciones si existen (filtrar las vacías)
     if (productData.specifications && productData.specifications.length > 0) {
-      const specifications = productData.specifications.map((spec) => ({
-        product_id: product.id,
-        spec_key: spec.spec_key.es || spec.spec_key.en || '', // Usar español como fallback para columna legacy
-        spec_value: spec.spec_value.es || spec.spec_value.en || '', // Usar español como fallback para columna legacy
-        spec_key_es: spec.spec_key.es,
-        spec_key_en: spec.spec_key.en,
-        spec_value_es: spec.spec_value.es,
-        spec_value_en: spec.spec_value.en,
-        display_order: spec.display_order,
-      }));
+      const specifications = productData.specifications
+        .filter(spec =>
+          // Solo incluir especificaciones que tengan al menos el valor en español
+          (spec.spec_key.es && spec.spec_key.es.trim() !== '') ||
+          (spec.spec_value.es && spec.spec_value.es.trim() !== '')
+        )
+        .map((spec) => ({
+          product_id: product.id,
+          spec_key: spec.spec_key.es || spec.spec_key.en || '', // Usar español como fallback para columna legacy
+          spec_value: spec.spec_value.es || spec.spec_value.en || '', // Usar español como fallback para columna legacy
+          spec_key_es: spec.spec_key.es,
+          spec_key_en: spec.spec_key.en || spec.spec_key.es, // Usar español como fallback
+          spec_value_es: spec.spec_value.es,
+          spec_value_en: spec.spec_value.en || spec.spec_value.es, // Usar español como fallback
+          display_order: spec.display_order,
+        }));
 
-      const { error: specsError } = await supabase
-        .from("product_specifications")
-        .insert(specifications);
+      if (specifications.length > 0) {
+        const { error: specsError } = await supabase
+          .from("product_specifications")
+          .insert(specifications);
 
-      if (specsError) {
-        console.error("Error creating specifications:", specsError);
+        if (specsError) {
+          console.error("Error creating specifications:", specsError);
+        }
       }
     }
 
@@ -626,25 +634,33 @@ export async function updateProduct(
         console.error("Error deleting old specifications:", deleteSpecsError);
       }
 
-      // Insertar nuevas especificaciones si hay alguna
+      // Insertar nuevas especificaciones si hay alguna (filtrar las vacías)
       if (updates.specifications.length > 0) {
-        const specifications = updates.specifications.map((spec) => ({
-          product_id: productId,
-          spec_key: spec.spec_key.es || spec.spec_key.en || '', // Usar español como fallback para columna legacy
-          spec_value: spec.spec_value.es || spec.spec_value.en || '', // Usar español como fallback para columna legacy
-          spec_key_es: spec.spec_key.es,
-          spec_key_en: spec.spec_key.en,
-          spec_value_es: spec.spec_value.es,
-          spec_value_en: spec.spec_value.en,
-          display_order: spec.display_order,
-        }));
+        const specifications = updates.specifications
+          .filter(spec =>
+            // Solo incluir especificaciones que tengan al menos el valor en español
+            (spec.spec_key.es && spec.spec_key.es.trim() !== '') ||
+            (spec.spec_value.es && spec.spec_value.es.trim() !== '')
+          )
+          .map((spec) => ({
+            product_id: productId,
+            spec_key: spec.spec_key.es || spec.spec_key.en || '', // Usar español como fallback para columna legacy
+            spec_value: spec.spec_value.es || spec.spec_value.en || '', // Usar español como fallback para columna legacy
+            spec_key_es: spec.spec_key.es,
+            spec_key_en: spec.spec_key.en || spec.spec_key.es, // Usar español como fallback
+            spec_value_es: spec.spec_value.es,
+            spec_value_en: spec.spec_value.en || spec.spec_value.es, // Usar español como fallback
+            display_order: spec.display_order,
+          }));
 
-        const { error: insertSpecsError } = await supabase
-          .from("product_specifications")
-          .insert(specifications);
+        if (specifications.length > 0) {
+          const { error: insertSpecsError } = await supabase
+            .from("product_specifications")
+            .insert(specifications);
 
-        if (insertSpecsError) {
-          console.error("Error inserting specifications:", insertSpecsError);
+          if (insertSpecsError) {
+            console.error("Error inserting specifications:", insertSpecsError);
+          }
         }
       }
     }

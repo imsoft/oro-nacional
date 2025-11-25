@@ -272,7 +272,12 @@ export const generateSlug = (text: MultilingualText, locale: Locale): string => 
     .replace(/^-+|-+$/g, '');
 };
 
-export const generateMultilingualSlug = (text: MultilingualText): MultilingualText => ({
-  es: generateSlug(text, 'es'),
-  en: generateSlug(text, 'en')
-});
+export const generateMultilingualSlug = (text: MultilingualText): MultilingualText => {
+  const slugEs = generateSlug(text, 'es');
+  const slugEn = text.en && text.en.trim() !== '' ? generateSlug(text, 'en') : slugEs;
+
+  return {
+    es: slugEs,
+    en: slugEn
+  };
+};
