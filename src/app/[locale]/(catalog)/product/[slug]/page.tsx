@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Link } from '@/i18n/routing';
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
 import Breadcrumbs from "@/components/shared/breadcrumbs";
@@ -9,6 +8,7 @@ import ProductGallery from "@/components/product/product-gallery";
 import ProductInfo from "@/components/product/product-info";
 import ProductDetails from "@/components/product/product-details";
 import RelatedProducts from "@/components/product/related-products";
+import { ProductNotFound } from "@/components/product/product-not-found";
 import { Loader2 } from "lucide-react";
 import { getProductBySlug, getProductsByCategory } from "@/lib/supabase/products";
 import type { ProductDetail, Product } from "@/types/product";
@@ -70,28 +70,9 @@ export default function ProductPage({ params }: ProductPageProps) {
     );
   }
 
-  // Si el producto no existe, mostrar 404
+  // Si el producto no existe, mostrar página 404 mejorada
   if (!product) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="mx-auto max-w-7xl px-6 lg:px-8 py-20 pt-40 text-center">
-          <h1 className="text-3xl font-semibold text-foreground">
-            Producto no encontrado
-          </h1>
-          <p className="mt-4 text-muted-foreground">
-            El producto que buscas no existe o ha sido eliminado.
-          </p>
-          <Link
-            href="/catalog"
-            className="mt-8 inline-block rounded-md bg-[#D4AF37] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#B8941E] transition-colors"
-          >
-            Volver al Catálogo
-          </Link>
-        </div>
-        <Footer />
-      </div>
-    );
+    return <ProductNotFound slug={params.slug} locale={locale} />;
   }
 
   // Transform product for compatibility with existing components
