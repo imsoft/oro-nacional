@@ -455,11 +455,13 @@
     "subtitle": "productos favoritos",
     "noFavorites": "No tienes productos favoritos aún",
     "noFavoritesDesc": "Explora nuestro catálogo y marca tus productos favoritos haciendo clic en el ícono de corazón",
+    "itemCount": "{count} {count, plural, one {producto favorito} other {productos favoritos}}",
     "exploreCatalog": "Explorar Catálogo",
     "addToCart": "Agregar",
     "remove": "Eliminar",
     "keepShopping": "Seguir Explorando",
-    "viewCart": "Ver Carrito"
+    "viewCart": "Ver Carrito",
+    "removeFromFavorites": "Eliminar de favoritos"
   },
   "cart": {
     "title": "Carrito de Compras",

@@ -463,11 +463,13 @@
     "subtitle": "favorite products",
     "noFavorites": "You don't have any favorite products yet",
     "noFavoritesDesc": "Explore our catalog and mark your favorite products by clicking the heart icon",
+    "itemCount": "{count} {count, plural, one {favorite product} other {favorite products}}",
     "exploreCatalog": "Explore Catalog",
     "addToCart": "Add",
     "remove": "Remove",
     "keepShopping": "Keep Shopping",
-    "viewCart": "View Cart"
+    "viewCart": "View Cart",
+    "removeFromFavorites": "Remove from favorites"
   },
   "cart": {
     "title": "Shopping Cart",

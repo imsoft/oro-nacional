@@ -7,6 +7,8 @@ import { useFavoritesStore } from "@/stores/favorites-store";
 import { Button } from "@/components/ui/button";
 import { Heart, ShoppingCart, Trash2 } from "lucide-react";
 import { useCartStore } from "@/stores/cart-store";
+import Navbar from "@/components/shared/navbar";
+import Footer from "@/components/shared/footer";
 
 const FavoritesPage = () => {
   const t = useTranslations('favorites');
@@ -26,8 +28,10 @@ const FavoritesPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background py-12 pt-32">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <div className="py-12 pt-32">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-semibold text-foreground flex items-center gap-2">
             <Heart className="h-8 w-8 text-[#D4AF37]" />
@@ -44,10 +48,10 @@ const FavoritesPage = () => {
           <div className="text-center py-16">
             <Heart className="mx-auto h-24 w-24 text-muted-foreground/20" />
             <h3 className="mt-4 text-lg font-semibold text-foreground">
-              {t('emptyTitle')}
+              {t('noFavorites')}
             </h3>
             <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
-              {t('emptyDescription')}
+              {t('noFavoritesDesc')}
             </p>
             <Button asChild className="mt-6 bg-[#D4AF37] hover:bg-[#B8941E]">
               <Link href="/catalog">{t('exploreCatalog')}</Link>
@@ -140,7 +144,7 @@ const FavoritesPage = () => {
         {items.length > 0 && (
           <div className="mt-12 flex justify-center gap-4">
             <Button asChild variant="outline" size="lg">
-              <Link href="/catalog">{t('continueExploring')}</Link>
+              <Link href="/catalog">{t('keepShopping')}</Link>
             </Button>
             <Button asChild size="lg" className="bg-[#D4AF37] hover:bg-[#B8941E]">
               <Link href="/cart">
@@ -150,7 +154,9 @@ const FavoritesPage = () => {
             </Button>
           </div>
         )}
+        </div>
       </div>
+      <Footer />
     </div>
   );
 };
