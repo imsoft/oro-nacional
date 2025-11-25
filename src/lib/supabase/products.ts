@@ -144,74 +144,71 @@ export async function getProductBySlug(slug: string, locale: 'es' | 'en' = 'es')
   const slugField = locale === 'es' ? 'slug_es' : 'slug_en';
   const alternateSlugField = locale === 'es' ? 'slug_en' : 'slug_es';
 
+  const selectQuery = `
+    id,
+    name_es,
+    name_en,
+    slug_es,
+    slug_en,
+    description_es,
+    description_en,
+    price,
+    stock,
+    material_es,
+    material_en,
+    weight,
+    has_engraving,
+    is_active,
+    created_at,
+    updated_at,
+    category:product_categories(id, name_es, name_en, slug_es, slug_en, description_es, description_en),
+    images:product_images(id, image_url, alt_text_es, alt_text_en, display_order, is_primary, created_at),
+    specifications:product_specifications(id, spec_key_es, spec_key_en, spec_value_es, spec_value_en, display_order),
+    sizes:product_sizes(id, size, stock)
+  `;
+
   let { data, error } = await supabase
     .from("products")
-    .select(
-      `
-      id,
-      name_es,
-      name_en,
-      slug_es,
-      slug_en,
-      description_es,
-      description_en,
-      price,
-      stock,
-      material_es,
-      material_en,
-      weight,
-      has_engraving,
-      is_active,
-      created_at,
-      updated_at,
-      category:product_categories(id, name_es, name_en, slug_es, slug_en, description_es, description_en),
-      images:product_images(id, image_url, alt_text_es, alt_text_en, display_order, is_primary, created_at),
-      specifications:product_specifications(id, spec_key_es, spec_key_en, spec_value_es, spec_value_en, display_order),
-      sizes:product_sizes(id, size, stock)
-    `
-    )
+    .select(selectQuery)
     .eq(slugField, slug)
     .eq("is_active", true)
-    .single();
+    .maybeSingle();
 
   // If not found, try alternate language slug
-  if (error && error.code === 'PGRST116') {
+  if (!data && (!error || error.code === 'PGRST116')) {
     const result = await supabase
       .from("products")
-      .select(
-        `
-        id,
-        name_es,
-        name_en,
-        slug_es,
-        slug_en,
-        description_es,
-        description_en,
-        price,
-        stock,
-        material_es,
-        material_en,
-        weight,
-        has_engraving,
-        is_active,
-        created_at,
-        updated_at,
-        category:product_categories(id, name_es, name_en, slug_es, slug_en, description_es, description_en),
-        images:product_images(id, image_url, alt_text_es, alt_text_en, display_order, is_primary, created_at),
-        specifications:product_specifications(id, spec_key_es, spec_key_en, spec_value_es, spec_value_en, display_order),
-        sizes:product_sizes(id, size, stock)
-      `
-      )
+      .select(selectQuery)
       .eq(alternateSlugField, slug)
       .eq("is_active", true)
-      .single();
+      .maybeSingle();
 
     data = result.data;
     error = result.error;
   }
 
-  if (error) {
+  // If still not found and slug looks like a UUID, try searching by ID as fallback
+  if (!data && (!error || error.code === 'PGRST116')) {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (uuidRegex.test(slug)) {
+      const result = await supabase
+        .from("products")
+        .select(selectQuery)
+        .eq("id", slug)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      data = result.data;
+      error = result.error;
+    }
+  }
+
+  if (error && error.code !== 'PGRST116') {
     console.error("Error fetching product by slug:", error);
+    return null;
+  }
+
+  if (!data) {
     return null;
   }
 

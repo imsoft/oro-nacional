@@ -66,7 +66,7 @@ const FavoritesPage = () => {
               >
                 {/* Imagen */}
                 <div className="relative aspect-square overflow-hidden bg-muted">
-                  <Link href={`/product/${item.id}`}>
+                  <Link href={`/product/${item.slug}`}>
                     <Image
                       alt={item.name}
                       src={item.image}
@@ -100,7 +100,7 @@ const FavoritesPage = () => {
                     </span>
                   </div>
 
-                  <Link href={`/product/${item.id}`}>
+                  <Link href={`/product/${item.slug}`}>
                     <h3 className="text-lg font-semibold text-foreground group-hover:text-[#D4AF37] transition-colors">
                       {item.name}
                     </h3>
