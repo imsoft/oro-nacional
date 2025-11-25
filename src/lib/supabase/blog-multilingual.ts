@@ -879,13 +879,13 @@ export async function createBlogCategory(
         name: categoryData.name.es || categoryData.name.en || '',
         slug: slugs.es || slugs.en || '',
         description: categoryData.description?.es || categoryData.description?.en || null,
-        // Columnas multilingües
+        // Columnas multilingües (usar español como fallback si inglés está vacío)
         name_es: categoryData.name.es,
-        name_en: categoryData.name.en,
+        name_en: categoryData.name.en || categoryData.name.es,
         slug_es: slugs.es,
-        slug_en: slugs.en,
+        slug_en: slugs.en || slugs.es,
         description_es: categoryData.description?.es,
-        description_en: categoryData.description?.en,
+        description_en: categoryData.description?.en || categoryData.description?.es || null,
       })
       .select()
       .single();
@@ -918,20 +918,20 @@ export async function updateBlogCategory(
     if (updates.name) {
       // Columnas legacy (usar español como fallback)
       dataToUpdate.name = updates.name.es || updates.name.en || '';
-      // Columnas multilingües
+      // Columnas multilingües (usar español como fallback si inglés está vacío)
       dataToUpdate.name_es = updates.name.es;
-      dataToUpdate.name_en = updates.name.en;
+      dataToUpdate.name_en = updates.name.en || updates.name.es;
       // Regenerar slugs
       const slugs = generateMultilingualSlug(updates.name);
       dataToUpdate.slug = slugs.es || slugs.en || ''; // Columna legacy
       dataToUpdate.slug_es = slugs.es;
-      dataToUpdate.slug_en = slugs.en;
+      dataToUpdate.slug_en = slugs.en || slugs.es;
     }
 
     if (updates.description !== undefined) {
       dataToUpdate.description = updates.description?.es || updates.description?.en || null; // Columna legacy
       dataToUpdate.description_es = updates.description?.es || null;
-      dataToUpdate.description_en = updates.description?.en || null;
+      dataToUpdate.description_en = updates.description?.en || updates.description?.es || null;
     }
 
     const { data, error } = await supabase
