@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Heart, Share2, ShoppingCart, MessageCircle, Shield, Truck, Award } from "lucide-react";
+import { Heart, Share2, ShoppingCart, Shield, Truck, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -52,11 +52,6 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
     }
   };
 
-  const handleWhatsApp = () => {
-    const message = `¡Hola! Me interesa este producto: ${product.name} - ${product.price}`;
-    const whatsappUrl = `https://wa.me/523312345678?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
-  };
 
   const handleAddToCart = () => {
     // Convertir el precio de string a number
@@ -142,15 +137,6 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
             <ShoppingCart className="mr-2 h-5 w-5" />
             {product.stock === 0 ? 'Agotado' : 'Agregar al Carrito'}
           </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            className="w-full border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white text-base font-semibold py-6 transition-all duration-300"
-            onClick={handleWhatsApp}
-          >
-            <MessageCircle className="mr-2 h-5 w-5" />
-            Contactar por WhatsApp
-          </Button>
         </div>
 
         {/* Información de stock */}
@@ -211,7 +197,7 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
         <div className="flex items-start gap-3">
           <Award className="h-5 w-5 text-[#D4AF37] mt-0.5" />
           <div>
-            <p className="font-semibold text-sm">Garantía de por Vida</p>
+            <p className="font-semibold text-sm">Garantía de Manufactura</p>
             <p className="text-sm text-muted-foreground">
               En todos nuestros productos
             </p>

@@ -82,7 +82,7 @@ const ProductDetails = ({ product }: ProductDetailsProps) => {
           <div className="text-center p-4 bg-muted/20 rounded-lg">
             <Award className="h-8 w-8 text-[#D4AF37] mx-auto mb-2" />
             <h4 className="font-semibold text-sm mb-1">Garantía</h4>
-            <p className="text-xs text-muted-foreground">De por vida</p>
+            <p className="text-xs text-muted-foreground">De manufactura</p>
           </div>
         </div>
       </div>

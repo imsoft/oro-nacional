@@ -179,14 +179,6 @@ export function getFormattedAddress(settings: SiteSettings | null): string {
   return `${settings.address_street}, ${settings.address_colony}, ${settings.address_city}, ${settings.address_state} ${settings.address_zip}, ${settings.address_country}`;
 }
 
-/**
- * Helper function to get WhatsApp link
- */
-export function getWhatsAppLink(settings: SiteSettings | null): string {
-  if (!settings) return "#";
-
-  return `https://wa.me/${settings.whatsapp_phone}`;
-}
 
 // ============================================================================
 // Store Settings (for /admin/configuracion page)

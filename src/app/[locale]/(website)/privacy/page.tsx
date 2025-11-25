@@ -50,7 +50,7 @@ const PrivacyPage = () => {
             </h3>
             <p className="text-muted-foreground leading-relaxed mb-4">
               Oro Nacional recaba los siguientes datos personales de manera directa o indirecta a
-              través de su sitio web, redes sociales, WhatsApp, o durante el proceso de compra:
+              través de su sitio web, redes sociales, o durante el proceso de compra:
             </p>
             <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4">
               <li>Nombre completo</li>

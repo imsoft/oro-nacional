@@ -18,7 +18,7 @@ const WarrantyPage = () => {
           </h1>
           <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
             Tu inversión está protegida. Cada joya incluye certificado de
-            autenticidad y garantía de por vida en manufactura.
+            autenticidad y garantía en manufactura.
           </p>
         </div>
       </section>
@@ -26,7 +26,7 @@ const WarrantyPage = () => {
       {/* Contenido principal */}
       <section className="py-16 lg:py-24">
         <div className="mx-auto max-w-4xl px-6 lg:px-8">
-          {/* Garantía de por vida */}
+          {/* Garantía de manufactura */}
           <div className="mb-16">
             <div className="rounded-2xl bg-gradient-to-br from-[#D4AF37]/10 to-[#D4AF37]/5 p-8 lg:p-12 border border-[#D4AF37]/20">
               <div className="flex items-start gap-4 mb-6">
@@ -35,11 +35,11 @@ const WarrantyPage = () => {
                 </div>
                 <div>
                   <h2 className="text-2xl font-semibold text-foreground">
-                    Garantía de Por Vida
+                    Garantía de Manufactura
                   </h2>
                   <p className="mt-2 text-muted-foreground">
                     En Oro Nacional respaldamos la calidad de nuestra joyería
-                    con una garantía de manufactura de por vida. Si tu joya
+                    con una garantía de manufactura. Si tu joya
                     presenta defectos de fabricación, la reparamos sin costo.
                   </p>
                 </div>
@@ -235,8 +235,7 @@ const WarrantyPage = () => {
                   </h3>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Llámanos, visita nuestra tienda en Guadalajara o envíanos un
-                  mensaje por WhatsApp describiendo el problema.
+                  Llámanos o visita nuestra tienda en Guadalajara para describir el problema.
                 </p>
               </div>
 

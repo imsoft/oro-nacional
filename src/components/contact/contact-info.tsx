@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Mail, Phone, MapPin, Clock, Facebook, Instagram, MessageCircle } from "lucide-react";
+import { Mail, Phone, MapPin, Clock, Facebook, Instagram } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { getStoreSettings, type StoreSettings } from "@/lib/supabase/settings";
@@ -94,32 +94,6 @@ const ContactInfo = () => {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* WhatsApp */}
-      <div className="rounded-2xl bg-gradient-to-br from-green-500/10 to-green-600/5 p-8 border border-green-500/20">
-        <div className="flex items-center gap-3 mb-4">
-          <MessageCircle className="h-6 w-6 text-green-600" />
-          <h3 className="text-lg font-semibold text-foreground">
-            {t('whatsappTitle')}
-          </h3>
-        </div>
-        <p className="text-sm text-muted-foreground mb-4">
-          {t('whatsappDescription')}
-        </p>
-        <Button
-          asChild
-          className="w-full bg-green-600 hover:bg-green-700 text-white"
-        >
-          <a
-            href={`https://wa.me/${settings?.phone?.replace(/[\s+-]/g, '') || '523312345678'}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <MessageCircle className="mr-2 h-5 w-5" />
-            {t('whatsappButton')}
-          </a>
-        </Button>
       </div>
 
       {/* Redes sociales */}

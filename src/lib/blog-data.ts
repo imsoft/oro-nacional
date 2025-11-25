@@ -162,7 +162,7 @@ Exige certificado gemológico de laboratorio independiente (GIA, IGI) para diama
 ## 7. Considera la Garantía
 
 En Oro Nacional ofrecemos:
-- Garantía de manufactura de por vida
+- Garantía de manufactura
 - Primer ajuste de talla gratis
 - Limpieza profesional gratis el primer año
 - Certificado de autenticidad

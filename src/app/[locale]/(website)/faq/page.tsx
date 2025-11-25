@@ -47,7 +47,7 @@ const FAQPage = () => {
         },
         {
           q: "¿Puedo apartar una joya?",
-          a: "Sí, manejamos sistema de apartado. Con un anticipo del 30% puedes apartar tu joya hasta por 60 días. El saldo restante puede liquidarse en pagos quincenales o mensuales. Contacta WhatsApp o visítanos en tienda.",
+          a: "Sí, manejamos sistema de apartado. Con un anticipo del 30% puedes apartar tu joya hasta por 60 días. El saldo restante puede liquidarse en pagos quincenales o mensuales. Contáctanos por teléfono o visítanos en tienda.",
         },
         {
           q: "¿Dan factura?",
@@ -106,7 +106,7 @@ const FAQPage = () => {
       questions: [
         {
           q: "¿Cuánto tiempo dura la garantía?",
-          a: "Ofrecemos garantía de manufactura de POR VIDA en todas nuestras piezas. Esto cubre defectos de fabricación, soldaduras, engarces y autenticidad del oro. La garantía no cubre desgaste natural, daños accidentales o modificaciones por terceros.",
+          a: "Ofrecemos garantía de manufactura en todas nuestras piezas. Esto cubre defectos de fabricación, soldaduras, engarces y autenticidad del oro. La garantía no cubre desgaste natural, daños accidentales o modificaciones por terceros.",
         },
         {
           q: "¿Qué incluye el mantenimiento gratuito?",
@@ -143,7 +143,7 @@ const FAQPage = () => {
         },
         {
           q: "¿Cómo puedo contactarlos?",
-          a: "Puedes contactarnos por WhatsApp, teléfono, correo electrónico o visitarnos en tienda. Encuentra todos nuestros datos de contacto en la sección de Contacto. Respondemos mensajes de WhatsApp de lunes a sábado de 9 AM a 8 PM.",
+          a: "Puedes contactarnos por teléfono, correo electrónico o visitarnos en tienda. Encuentra todos nuestros datos de contacto en la sección de Contacto. Respondemos mensajes de lunes a sábado de 9 AM a 8 PM.",
         },
       ],
     },
@@ -217,19 +217,10 @@ const FAQPage = () => {
               ¿No Encontraste tu Respuesta?
             </h2>
             <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-              Nuestro equipo está listo para ayudarte. Contáctanos por WhatsApp,
-              teléfono o correo y te responderemos a la brevedad.
+              Nuestro equipo está listo para ayudarte. Contáctanos por teléfono
+              o correo y te responderemos a la brevedad.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a
-                href="https://wa.me/523312345678"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium transition-colors"
-              >
-                <span className="mr-2">💬</span>
-                WhatsApp
-              </a>
               <Link
                 href="/contact"
                 className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-[#D4AF37] hover:bg-[#B8941E] text-white font-medium transition-colors"

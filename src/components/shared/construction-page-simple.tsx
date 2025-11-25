@@ -80,13 +80,13 @@ const ConstructionPage = () => {
                         <h4 className="text-xl font-semibold text-foreground mb-4">Información de Contacto</h4>
                         
                         <div className="space-y-3">
-                          <div 
+                          <a 
+                            href="tel:+523326363714"
                             className="flex items-center space-x-3 text-muted-foreground hover:text-[#D4AF37] transition-colors cursor-pointer"
-                            onClick={() => window.open('https://wa.me/523326363714?text=Hola%2C%20me%20interesa%20conocer%20más%20sobre%20sus%20joyas%20de%20oro.%20¿Podrían%20ayudarme%3F', '_blank')}
                           >
                             <Phone className="w-5 h-5 text-[#D4AF37]" />
                             <span>3326363714</span>
-                          </div>
+                          </a>
                           
                           <div 
                             className="flex items-center space-x-3 text-muted-foreground hover:text-[#D4AF37] transition-colors cursor-pointer"
