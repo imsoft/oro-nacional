@@ -75,9 +75,9 @@ CREATE POLICY "Admins can view pricing parameters"
   TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM user_profiles
-      WHERE user_profiles.user_id = auth.uid()
-      AND user_profiles.role = 'admin'
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.role = 'admin'
     )
   );
 
@@ -87,9 +87,9 @@ CREATE POLICY "Admins can update pricing parameters"
   TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM user_profiles
-      WHERE user_profiles.user_id = auth.uid()
-      AND user_profiles.role = 'admin'
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.role = 'admin'
     )
   );
 
@@ -99,9 +99,9 @@ CREATE POLICY "Admins can insert pricing parameters"
   TO authenticated
   WITH CHECK (
     EXISTS (
-      SELECT 1 FROM user_profiles
-      WHERE user_profiles.user_id = auth.uid()
-      AND user_profiles.role = 'admin'
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.role = 'admin'
     )
   );
 
@@ -112,9 +112,9 @@ CREATE POLICY "Admins can view product pricing"
   TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM user_profiles
-      WHERE user_profiles.user_id = auth.uid()
-      AND user_profiles.role = 'admin'
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.role = 'admin'
     )
   );
 
@@ -124,9 +124,9 @@ CREATE POLICY "Admins can update product pricing"
   TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM user_profiles
-      WHERE user_profiles.user_id = auth.uid()
-      AND user_profiles.role = 'admin'
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.role = 'admin'
     )
   );
 
@@ -136,9 +136,9 @@ CREATE POLICY "Admins can insert product pricing"
   TO authenticated
   WITH CHECK (
     EXISTS (
-      SELECT 1 FROM user_profiles
-      WHERE user_profiles.user_id = auth.uid()
-      AND user_profiles.role = 'admin'
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.role = 'admin'
     )
   );
 
@@ -148,8 +148,8 @@ CREATE POLICY "Admins can delete product pricing"
   TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM user_profiles
-      WHERE user_profiles.user_id = auth.uid()
-      AND user_profiles.role = 'admin'
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.role = 'admin'
     )
   );
