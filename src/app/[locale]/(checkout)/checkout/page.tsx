@@ -158,8 +158,11 @@ const CheckoutPage = () => {
 
       try {
         // Primero crear el pedido
+        console.log('Creating order for Stripe...');
         const createdOrderId = await createOrderForStripe();
+        console.log('Order created with ID:', createdOrderId);
         if (!createdOrderId) {
+          console.error('Failed to create order - no ID returned');
           setError("Error al crear el pedido");
           return;
         }
@@ -181,15 +184,18 @@ const CheckoutPage = () => {
 
         if (!response.ok) {
           const errorData = await response.json();
+          console.error('Stripe API error:', errorData);
           setError(errorData.error || "Error al inicializar el pago");
           return;
         }
 
         const data = await response.json();
+        console.log('Payment Intent created successfully:', data);
         setClientSecret(data.clientSecret);
       } catch (err) {
         console.error('Error creating payment intent:', err);
-        setError("Error al inicializar el pago con Stripe");
+        const errorMessage = err instanceof Error ? err.message : 'Error al inicializar el pago con Stripe';
+        setError(errorMessage);
       }
     };
 
