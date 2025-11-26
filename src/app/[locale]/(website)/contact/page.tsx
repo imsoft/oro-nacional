@@ -14,7 +14,7 @@ const ContactPage = () => {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-b from-muted/50 to-background py-16 lg:py-20 pt-32 lg:pt-40">
+      <section className="relative bg-gradient-to-b from-muted/50 to-background pt-32 lg:pt-40 pb-8 lg:pb-12">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="text-center">
             <p className="text-sm font-semibold text-[#D4AF37] uppercase tracking-wide">
@@ -31,7 +31,7 @@ const ContactPage = () => {
       </section>
 
       {/* Formulario y Contacto */}
-      <section className="py-16 lg:py-24">
+      <section className="pt-4 lg:pt-6 pb-16 lg:pb-24">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
             {/* Formulario - 2 columnas */}
