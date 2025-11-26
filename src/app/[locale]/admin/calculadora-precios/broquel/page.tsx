@@ -34,18 +34,27 @@ import {
 import { getAllProducts, updateProductPrice, updateMultipleProductPrices } from "@/lib/supabase/products";
 import type { ProductListItem } from "@/types/product";
 
+// Parámetros globales para Broquel
 interface BroquelParameters {
-  baseCost: number; // Costo base por pieza
-  profitMargin: number; // Margen de utilidad
-  vat: number; // IVA
-  stripePercentage: number; // Comisión Stripe %
-  stripeFixedFee: number; // Comisión fija Stripe
+  quotation: number; // Cotización base
+  profitMargin: number; // Utilidad %
+  vat: number; // IVA %
+  stripePercentage: number; // Stripe %
+  stripeFixedFee: number; // Stripe comisión fija en pesos
 }
 
+// Datos específicos por producto
 interface ProductBroquelData {
   id: string;
   name: string;
-  baseCost: number;
+  pz: number; // Piezas
+  goldGrams: number; // Oro (GRS)
+  carats: number; // Kilataje
+  factor: number; // Factor
+  merma: number; // Merma %
+  laborCost: number; // Mano de obra
+  stoneCost: number; // Piedra
+  shipping: number; // Envío
   material: string;
   stock: number;
   category_name?: string;
@@ -53,11 +62,14 @@ interface ProductBroquelData {
   is_active: boolean;
 }
 
+// Cálculos completos por producto
 interface ProductBroquelCalculation extends ProductBroquelData {
-  costWithProfit: number;
-  costWithVat: number;
-  costWithStripePercentage: number;
-  finalPrice: number;
+  salesCommission: number; // Comisión de venta
+  subtotalBeforeProfit: number; // Subtotal antes de utilidad
+  subtotalWithProfit: number; // + Utilidad
+  subtotalWithVat: number; // + IVA
+  subtotalWithStripe: number; // + Stripe %
+  finalPrice: number; // Precio final (fórmula completa)
 }
 
 export default function BroquelCalculatorPage() {
@@ -80,17 +92,19 @@ export default function BroquelCalculatorPage() {
     }).format(amount);
   };
 
-  // Broquel pricing parameters
+  // Parámetros globales
   const [parameters, setParameters] = useState<BroquelParameters>({
-    baseCost: 100, // $100 MXN base cost per piece
-    profitMargin: 0.3, // 30% profit
-    vat: 0.16, // 16% VAT
-    stripePercentage: 0.036, // 3.6% Stripe commission
-    stripeFixedFee: 3, // $3 MXN Stripe fixed fee
+    quotation: 2550, // Cotización
+    profitMargin: 0.08, // 8% utilidad
+    vat: 0.16, // 16% IVA
+    stripePercentage: 0.036, // 3.6% Stripe
+    stripeFixedFee: 3.00, // $3 MXN Stripe fijo
   });
 
-  // Product base costs - in production these should come from database
-  const [productBaseCosts, setProductBaseCosts] = useState<Map<string, number>>(new Map());
+  // Datos por producto - valores por defecto
+  const [productBroquelData, setProductBroquelData] = useState<
+    Map<string, Partial<ProductBroquelData>>
+  >(new Map());
 
   useEffect(() => {
     loadProducts();
@@ -101,38 +115,84 @@ export default function BroquelCalculatorPage() {
     const data = await getAllProducts();
     setProducts(data);
 
-    // Initialize base costs with default values
-    const costsMap = new Map<string, number>();
+    // Initialize broquel data with default values
+    const broquelMap = new Map<string, Partial<ProductBroquelData>>();
     data.forEach((product) => {
-      costsMap.set(product.id, 100); // Default $100 MXN per piece
+      broquelMap.set(product.id, {
+        pz: 1.0,
+        goldGrams: 0.185,
+        carats: 10,
+        factor: 0.000,
+        merma: 10.00, // 10%
+        laborCost: 20.00,
+        stoneCost: 0.00,
+        shipping: 800.00,
+      });
     });
-    setProductBaseCosts(costsMap);
+    setProductBroquelData(broquelMap);
     setIsLoading(false);
   };
 
-  // Function to calculate final price of a broquel product
+  // Función para calcular el precio final de un producto broquel
+  // Fórmula del Excel: ((COTIZACIÓN * ORO(GRS) * KILATAJE/FACTOR * MERMA% + MANO DE OBRA + PIEDRA) * (1 + UTILIDAD) + COMISIÓN DE VENTA + ENVÍO) * (1 + IVA) * (1 + STRIPE%) + STRIPE FIJO
   const calculateProductPrice = (
     product: ProductListItem,
-    baseCost: number
-  ): ProductBroquelCalculation => {
-    // Formula for broquel: ((baseCost * (1 + profitMargin)) * (1 + vat)) * (1 + stripePercentage) + stripeFixedFee
-    const costWithProfit = baseCost * (1 + parameters.profitMargin);
-    const costWithVat = costWithProfit * (1 + parameters.vat);
-    const costWithStripePercentage = costWithVat * (1 + parameters.stripePercentage);
-    const finalPrice = costWithStripePercentage + parameters.stripeFixedFee;
+    broquelData: Partial<ProductBroquelData>
+  ): ProductBroquelCalculation | null => {
+    const pz = broquelData.pz || 1;
+    const goldGrams = broquelData.goldGrams || 0;
+    const carats = broquelData.carats || 10;
+    const factor = broquelData.factor || 0;
+    const merma = (broquelData.merma || 0) / 100; // Convertir % a decimal
+    const laborCost = broquelData.laborCost || 0;
+    const stoneCost = broquelData.stoneCost || 0;
+    const shipping = broquelData.shipping || 0;
+
+    // Cálculo: COTIZACIÓN * ORO(GRS) * KILATAJE * FACTOR * MERMA%
+    const goldCost = parameters.quotation * goldGrams * (carats / 10) * factor * (1 + merma);
+
+    // Subtotal antes de utilidad: goldCost + laborCost + stoneCost
+    const subtotalBeforeProfit = goldCost + laborCost + stoneCost;
+
+    // + Utilidad
+    const subtotalWithProfit = subtotalBeforeProfit * (1 + parameters.profitMargin);
+
+    // Comisión de venta (30.00 por defecto según Excel)
+    const salesCommission = 30.00;
+
+    // + Comisión + Envío
+    const subtotalWithCommissions = subtotalWithProfit + salesCommission + shipping;
+
+    // + IVA
+    const subtotalWithVat = subtotalWithCommissions * (1 + parameters.vat);
+
+    // + Stripe %
+    const subtotalWithStripe = subtotalWithVat * (1 + parameters.stripePercentage);
+
+    // + Stripe fijo
+    const finalPrice = subtotalWithStripe + parameters.stripeFixedFee;
 
     return {
       id: product.id,
       name: product.name,
-      baseCost,
+      pz,
+      goldGrams,
+      carats,
+      factor,
+      merma: broquelData.merma || 0,
+      laborCost,
+      stoneCost,
+      shipping,
       material: product.material,
       stock: product.stock,
       category_name: product.category_name,
       primary_image: product.primary_image,
       is_active: product.is_active,
-      costWithProfit,
-      costWithVat,
-      costWithStripePercentage,
+      salesCommission,
+      subtotalBeforeProfit,
+      subtotalWithProfit,
+      subtotalWithVat,
+      subtotalWithStripe,
       finalPrice,
     };
   };
@@ -141,21 +201,27 @@ export default function BroquelCalculatorPage() {
   const calculatedProducts = useMemo(() => {
     return products
       .map((product) => {
-        const baseCost = productBaseCosts.get(product.id) || 100;
-        return calculateProductPrice(product, baseCost);
-      });
-  }, [products, productBaseCosts, parameters]);
+        const broquelData = productBroquelData.get(product.id) || {};
+        return calculateProductPrice(product, broquelData);
+      })
+      .filter((calc) => calc !== null) as ProductBroquelCalculation[];
+  }, [products, productBroquelData, parameters]);
 
   const handleParameterChange = (key: keyof BroquelParameters, value: string) => {
     const numValue = parseFloat(value) || 0;
     setParameters((prev) => ({ ...prev, [key]: numValue }));
   };
 
-  const handleBaseCostChange = (productId: string, value: string) => {
+  const handleProductDataChange = (
+    productId: string,
+    key: keyof ProductBroquelData,
+    value: string
+  ) => {
     const numValue = parseFloat(value) || 0;
-    setProductBaseCosts((prev) => {
+    setProductBroquelData((prev) => {
       const newMap = new Map(prev);
-      newMap.set(productId, numValue);
+      const currentData = newMap.get(productId) || {};
+      newMap.set(productId, { ...currentData, [key]: numValue });
       return newMap;
     });
   };
@@ -181,7 +247,6 @@ export default function BroquelCalculatorPage() {
     try {
       await updateProductPrice(selectedProductId, product.finalPrice);
 
-      // Update local product list
       setProducts((prev) =>
         prev.map((p) =>
           p.id === selectedProductId ? { ...p, price: product.finalPrice } : p
@@ -214,7 +279,6 @@ export default function BroquelCalculatorPage() {
 
       const results = await updateMultipleProductPrices(priceUpdates);
 
-      // Update local product list
       setProducts((prev) =>
         prev.map((p) => {
           const calculated = calculatedProducts.find((c) => c.id === p.id);
@@ -222,7 +286,6 @@ export default function BroquelCalculatorPage() {
         })
       );
 
-      // Show results
       if (results.failed.length > 0) {
         console.error("Some products failed to update:", results.failed);
         alert(
@@ -274,7 +337,7 @@ export default function BroquelCalculatorPage() {
             </h1>
           </div>
           <p className="mt-2 text-muted-foreground ml-14">
-            Calcula el precio final de productos tipo broquel con precio fijo por pieza
+            Calcula el precio final de productos tipo broquel
           </p>
         </div>
         <div className="flex gap-2">
@@ -294,16 +357,14 @@ export default function BroquelCalculatorPage() {
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="baseCost">
-                    Costo Base por Defecto (MXN/pieza)
-                  </Label>
+                  <Label htmlFor="quotation">Cotización (MXN)</Label>
                   <Input
-                    id="baseCost"
+                    id="quotation"
                     type="number"
                     step="0.01"
-                    value={parameters.baseCost}
+                    value={parameters.quotation}
                     onChange={(e) =>
-                      handleParameterChange("baseCost", e.target.value)
+                      handleParameterChange("quotation", e.target.value)
                     }
                   />
                 </div>
@@ -407,9 +468,9 @@ export default function BroquelCalculatorPage() {
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div>
-              <p className="text-sm text-muted-foreground">Costo Base</p>
+              <p className="text-sm text-muted-foreground">Cotización</p>
               <p className="text-lg font-semibold">
-                {formatMXN(parameters.baseCost)}
+                {formatMXN(parameters.quotation)}
               </p>
             </div>
             <div>
@@ -454,10 +515,31 @@ export default function BroquelCalculatorPage() {
               <thead className="bg-muted">
                 <tr>
                   <th className="sticky left-0 z-10 bg-muted px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider border-r">
-                    Producto
+                    Nombre
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Costo Base
+                    PZ
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Oro (GRS)
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Kilataje
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Factor
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Merma %
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Mano Obra
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Piedra
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Envío
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider bg-blue-50">
                     + Utilidad
@@ -466,7 +548,7 @@ export default function BroquelCalculatorPage() {
                     + IVA
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider bg-green-50">
-                    + Stripe %
+                    + Stripe
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider bg-[#D4AF37]/10 border-l">
                     Precio Final
@@ -480,7 +562,7 @@ export default function BroquelCalculatorPage() {
                 {calculatedProducts.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={7}
+                      colSpan={14}
                       className="px-6 py-12 text-center text-muted-foreground"
                     >
                       No hay productos para calcular
@@ -504,21 +586,98 @@ export default function BroquelCalculatorPage() {
                           <Input
                             type="number"
                             step="0.01"
-                            value={calc.baseCost}
+                            value={calc.pz}
                             onChange={(e) =>
-                              handleBaseCostChange(calc.id, e.target.value)
+                              handleProductDataChange(calc.id, "pz", e.target.value)
+                            }
+                            className="w-16 h-8 text-xs"
+                          />
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm">
+                          <Input
+                            type="number"
+                            step="0.001"
+                            value={calc.goldGrams}
+                            onChange={(e) =>
+                              handleProductDataChange(calc.id, "goldGrams", e.target.value)
+                            }
+                            className="w-20 h-8 text-xs"
+                          />
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm">
+                          <Input
+                            type="number"
+                            step="1"
+                            value={calc.carats}
+                            onChange={(e) =>
+                              handleProductDataChange(calc.id, "carats", e.target.value)
+                            }
+                            className="w-16 h-8 text-xs"
+                          />
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm">
+                          <Input
+                            type="number"
+                            step="0.001"
+                            value={calc.factor}
+                            onChange={(e) =>
+                              handleProductDataChange(calc.id, "factor", e.target.value)
+                            }
+                            className="w-20 h-8 text-xs"
+                          />
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm">
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={calc.merma}
+                            onChange={(e) =>
+                              handleProductDataChange(calc.id, "merma", e.target.value)
+                            }
+                            className="w-20 h-8 text-xs"
+                          />
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm">
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={calc.laborCost}
+                            onChange={(e) =>
+                              handleProductDataChange(calc.id, "laborCost", e.target.value)
+                            }
+                            className="w-20 h-8 text-xs"
+                          />
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm">
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={calc.stoneCost}
+                            onChange={(e) =>
+                              handleProductDataChange(calc.id, "stoneCost", e.target.value)
+                            }
+                            className="w-20 h-8 text-xs"
+                          />
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm">
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={calc.shipping}
+                            onChange={(e) =>
+                              handleProductDataChange(calc.id, "shipping", e.target.value)
                             }
                             className="w-24 h-8 text-xs"
                           />
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm bg-blue-50/50">
-                          {formatMXN(calc.costWithProfit)}
+                          {formatMXN(calc.subtotalWithProfit)}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm bg-green-50/50">
-                          {formatMXN(calc.costWithVat)}
+                          {formatMXN(calc.subtotalWithVat)}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm bg-green-50/50">
-                          {formatMXN(calc.costWithStripePercentage)}
+                          {formatMXN(calc.subtotalWithStripe)}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm bg-[#D4AF37]/10 border-l">
                           <div className="space-y-1">
