@@ -95,32 +95,34 @@ export default function AdminDashboard() {
               key={stat.name}
               className="overflow-hidden rounded-lg bg-card border border-border p-6 shadow-sm"
             >
-              <div className="flex items-center">
+              <div className="flex items-start gap-4">
                 <div className="flex-shrink-0">
                   <div className="rounded-lg bg-[#D4AF37]/10 p-3">
                     <Icon className="h-6 w-6 text-[#D4AF37]" />
                   </div>
                 </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
+                <div className="flex-1 min-w-0">
+                  <dl className="space-y-1">
                     <dt className="text-sm font-medium text-muted-foreground truncate">
                       {stat.name}
                     </dt>
-                    <dd className="flex items-baseline">
-                      <div className="text-2xl font-semibold text-foreground">
+                    <dd className="space-y-1">
+                      <div className="text-2xl font-semibold text-foreground break-words">
                         {stat.value}
                       </div>
                       <div
-                        className={`ml-2 flex items-baseline text-sm font-semibold ${
+                        className={`flex items-center text-sm font-semibold ${
                           stat.changeType === "positive"
                             ? "text-green-600"
+                            : stat.changeType === "negative"
+                            ? "text-red-600"
                             : "text-muted-foreground"
                         }`}
                       >
                         {stat.changeType === "positive" && (
-                          <TrendingUp className="h-4 w-4 mr-1" />
+                          <TrendingUp className="h-4 w-4 mr-1 flex-shrink-0" />
                         )}
-                        {stat.change}
+                        <span className="truncate">{stat.change}</span>
                       </div>
                     </dd>
                   </dl>
@@ -209,15 +211,17 @@ export default function AdminDashboard() {
       {/* Quick Actions */}
       <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <div className="rounded-lg bg-card border border-border p-6 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-4">
-            <div className="rounded-lg bg-[#D4AF37]/10 p-3">
-              <Package className="h-6 w-6 text-[#D4AF37]" />
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              <div className="rounded-lg bg-[#D4AF37]/10 p-3">
+                <Package className="h-6 w-6 text-[#D4AF37]" />
+              </div>
             </div>
-            <div>
-              <h3 className="text-lg font-semibold text-foreground">
+            <div className="flex-1 min-w-0">
+              <h3 className="text-lg font-semibold text-foreground truncate">
                 {t('activeProducts')}
               </h3>
-              <p className="text-2xl font-bold text-[#D4AF37]">
+              <p className="text-2xl font-bold text-[#D4AF37] mt-1">
                 {data.stats.products.active_products}
               </p>
             </div>
@@ -225,15 +229,17 @@ export default function AdminDashboard() {
         </div>
 
         <div className="rounded-lg bg-card border border-border p-6 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-4">
-            <div className="rounded-lg bg-[#D4AF37]/10 p-3">
-              <Package className="h-6 w-6 text-[#D4AF37]" />
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              <div className="rounded-lg bg-[#D4AF37]/10 p-3">
+                <Package className="h-6 w-6 text-[#D4AF37]" />
+              </div>
             </div>
-            <div>
-              <h3 className="text-lg font-semibold text-foreground">
+            <div className="flex-1 min-w-0">
+              <h3 className="text-lg font-semibold text-foreground truncate">
                 {t('lowStock')}
               </h3>
-              <p className={`text-2xl font-bold ${data.stats.products.low_stock_products > 5 ? "text-red-600" : "text-green-600"}`}>
+              <p className={`text-2xl font-bold mt-1 ${data.stats.products.low_stock_products > 5 ? "text-red-600" : "text-green-600"}`}>
                 {data.stats.products.low_stock_products}
               </p>
             </div>
@@ -241,15 +247,17 @@ export default function AdminDashboard() {
         </div>
 
         <div className="rounded-lg bg-card border border-border p-6 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-4">
-            <div className="rounded-lg bg-[#D4AF37]/10 p-3">
-              <TrendingUp className="h-6 w-6 text-[#D4AF37]" />
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              <div className="rounded-lg bg-[#D4AF37]/10 p-3">
+                <TrendingUp className="h-6 w-6 text-[#D4AF37]" />
+              </div>
             </div>
-            <div>
-              <h3 className="text-lg font-semibold text-foreground">
+            <div className="flex-1 min-w-0">
+              <h3 className="text-lg font-semibold text-foreground truncate">
                 {t('currentMonthSales')}
               </h3>
-              <p className="text-2xl font-bold text-green-600">
+              <p className="text-2xl font-bold text-green-600 mt-1 break-words">
                 ${data.stats.sales.current_month_sales.toLocaleString("es-MX")}
               </p>
             </div>
