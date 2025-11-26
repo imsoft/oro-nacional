@@ -162,7 +162,7 @@ export async function getProductBySlug(slug: string, locale: 'es' | 'en' = 'es')
     created_at,
     updated_at,
     category:product_categories(id, name_es, name_en, slug_es, slug_en, description_es, description_en),
-    images:product_images(id, image_url, alt_text_es, alt_text_en, display_order, is_primary, created_at),
+    images:product_images(id, image_url, alt_text, display_order, is_primary, created_at),
     specifications:product_specifications(id, spec_key_es, spec_key_en, spec_value_es, spec_value_en, display_order),
     sizes:product_sizes(id, size, stock)
   `;
@@ -231,7 +231,7 @@ export async function getProductBySlug(slug: string, locale: 'es' | 'en' = 'es')
     created_at: string;
     updated_at: string;
     category?: { id: string; name_es: string; name_en: string; slug_es: string; slug_en: string; description_es: string; description_en: string } | null;
-    images?: Array<{ id: string; image_url: string; alt_text_es?: string; alt_text_en?: string; display_order: number; is_primary: boolean; created_at: string }>;
+    images?: Array<{ id: string; image_url: string; alt_text?: { es: string; en: string } | null; display_order: number; is_primary: boolean; created_at: string }>;
     specifications?: Array<{ id: string; spec_key_es: string; spec_key_en: string; spec_value_es: string; spec_value_en: string; display_order: number }>;
     sizes?: Array<{ id: string; size: string; stock: number }>;
   };
@@ -260,7 +260,7 @@ export async function getProductBySlug(slug: string, locale: 'es' | 'en' = 'es')
       id: img.id,
       product_id: p.id,
       image_url: img.image_url,
-      alt_text: locale === 'es' ? (img.alt_text_es || img.alt_text_en) : (img.alt_text_en || img.alt_text_es),
+      alt_text: img.alt_text ? (locale === 'es' ? (img.alt_text.es || img.alt_text.en) : (img.alt_text.en || img.alt_text.es)) : '',
       display_order: img.display_order,
       is_primary: img.is_primary,
       created_at: img.created_at,
@@ -311,7 +311,7 @@ export async function getProductById(id: string) {
       created_at,
       updated_at,
       category:product_categories(id, name_es, name_en, slug_es, slug_en),
-      images:product_images(id, image_url, alt_text_es, alt_text_en, display_order, is_primary),
+      images:product_images(id, image_url, alt_text, display_order, is_primary),
       specifications:product_specifications(id, spec_key_es, spec_key_en, spec_value_es, spec_value_en, display_order),
       sizes:product_sizes(id, size, price, stock)
     `
