@@ -13,13 +13,18 @@ interface ProductInfoProps {
     id: string;
     name: string;
     price: string;
+    basePrice?: number;
     category: string;
     material: string;
     description: string;
     specifications: {
       [key: string]: string;
     };
-    sizes?: string[];
+    sizes?: Array<{
+      size: string;
+      price: number;
+      stock: number;
+    }> | string[];
     stock?: number;
     weight?: number;
     slug?: string;
@@ -28,9 +33,31 @@ interface ProductInfoProps {
 }
 
 const ProductInfo = ({ product }: ProductInfoProps) => {
-  const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || "");
+  // Determinar si sizes es un array de objetos o strings
+  const sizesArray = product.sizes || [];
+  const isSizesWithPrice = sizesArray.length > 0 && typeof sizesArray[0] === 'object';
+  const firstSize = isSizesWithPrice 
+    ? (sizesArray[0] as { size: string; price: number; stock: number }).size
+    : (sizesArray[0] as string) || "";
+  
+  const [selectedSize, setSelectedSize] = useState(firstSize);
   const [isFavorite, setIsFavorite] = useState(false);
   const { addItem } = useCartStore();
+
+  // Calcular precio actual según talla seleccionada
+  const getCurrentPrice = () => {
+    if (!isSizesWithPrice || !selectedSize) {
+      return product.basePrice ?? parseFloat(product.price.replace(/[^0-9.-]+/g, ""));
+    }
+    
+    const selectedSizeObj = (sizesArray as Array<{ size: string; price: number; stock: number }>)
+      .find(s => s.size === selectedSize);
+    
+    return selectedSizeObj?.price ?? product.basePrice ?? parseFloat(product.price.replace(/[^0-9.-]+/g, ""));
+  };
+
+  const currentPrice = getCurrentPrice();
+  const displayPrice = `$${currentPrice.toLocaleString("es-MX")} MXN`;
 
   const handleShare = async () => {
     const shareData = {
@@ -54,13 +81,10 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
 
 
   const handleAddToCart = () => {
-    // Convertir el precio de string a number
-    const priceNumber = parseFloat(product.price.replace(/[^0-9.-]+/g, ""));
-    
     addItem({
       id: product.id,
       name: product.name,
-      price: priceNumber,
+      price: currentPrice,
       image: product.images?.[0] || "/placeholder-product.jpg",
       material: product.material,
       size: selectedSize || undefined,
@@ -85,7 +109,7 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
 
       {/* Precio */}
       <div className="flex items-baseline gap-4">
-        <p className="text-4xl font-semibold text-foreground">{product.price}</p>
+        <p className="text-4xl font-semibold text-foreground">{displayPrice}</p>
         <p className="text-sm text-muted-foreground">IVA incluido</p>
       </div>
 
@@ -106,21 +130,46 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
               onValueChange={setSelectedSize}
               className="mt-4 grid grid-cols-4 gap-3"
             >
-              {product.sizes.map((size) => (
-                <div key={size}>
-                  <RadioGroupItem
-                    value={size}
-                    id={size}
-                    className="peer sr-only"
-                  />
-                  <Label
-                    htmlFor={size}
-                    className="flex items-center justify-center rounded-lg border-2 border-muted bg-card px-4 py-3 text-sm font-medium hover:bg-muted cursor-pointer peer-data-[state=checked]:border-[#D4AF37] peer-data-[state=checked]:bg-[#D4AF37]/10 transition-all"
-                  >
-                    {size}
-                  </Label>
-                </div>
-              ))}
+              {(() => {
+                // Normalizar las tallas a un formato consistente
+                const normalizedSizes: Array<{ size: string; price: number; stock: number }> = isSizesWithPrice
+                  ? (product.sizes as Array<{ size: string; price: number; stock: number }>)
+                  : (product.sizes as string[]).map(s => ({ 
+                      size: s, 
+                      price: currentPrice, 
+                      stock: product.stock ?? 0 
+                    }));
+
+                return normalizedSizes.map((sizeObj) => {
+                  const isOutOfStock = sizeObj.stock === 0;
+                  
+                  return (
+                    <div key={sizeObj.size}>
+                      <RadioGroupItem
+                        value={sizeObj.size}
+                        id={sizeObj.size}
+                        className="peer sr-only"
+                        disabled={isOutOfStock}
+                      />
+                      <Label
+                        htmlFor={sizeObj.size}
+                        className={`flex flex-col items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium cursor-pointer transition-all ${
+                          isOutOfStock
+                            ? 'border-muted bg-muted/50 opacity-50 cursor-not-allowed'
+                            : 'border-muted bg-card hover:bg-muted peer-data-[state=checked]:border-[#D4AF37] peer-data-[state=checked]:bg-[#D4AF37]/10'
+                        }`}
+                      >
+                        <span>{sizeObj.size}</span>
+                        {isSizesWithPrice && (
+                          <span className="text-xs text-muted-foreground mt-1">
+                            ${sizeObj.price.toLocaleString("es-MX")}
+                          </span>
+                        )}
+                      </Label>
+                    </div>
+                  );
+                });
+              })()}
             </RadioGroup>
           </div>
         )}

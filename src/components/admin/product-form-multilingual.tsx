@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Trash2, Save, Eye, X } from "lucide-react";
+import { Plus, Trash2, Save, Eye, X, ArrowUp, ArrowDown, GripVertical } from "lucide-react";
 import { ProductImagesManager } from "./product-images-manager";
 import { 
   MultilingualInput, 
@@ -145,14 +145,21 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
 
         // Cargar tallas/variantes
         if (product.sizes && Array.isArray(product.sizes)) {
-          updateField("sizes", product.sizes.map((size: {
+          const sortedSizes = [...product.sizes].sort((a: { display_order?: number }, b: { display_order?: number }) => {
+            const orderA = a.display_order ?? 999;
+            const orderB = b.display_order ?? 999;
+            return orderA - orderB;
+          });
+          updateField("sizes", sortedSizes.map((size: {
             size: string;
             price?: number;
             stock: number;
-          }) => ({
+            display_order?: number;
+          }, index: number) => ({
             size: size.size,
             price: size.price || product.price || 0,
-            stock: size.stock
+            stock: size.stock,
+            display_order: size.display_order ?? index
           })));
         }
 
@@ -213,10 +220,11 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
           spec_value: spec.spec_value,
           display_order: spec.display_order
         })),
-        sizes: formData.sizes.map(size => ({
+        sizes: formData.sizes.map((size, index) => ({
           size: size.size,
           stock: size.stock,
-          price: size.price
+          price: size.price,
+          display_order: size.display_order ?? index
         })),
         images: formData.images
       };
@@ -256,21 +264,49 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
   };
 
   const addSize = () => {
+    const maxOrder = formData.sizes.length > 0 
+      ? Math.max(...formData.sizes.map(s => s.display_order ?? 0))
+      : -1;
     const newSize = {
       size: "",
       stock: 0,
-      price: formData.price || 0 // Default to base price
+      price: formData.price || 0, // Default to base price
+      display_order: maxOrder + 1
     };
     updateField("sizes", [...formData.sizes, newSize]);
   };
 
   const removeSize = (index: number) => {
-    updateField("sizes", formData.sizes.filter((_, i) => i !== index));
+    const newSizes = formData.sizes.filter((_, i) => i !== index);
+    // Reordenar display_order después de eliminar
+    const reorderedSizes = newSizes.map((size, i) => ({
+      ...size,
+      display_order: i
+    }));
+    updateField("sizes", reorderedSizes);
   };
 
   const updateSize = (index: number, field: "size" | "stock" | "price", value: string | number) => {
     const newSizes = [...formData.sizes];
     newSizes[index] = { ...newSizes[index], [field]: value };
+    updateField("sizes", newSizes);
+  };
+
+  const moveSize = (index: number, direction: "up" | "down") => {
+    if (direction === "up" && index === 0) return;
+    if (direction === "down" && index === formData.sizes.length - 1) return;
+
+    const newSizes = [...formData.sizes];
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    
+    // Intercambiar posiciones
+    [newSizes[index], newSizes[targetIndex]] = [newSizes[targetIndex], newSizes[index]];
+    
+    // Actualizar display_order
+    newSizes.forEach((size, i) => {
+      size.display_order = i;
+    });
+    
     updateField("sizes", newSizes);
   };
 
@@ -566,7 +602,33 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
         <MultilingualCard title={t('productForm.availableSizesTitle')}>
           <div className="space-y-4">
             {formData.sizes.map((size, index) => (
-              <div key={index} className="flex items-center gap-4 border rounded-lg p-4">
+              <div key={index} className="flex items-start gap-4 border rounded-lg p-4">
+                {/* Botones de reordenamiento */}
+                <div className="flex flex-col gap-1 pt-7">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => moveSize(index, "up")}
+                    disabled={index === 0}
+                    className="h-8 w-8 p-0"
+                    title="Mover arriba"
+                  >
+                    <ArrowUp className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => moveSize(index, "down")}
+                    disabled={index === formData.sizes.length - 1}
+                    className="h-8 w-8 p-0"
+                    title="Mover abajo"
+                  >
+                    <ArrowDown className="w-4 h-4" />
+                  </Button>
+                </div>
+
                 <div className="flex-1">
                   <Label htmlFor={`size-${index}`} className="mb-2 block">{t('productForm.size')}</Label>
                   <Input
@@ -602,6 +664,8 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
                   variant="outline"
                   size="sm"
                   onClick={() => removeSize(index)}
+                  className="mt-7"
+                  title="Eliminar talla"
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>

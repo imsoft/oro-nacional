@@ -96,14 +96,20 @@ export default function ProductPage({ params }: ProductPageProps) {
         }, {} as Record<string, string>)
     : {};
 
+  // Transformar tallas con información completa (size, price, stock)
   const productSizes = product.sizes && product.sizes.length > 0
-    ? product.sizes.map((s) => s.size)
+    ? product.sizes.map((s) => ({
+        size: s.size,
+        price: s.price ?? product.price,
+        stock: s.stock,
+      }))
     : [];
 
   const transformedProduct = {
     id: product.id,
     name: product.name,
     price: `$${product.price.toLocaleString("es-MX")} MXN`,
+    basePrice: product.price, // Precio base para cálculos
     category: product.category?.name || "Sin categoría",
     material: product.material,
     description: product.description,

@@ -219,6 +219,7 @@ export interface ProductFormData {
     size: string;
     stock: number;
     price: number;
+    display_order?: number;
   }>;
   images?: File[]; // Files to upload
   existing_images?: Array<{

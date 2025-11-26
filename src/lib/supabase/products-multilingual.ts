@@ -62,7 +62,9 @@ export async function getProducts(locale: Locale = 'es') {
       sizes:product_sizes(
         id,
         size,
-        stock
+        stock,
+        price,
+        display_order
       )
     `)
     .eq("is_active", true)
@@ -181,7 +183,9 @@ export async function getProductBySlug(slug: string, locale: Locale = 'es') {
       sizes:product_sizes(
         id,
         size,
-        stock
+        stock,
+        price,
+        display_order
       )
     `)
     .eq(slugColumn, slug)
@@ -248,7 +252,9 @@ export async function getProductById(id: string, locale: Locale = 'es') {
       sizes:product_sizes(
         id,
         size,
-        stock
+        stock,
+        price,
+        display_order
       )
     `)
     .eq("id", id)
@@ -503,11 +509,12 @@ export async function createProduct(
 
     // Insertar tallas si existen
     if (productData.sizes && productData.sizes.length > 0) {
-      const sizes = productData.sizes.map((size) => ({
+      const sizes = productData.sizes.map((size, index) => ({
         product_id: product.id,
         size: size.size,
         stock: size.stock,
         price: size.price || productData.price, // Use size price or fall back to base price
+        display_order: (size as { size: string; stock: number; price: number; display_order?: number }).display_order ?? index,
       }));
 
       const { error: sizesError } = await supabase
@@ -679,11 +686,12 @@ export async function updateProduct(
 
       // Insertar nuevas tallas si hay alguna
       if (updates.sizes.length > 0) {
-        const sizes = updates.sizes.map((size) => ({
+        const sizes = updates.sizes.map((size, index) => ({
           product_id: productId,
           size: size.size,
           stock: size.stock,
           price: size.price || updates.price || 0,
+          display_order: (size as { size: string; stock: number; price: number; display_order?: number }).display_order ?? index,
         }));
 
         const { error: insertSizesError } = await supabase

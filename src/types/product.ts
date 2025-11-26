@@ -45,6 +45,8 @@ export interface ProductSize {
   product_id: string;
   size: string;
   stock: number;
+  price?: number;
+  display_order?: number;
   created_at: string;
 }
 
