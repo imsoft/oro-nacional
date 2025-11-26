@@ -13,6 +13,8 @@ import {
   Calculator,
   ChevronDown,
   LogOut,
+  Scale,
+  Gem,
 } from "lucide-react";
 import {
   Sidebar,
@@ -25,7 +27,15 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,11 +60,6 @@ export function AppSidebar() {
       href: "/admin/productos/categorias",
       icon: Package,
     },
-    {
-      name: t("priceCalculator"),
-      href: "/admin/calculadora-precios",
-      icon: Calculator,
-    },
     { name: t("blog"), href: "/admin/blog", icon: FileText },
     {
       name: t("blogCategories"),
@@ -64,6 +69,19 @@ export function AppSidebar() {
     { name: t("orders"), href: "/admin/pedidos", icon: ShoppingCart },
     { name: t("users"), href: "/admin/usuarios", icon: Users },
     { name: t("settings"), href: "/admin/configuracion", icon: Settings },
+  ];
+
+  const calculatorItems = [
+    {
+      name: "Gramo",
+      href: "/admin/calculadora-precios/gramo",
+      icon: Scale,
+    },
+    {
+      name: "Broquel",
+      href: "/admin/calculadora-precios/broquel",
+      icon: Gem,
+    },
   ];
 
   const handleLogout = () => {
@@ -111,6 +129,36 @@ export function AppSidebar() {
                   </SidebarMenuItem>
                 );
               })}
+
+              {/* Collapsible Price Calculator Menu */}
+              <Collapsible className="group/collapsible">
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton>
+                      <Calculator />
+                      <span>{t("priceCalculator")}</span>
+                      <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarMenuSub>
+                      {calculatorItems.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                          <SidebarMenuSubItem key={item.name}>
+                            <SidebarMenuSubButton asChild>
+                              <Link href={item.href}>
+                                <Icon />
+                                <span>{item.name}</span>
+                              </Link>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        );
+                      })}
+                    </SidebarMenuSub>
+                  </CollapsibleContent>
+                </SidebarMenuItem>
+              </Collapsible>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
