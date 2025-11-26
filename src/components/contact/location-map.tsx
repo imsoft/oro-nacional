@@ -22,7 +22,7 @@ const LocationMap = () => {
           {/* Mapa de Google Maps embebido */}
           <div className="relative w-full h-[500px] bg-muted">
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3732.7985949417845!2d-103.37267492475916!3d20.676090980829673!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8428b1f14c6c2207%3A0x8cfc5d0d61e8d5eb!2sAv.%20Chapultepec%2C%20Americana%2C%2044160%20Guadalajara%2C%20Jal.!5e0!3m2!1ses!2smx!4v1234567890123!5m2!1ses!2smx"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3732.8301932968425!2d-103.34285392351254!3d20.676486280886152!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8428b1f23ef0a8bd%3A0xf6a25c6fa5df3784!2sMagno%20Centro%20Joyero%20San%20Juan%20de%20Dios!5e0!3m2!1ses!2smx!4v1764128837846!5m2!1ses!2smx"
               width="100%"
               height="100%"
               style={{ border: 0 }}
@@ -48,7 +48,7 @@ const LocationMap = () => {
                 </p>
                 <div className="mt-4 flex flex-wrap gap-3">
                   <a
-                    href="https://www.google.com/maps/dir//Av.+Chapultepec+234,+Americana,+44160+Guadalajara,+Jal."
+                    href="https://www.google.com/maps/dir//Magno+Centro+Joyero+San+Juan+de+Dios"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 rounded-lg bg-[#D4AF37] px-4 py-2 text-sm font-medium text-white hover:bg-[#B8941E] transition-colors"
