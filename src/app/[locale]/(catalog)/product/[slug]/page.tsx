@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
 import Breadcrumbs from "@/components/shared/breadcrumbs";
@@ -14,28 +14,29 @@ import { getProductBySlug, getProductsByCategory } from "@/lib/supabase/products
 import type { ProductDetail, Product } from "@/types/product";
 
 interface ProductPageProps {
-  params: {
+  params: Promise<{
     slug: string;
     locale: 'es' | 'en';
-  };
+  }>;
 }
 
 export default function ProductPage({ params }: ProductPageProps) {
+  const resolvedParams = use(params);
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const locale = params.locale || 'es';
+  const locale = resolvedParams.locale || 'es';
 
   useEffect(() => {
     loadProduct();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.slug, locale]);
+  }, [resolvedParams.slug, locale]);
 
   const loadProduct = async () => {
     setIsLoading(true);
 
     // Fetch product
-    const productData = await getProductBySlug(params.slug, locale);
+    const productData = await getProductBySlug(resolvedParams.slug, locale);
 
     if (!productData) {
       setIsLoading(false);
@@ -72,7 +73,7 @@ export default function ProductPage({ params }: ProductPageProps) {
 
   // Si el producto no existe, mostrar página 404 mejorada
   if (!product) {
-    return <ProductNotFound slug={params.slug} locale={locale} />;
+    return <ProductNotFound slug={resolvedParams.slug} locale={locale} />;
   }
 
   // Transform product for compatibility with existing components
