@@ -116,7 +116,7 @@ const CheckoutPage = () => {
       items: items.map((item) => ({
         product_id: item.id,
         product_name: item.name,
-        product_slug: "",
+        product_slug: item.slug,
         product_sku: undefined,
         product_image: item.image,
         quantity: item.quantity,
@@ -287,7 +287,7 @@ const CheckoutPage = () => {
         items: items.map((item) => ({
           product_id: item.id,
           product_name: item.name,
-          product_slug: "",
+          product_slug: item.slug,
           product_sku: undefined,
           product_image: item.image,
           quantity: item.quantity,
