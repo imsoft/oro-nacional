@@ -898,7 +898,12 @@
       "primaryImage": "Principal",
       "confirmDeleteImage": "¿Estás seguro de que deseas eliminar esta imagen? Esta acción no se puede deshacer.",
       "imageDeleted": "Imagen eliminada exitosamente",
-      "errorDeletingImage": "Error al eliminar la imagen. Por favor intenta de nuevo."
+      "errorDeletingImage": "Error al eliminar la imagen. Por favor intenta de nuevo.",
+      "setPrimaryImage": "Establecer como principal",
+      "deleteImage": "Eliminar imagen",
+      "newImages": "Nuevas Imágenes",
+      "willBePrimary": "Será principal",
+      "dragToReorder": "Arrastra para reordenar. Haz clic en la estrella para establecer como imagen principal."
     },
     "settings": {
       "title": "Configuración",
