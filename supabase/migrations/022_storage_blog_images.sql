@@ -1,24 +1,21 @@
--- ================================================
--- STORAGE SETUP PARA BLOG IMAGES
--- ================================================
-
--- INSTRUCCIONES:
--- 1. Ve a Supabase Dashboard > Storage
--- 2. Crea un nuevo bucket llamado 'blog-images'
--- 3. Marca el bucket como 'Public'
--- 4. Ejecuta las siguientes políticas de storage
+-- Migration: Storage Policies for Blog Images
+-- Description: Create storage policies for blog-images bucket
+-- Version: 022
+-- Created: 2025-01-XX
 
 -- ================================================
 -- POLÍTICAS DE STORAGE PARA BLOG-IMAGES
 -- ================================================
+-- NOTA: El bucket "blog-images" debe crearse desde el Dashboard de Supabase
+-- Storage -> Create Bucket -> Name: "blog-images" -> Public: true
 
 -- Política: Cualquiera puede ver las imágenes del blog
-CREATE POLICY "Imágenes del blog son públicas"
+CREATE POLICY IF NOT EXISTS "Imágenes del blog son públicas"
 ON storage.objects FOR SELECT
 USING (bucket_id = 'blog-images');
 
 -- Política: Solo admins pueden subir imágenes
-CREATE POLICY "Solo admins pueden subir imágenes del blog"
+CREATE POLICY IF NOT EXISTS "Solo admins pueden subir imágenes del blog"
 ON storage.objects FOR INSERT
 WITH CHECK (
   bucket_id = 'blog-images'
@@ -29,7 +26,7 @@ WITH CHECK (
 );
 
 -- Política: Solo admins pueden actualizar imágenes
-CREATE POLICY "Solo admins pueden actualizar imágenes del blog"
+CREATE POLICY IF NOT EXISTS "Solo admins pueden actualizar imágenes del blog"
 ON storage.objects FOR UPDATE
 USING (
   bucket_id = 'blog-images'
@@ -40,7 +37,7 @@ USING (
 );
 
 -- Política: Solo admins pueden eliminar imágenes
-CREATE POLICY "Solo admins pueden eliminar imágenes del blog"
+CREATE POLICY IF NOT EXISTS "Solo admins pueden eliminar imágenes del blog"
 ON storage.objects FOR DELETE
 USING (
   bucket_id = 'blog-images'
@@ -49,3 +46,4 @@ USING (
     WHERE id = auth.uid() AND role = 'admin'
   )
 );
+

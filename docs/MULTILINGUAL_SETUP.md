@@ -32,7 +32,7 @@ pnpm install
 
 ### Paso 1: Modificar Esquema
 
-Ejecuta el archivo `database/multilingual-migration.sql` en Supabase:
+Ejecuta el archivo `supabase/migrations/020_multilingual_support.sql` en Supabase:
 
 ```sql
 -- Este script:
@@ -44,7 +44,7 @@ Ejecuta el archivo `database/multilingual-migration.sql` en Supabase:
 
 ### Paso 2: Migrar Datos
 
-Ejecuta el archivo `database/multilingual-data-migration.sql`:
+Ejecuta el archivo `supabase/migrations/020_multilingual_support.sql` (ya incluye la migración de datos):
 
 ```sql
 -- Este script:

@@ -1,8 +1,7 @@
--- ============================================
--- MIGRACIÓN: Agregar soporte de idiomas disponibles
--- ============================================
--- Este script agrega la columna available_languages a las tablas
--- blog_posts y products para controlar en qué idiomas se muestra el contenido
+-- Migration: Add Available Languages Support
+-- Description: Add available_languages column to blog_posts and products tables
+-- Version: 023
+-- Created: 2025-01-XX
 
 -- ============================================
 -- BLOG POSTS
@@ -58,27 +57,3 @@ UPDATE products
 SET available_languages = ARRAY['es', 'en']
 WHERE available_languages IS NULL;
 
--- ============================================
--- VERIFICACIÓN
--- ============================================
-
--- Verificar que todo esté correcto
-SELECT
-    'blog_posts' as tabla,
-    COUNT(*) as total_registros,
-    COUNT(CASE WHEN available_languages IS NULL THEN 1 END) as con_null,
-    COUNT(CASE WHEN available_languages = ARRAY['es', 'en'] THEN 1 END) as con_ambos_idiomas,
-    COUNT(CASE WHEN available_languages = ARRAY['es'] THEN 1 END) as solo_espanol,
-    COUNT(CASE WHEN available_languages = ARRAY['en'] THEN 1 END) as solo_ingles
-FROM blog_posts
-
-UNION ALL
-
-SELECT
-    'products' as tabla,
-    COUNT(*) as total_registros,
-    COUNT(CASE WHEN available_languages IS NULL THEN 1 END) as con_null,
-    COUNT(CASE WHEN available_languages = ARRAY['es', 'en'] THEN 1 END) as con_ambos_idiomas,
-    COUNT(CASE WHEN available_languages = ARRAY['es'] THEN 1 END) as solo_espanol,
-    COUNT(CASE WHEN available_languages = ARRAY['en'] THEN 1 END) as solo_ingles
-FROM products;

@@ -19,7 +19,7 @@ Esta guía te ayudará a configurar el sistema de gestión de productos en tu pr
 ### Paso 1.1: Ejecutar el script de productos
 
 1. Ve a **SQL Editor** en Supabase
-2. Abre el archivo `database/products-setup.sql`
+2. Abre el archivo `supabase/migrations/` (las tablas de productos ya están creadas en migraciones anteriores)
 3. Copia **todo el contenido**
 4. Pégalo en el editor SQL de Supabase
 5. Haz clic en **Run**
@@ -69,7 +69,7 @@ Deberías ver 5 tablas:
 ### Paso 2.2: Configurar políticas de seguridad
 
 1. Ve a **SQL Editor** en Supabase
-2. Abre el archivo `database/storage-setup.sql`
+2. Abre el archivo `supabase/migrations/021_storage_product_images.sql`
 3. Copia **todo el contenido**
 4. Pégalo en el editor SQL
 5. Haz clic en **Run**
@@ -181,7 +181,7 @@ SELECT * FROM public.product_sizes;
 **Solución**:
 1. Ve a SQL Editor
 2. Ejecuta: `SELECT * FROM information_schema.tables WHERE table_name = 'products';`
-3. Si no retorna nada, vuelve a ejecutar `database/products-setup.sql`
+3. Si no retorna nada, verifica que las migraciones se hayan ejecutado correctamente
 
 ---
 
@@ -203,7 +203,7 @@ SELECT * FROM public.product_sizes;
 
 **Solución**:
 1. Ve a SQL Editor
-2. Ejecuta todo el contenido de `database/storage-setup.sql`
+2. Ejecuta todo el contenido de `supabase/migrations/021_storage_product_images.sql`
 3. Verifica que tu usuario tiene rol de `admin` en la tabla `profiles`
 
 ---

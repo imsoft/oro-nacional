@@ -519,7 +519,7 @@ if (!post) {
 - **Update Function:** [src/lib/supabase/blog.ts](../src/lib/supabase/blog.ts) (línea ~500+)
 - **Página de Edición:** [src/app/admin/blog/[id]/editar/page.tsx](../src/app/admin/blog/[id]/editar/page.tsx)
 - **Lista Admin:** [src/app/admin/blog/page.tsx](../src/app/admin/blog/page.tsx)
-- **Database:** [database/blog-setup.sql](../database/blog-setup.sql)
+- **Database:** [supabase/migrations/019_blog_system.sql](../supabase/migrations/019_blog_system.sql)
 
 ---
 

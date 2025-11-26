@@ -23,7 +23,7 @@ He realizado dos tipos de correcciones:
 **Ejecuta el siguiente script en Supabase SQL Editor:**
 
 ```sql
--- Ver el archivo: database/verify-and-fix-rls.sql
+-- Ver el archivo: supabase/migrations/ (los scripts de fix RLS están en la carpeta database/ para referencia histórica)
 ```
 
 **Pasos:**
@@ -31,7 +31,7 @@ He realizado dos tipos de correcciones:
 1. Ve a tu proyecto de Supabase
 2. Abre **SQL Editor**
 3. Crea una nueva query
-4. Copia y pega el contenido de `database/verify-and-fix-rls.sql`
+4. Los scripts de fix RLS están en la carpeta `database/` para referencia histórica (ya no se usan en producción)
 5. Ejecuta el script completo
 6. Verifica que no haya errores
 

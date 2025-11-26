@@ -372,7 +372,7 @@ Actualmente se usa un parser básico de Markdown. Considerar:
 - **Blog Público:** [src/app/(website)/blog/page.tsx](../src/app/(website)/blog/page.tsx)
 - **Detalle:** [src/app/(website)/blog/[slug]/page.tsx](../src/app/(website)/blog/[slug]/page.tsx)
 - **Layout:** [src/app/(website)/blog/[slug]/layout.tsx](../src/app/(website)/blog/[slug]/layout.tsx)
-- **Database:** [database/blog-setup.sql](../database/blog-setup.sql)
+- **Database:** [supabase/migrations/019_blog_system.sql](../supabase/migrations/019_blog_system.sql)
 
 ---
 

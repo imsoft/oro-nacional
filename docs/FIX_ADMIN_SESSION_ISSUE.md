@@ -69,7 +69,7 @@ CREATE POLICY "admins_view_all_profiles" ON public.profiles
    - Crea una nueva query
 
 2. **Ejecuta el Script de Fix**
-   - Abre el archivo `database/fix-admin-session-rls.sql`
+   - Los scripts de fix RLS están en la carpeta `database/` para referencia histórica (ya no se usan en producción)
    - Copia todo el contenido
    - Pégalo en el SQL Editor
    - Ejecuta el script (Run)
@@ -125,9 +125,7 @@ SELECT * FROM public.get_user_profile();
 
 ## 🔧 Scripts Disponibles
 
-- **`database/fix-admin-session-rls.sql`**: Script completo con la solución
-- **`database/simple-fix-rls.sql`**: Versión antigua que aún causa recursión
-- **`database/fix-rls-recursion.sql`**: Versión antigua para diagnóstico
+- **Nota**: Los scripts de fix RLS están en la carpeta `database/` para referencia histórica. Las migraciones formales están en `supabase/migrations/`
 
 ## ⚠️ Importante
 

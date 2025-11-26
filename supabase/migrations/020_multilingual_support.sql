@@ -1,7 +1,7 @@
--- ================================================
--- MIGRACIÓN PARA CONTENIDO MULTILINGÜE
--- ================================================
--- Este script modifica las tablas existentes para soportar contenido en español e inglés
+-- Migration: Multilingual Support
+-- Description: Add multilingual columns (es/en) to products, categories, blog posts, and related tables
+-- Version: 020
+-- Created: 2025-01-XX
 
 -- ================================================
 -- 1. MODIFICAR TABLA DE CATEGORÍAS DE PRODUCTOS
@@ -67,37 +67,47 @@ CREATE INDEX IF NOT EXISTS idx_products_slug_en ON public.products(slug_en);
 -- 3. MODIFICAR TABLA DE ESPECIFICACIONES DE PRODUCTOS
 -- ================================================
 
--- Agregar columnas para contenido multilingüe
-ALTER TABLE public.product_specifications 
-ADD COLUMN IF NOT EXISTS spec_key_es TEXT,
-ADD COLUMN IF NOT EXISTS spec_key_en TEXT,
-ADD COLUMN IF NOT EXISTS spec_value_es TEXT,
-ADD COLUMN IF NOT EXISTS spec_value_en TEXT;
+-- Agregar columnas para contenido multilingüe (si la tabla existe)
+DO $$
+BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'product_specifications') THEN
+    ALTER TABLE public.product_specifications 
+    ADD COLUMN IF NOT EXISTS spec_key_es TEXT,
+    ADD COLUMN IF NOT EXISTS spec_key_en TEXT,
+    ADD COLUMN IF NOT EXISTS spec_value_es TEXT,
+    ADD COLUMN IF NOT EXISTS spec_value_en TEXT;
 
--- Migrar datos existentes
-UPDATE public.product_specifications 
-SET 
-  spec_key_es = spec_key,
-  spec_key_en = spec_key, -- Temporalmente igual
-  spec_value_es = spec_value,
-  spec_value_en = spec_value -- Temporalmente igual
-WHERE spec_key_es IS NULL;
+    -- Migrar datos existentes
+    UPDATE public.product_specifications 
+    SET 
+      spec_key_es = spec_key,
+      spec_key_en = spec_key, -- Temporalmente igual
+      spec_value_es = spec_value,
+      spec_value_en = spec_value -- Temporalmente igual
+    WHERE spec_key_es IS NULL;
+  END IF;
+END $$;
 
 -- ================================================
 -- 4. MODIFICAR TABLA DE IMÁGENES DE PRODUCTOS
 -- ================================================
 
--- Agregar columnas para contenido multilingüe
-ALTER TABLE public.product_images 
-ADD COLUMN IF NOT EXISTS alt_text_es TEXT,
-ADD COLUMN IF NOT EXISTS alt_text_en TEXT;
+-- Agregar columnas para contenido multilingüe (si la tabla existe)
+DO $$
+BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'product_images') THEN
+    ALTER TABLE public.product_images 
+    ADD COLUMN IF NOT EXISTS alt_text_es TEXT,
+    ADD COLUMN IF NOT EXISTS alt_text_en TEXT;
 
--- Migrar datos existentes
-UPDATE public.product_images 
-SET 
-  alt_text_es = alt_text,
-  alt_text_en = alt_text -- Temporalmente igual
-WHERE alt_text_es IS NULL;
+    -- Migrar datos existentes
+    UPDATE public.product_images 
+    SET 
+      alt_text_es = alt_text,
+      alt_text_en = alt_text -- Temporalmente igual
+    WHERE alt_text_es IS NULL;
+  END IF;
+END $$;
 
 -- ================================================
 -- 5. MODIFICAR TABLA DE CATEGORÍAS DE BLOG
@@ -315,43 +325,3 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- ================================================
--- VERIFICACIÓN FINAL
--- ================================================
-
--- Verificar que las columnas se agregaron correctamente
-SELECT 
-  'product_categories' as table_name,
-  column_name,
-  data_type
-FROM information_schema.columns 
-WHERE table_name = 'product_categories' 
-AND column_name LIKE '%_es' OR column_name LIKE '%_en'
-ORDER BY column_name;
-
-SELECT 
-  'products' as table_name,
-  column_name,
-  data_type
-FROM information_schema.columns 
-WHERE table_name = 'products' 
-AND column_name LIKE '%_es' OR column_name LIKE '%_en'
-ORDER BY column_name;
-
-SELECT 
-  'blog_categories' as table_name,
-  column_name,
-  data_type
-FROM information_schema.columns 
-WHERE table_name = 'blog_categories' 
-AND column_name LIKE '%_es' OR column_name LIKE '%_en'
-ORDER BY column_name;
-
-SELECT 
-  'blog_posts' as table_name,
-  column_name,
-  data_type
-FROM information_schema.columns 
-WHERE table_name = 'blog_posts' 
-AND column_name LIKE '%_es' OR column_name LIKE '%_en'
-ORDER BY column_name;

@@ -495,7 +495,7 @@ text-sm        // Texto de advertencia
 - **Función DELETE:** [src/lib/supabase/blog.ts](../src/lib/supabase/blog.ts) (línea ~690+)
 - **Lista Admin con Modal:** [src/app/admin/blog/page.tsx](../src/app/admin/blog/page.tsx)
 - **Componente AlertDialog:** [src/components/ui/alert-dialog.tsx](../src/components/ui/alert-dialog.tsx)
-- **Database Schema:** [database/blog-setup.sql](../database/blog-setup.sql)
+- **Database Schema:** [supabase/migrations/019_blog_system.sql](../supabase/migrations/019_blog_system.sql)
 
 ---
 

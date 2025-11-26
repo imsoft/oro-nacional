@@ -19,7 +19,7 @@ Se ha implementado la funcionalidad completa de **creación de posts** para el s
 ### Paso 1: Ejecutar el schema de blog
 
 1. Ve a **Supabase Dashboard** → **SQL Editor**
-2. Ejecuta el archivo: [database/blog-setup.sql](../database/blog-setup.sql)
+2. Ejecuta el archivo: [supabase/migrations/019_blog_system.sql](../supabase/migrations/019_blog_system.sql)
 
 Este script creará:
 - `blog_categories` - Categorías de blog
@@ -41,7 +41,7 @@ Este script creará:
 Luego, configura las políticas:
 
 1. Ve a **SQL Editor**
-2. Ejecuta el archivo: [database/storage-blog-setup.sql](../database/storage-blog-setup.sql)
+2. Ejecuta el archivo: [supabase/migrations/022_storage_blog_images.sql](../supabase/migrations/022_storage_blog_images.sql)
 
 ---
 
@@ -91,8 +91,8 @@ Relación muchos a muchos entre posts y etiquetas.
 ## 🔧 Archivos Creados/Modificados
 
 ### Archivos de Base de Datos
-- ✅ `database/blog-setup.sql` - Schema completo del blog
-- ✅ `database/storage-blog-setup.sql` - Configuración de storage
+- ✅ `supabase/migrations/019_blog_system.sql` - Schema completo del blog
+- ✅ `supabase/migrations/022_storage_blog_images.sql` - Configuración de storage
 
 ### Tipos TypeScript
 - ✅ `src/types/blog.ts` - Interfaces y tipos para blog
@@ -261,7 +261,7 @@ Para completar el CRUD del blog:
 - **Tipos:** [src/types/blog.ts](../src/types/blog.ts)
 - **Queries:** [src/lib/supabase/blog.ts](../src/lib/supabase/blog.ts)
 - **Formulario:** [src/app/admin/blog/nuevo/page.tsx](../src/app/admin/blog/nuevo/page.tsx)
-- **Database:** [database/blog-setup.sql](../database/blog-setup.sql)
+- **Database:** [supabase/migrations/019_blog_system.sql](../supabase/migrations/019_blog_system.sql)
 
 ---
 

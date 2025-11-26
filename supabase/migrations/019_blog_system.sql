@@ -1,8 +1,7 @@
--- ================================================
--- BLOG SYSTEM SETUP
--- ================================================
--- Este script configura las tablas necesarias para el sistema de blog
--- Ejecutar en Supabase SQL Editor
+-- Migration: Blog System Setup
+-- Description: Create tables and setup for blog system (categories, posts, tags)
+-- Version: 019
+-- Created: 2025-01-XX
 
 -- ================================================
 -- 1. TABLA DE CATEGORÍAS DE BLOG
@@ -213,18 +212,10 @@ INSERT INTO public.blog_categories (name, slug, description) VALUES
 ON CONFLICT (slug) DO NOTHING;
 
 -- ================================================
--- 9. STORAGE BUCKET PARA IMÁGENES DE BLOG
+-- 9. COMENTARIOS
 -- ================================================
--- NOTA: Esto debe ejecutarse desde el Dashboard de Supabase > Storage
--- O usando la API de Supabase
-
--- Instrucciones para configurar el bucket:
--- 1. Ve a Storage en Supabase Dashboard
--- 2. Crea un nuevo bucket llamado 'blog-images'
--- 3. Configura como público
--- 4. Configura las políticas de storage (ver storage-blog-setup.sql)
-
 COMMENT ON TABLE public.blog_categories IS 'Categorías para organizar los posts del blog';
 COMMENT ON TABLE public.blog_posts IS 'Posts del blog con contenido, autor, y metadata';
 COMMENT ON TABLE public.blog_tags IS 'Etiquetas para clasificar los posts';
 COMMENT ON TABLE public.blog_post_tags IS 'Relación muchos a muchos entre posts y etiquetas';
+

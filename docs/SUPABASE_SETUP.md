@@ -70,7 +70,7 @@ pnpm dev
 2. Haz clic en "New query"
 
 ### Paso 3.2: Copiar y ejecutar el script
-1. Abre el archivo `database/supabase-setup.sql` en el proyecto
+1. Las migraciones iniciales están en `supabase/migrations/` (las tablas de perfiles ya están creadas en migraciones anteriores)
 2. Copia **todo el contenido** del archivo
 3. Pégalo en el editor SQL de Supabase
 4. Haz clic en el botón **"Run"** (o presiona Cmd/Ctrl + Enter)
@@ -174,7 +174,7 @@ Hay dos formas de crear un usuario administrador:
    ```sql
    SELECT * FROM information_schema.tables WHERE table_name = 'profiles';
    ```
-3. Si no retorna nada, vuelve a ejecutar el script `database/supabase-setup.sql`
+3. Si no retorna nada, verifica que las migraciones se hayan ejecutado correctamente
 
 ### ❌ Error: "Invalid login credentials"
 **Causa**: El email o contraseña son incorrectos.
@@ -194,7 +194,7 @@ Hay dos formas de crear un usuario administrador:
    ```sql
    SELECT * FROM information_schema.triggers WHERE trigger_name = 'on_auth_user_created';
    ```
-3. Si no existe, vuelve a ejecutar la sección del trigger en `database/supabase-setup.sql`
+3. Si no existe, verifica que las migraciones se hayan ejecutado correctamente
 4. Como alternativa, crea el perfil manualmente:
    ```sql
    INSERT INTO public.profiles (id, email, full_name, role)
