@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Calculator, Download, Settings, Loader2, Info, Save, CheckCircle2, AlertCircle } from "lucide-react";
+import { Calculator, Settings, Loader2, Info, Save, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -253,69 +253,6 @@ export default function PriceCalculatorPage() {
     }
   };
 
-  const exportToCSV = () => {
-    const headers = [
-      "Product",
-      "Gold (grs)",
-      "Factor",
-      "Labor Cost",
-      "Stone Cost",
-      "Commission",
-      "Shipping",
-      "Gold Cost",
-      "Materials Cost",
-      "Subtotal",
-      "With Profit",
-      "With Commissions",
-      "With VAT",
-      "With Stripe %",
-      "Final Price",
-      "Current Price",
-      "Difference",
-    ];
-
-    const rows = calculatedProducts.map((calc) => {
-      const currentProduct = products.find((p) => p.id === calc.id);
-      const currentPrice = currentProduct?.price || 0;
-      const difference = calc.finalPrice - currentPrice;
-
-      return [
-        calc.name,
-        calc.goldGrams,
-        calc.factor,
-        calc.laborCost,
-        calc.stoneCost,
-        calc.salesCommission,
-        calc.shippingCost,
-        calc.goldCost.toFixed(2),
-        calc.materialsCost.toFixed(2),
-        calc.subtotalBeforeProfit.toFixed(2),
-        calc.subtotalWithProfit.toFixed(2),
-        calc.subtotalWithCommissions.toFixed(2),
-        calc.subtotalWithVat.toFixed(2),
-        calc.subtotalWithStripePercentage.toFixed(2),
-        calc.finalPrice.toFixed(2),
-        currentPrice.toFixed(2),
-        difference.toFixed(2),
-      ];
-    });
-
-    const csvContent = [
-      headers.join(","),
-      ...rows.map((row) => row.join(",")),
-    ].join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", `price-calculator-${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -447,7 +384,7 @@ export default function PriceCalculatorPage() {
           <Button
             onClick={handleUpdateAllClick}
             disabled={isUpdatingAll || calculatedProducts.length === 0}
-            className="gap-2 bg-green-600 hover:bg-green-700"
+            className="gap-2 bg-green-600 hover:bg-green-700 text-white"
           >
             {isUpdatingAll ? (
               <>
@@ -460,10 +397,6 @@ export default function PriceCalculatorPage() {
                 Actualizar Todos
               </>
             )}
-          </Button>
-          <Button onClick={exportToCSV} className="gap-2 bg-[#D4AF37] hover:bg-[#B8941E]">
-            <Download className="h-4 w-4" />
-            Exportar CSV
           </Button>
         </div>
       </div>
@@ -734,7 +667,7 @@ export default function PriceCalculatorPage() {
                             size="sm"
                             onClick={() => handleUpdatePriceClick(calc.id)}
                             disabled={isUpdating || isUpdatingAll}
-                            className="gap-2 bg-blue-600 hover:bg-blue-700"
+                            className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
                           >
                             {isUpdating ? (
                               <>
