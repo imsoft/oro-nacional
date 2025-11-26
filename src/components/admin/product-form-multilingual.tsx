@@ -47,7 +47,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
     category_id: "",
     price: 0,
     stock: 0,
-    weight: 0,
+    weight: undefined,
     is_active: true,
     available_languages: ['es'],
     specifications: [],
@@ -97,7 +97,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
         updateField("category_id", product.category_id || "");
         updateField("price", product.price || 0);
         updateField("stock", product.stock || 0);
-        updateField("weight", product.weight || 0);
+        updateField("weight", product.weight || undefined);
         updateField("is_active", product.is_active);
 
         // Cargar imágenes existentes
@@ -475,15 +475,21 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
             </div>
 
             <div className="space-y-3">
-              <Label htmlFor="weight">{t('productForm.weight')}</Label>
+              <Label htmlFor="weight">{t('productForm.weight')} ({t('productForm.optional') || 'Opcional'})</Label>
               <Input
                 id="weight"
                 type="number"
                 step="0.01"
                 min="0"
-                value={formData.weight || ""}
+                value={formData.weight !== undefined ? formData.weight : ""}
                 onChange={(e) => {
-                  updateField("weight", parseFloat(e.target.value) || undefined);
+                  const value = e.target.value;
+                  if (value === "" || value === null) {
+                    updateField("weight", undefined);
+                  } else {
+                    const parsed = parseFloat(value);
+                    updateField("weight", isNaN(parsed) ? undefined : parsed);
+                  }
                 }}
                 placeholder="0.0"
               />
