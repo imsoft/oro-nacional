@@ -903,7 +903,9 @@
       "deleteImage": "Eliminar imagen",
       "newImages": "Nuevas Imágenes",
       "willBePrimary": "Será principal",
-      "dragToReorder": "Arrastra para reordenar. Haz clic en la estrella para establecer como imagen principal."
+      "dragToReorder": "Arrastra para reordenar. Haz clic en la estrella para establecer como imagen principal.",
+      "allImages": "Todas las Imágenes",
+      "newImage": "Nueva"
     },
     "settings": {
       "title": "Configuración",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,6 +36,14 @@ interface ExistingImageWithId extends Omit<ExistingImage, 'id'> {
   id: string;
 }
 
+interface NewImageItem {
+  id: string;
+  file: File;
+  preview: string;
+  display_order: number;
+  is_primary: boolean;
+}
+
 interface ProductImagesManagerProps {
   existingImages: ExistingImage[];
   newImages: File[];
@@ -49,11 +57,13 @@ function SortableImageItem({
   index,
   onDelete,
   onSetPrimary,
+  isNew = false,
 }: {
-  image: ExistingImageWithId;
+  image: ExistingImageWithId | NewImageItem;
   index: number;
   onDelete: () => void;
   onSetPrimary: () => void;
+  isNew?: boolean;
 }) {
   const t = useTranslations("admin");
 
@@ -72,6 +82,8 @@ function SortableImageItem({
     opacity: isDragging ? 0.5 : 1,
   };
 
+  const imageUrl = 'preview' in image ? image.preview : image.image_url;
+
   return (
     <div
       ref={setNodeRef}
@@ -89,7 +101,7 @@ function SortableImageItem({
 
       {/* Imagen */}
       <img
-        src={image.image_url}
+        src={imageUrl}
         alt={`Imagen ${index + 1}`}
         className="w-full h-40 object-cover rounded"
       />
@@ -134,8 +146,15 @@ function SortableImageItem({
         </div>
       )}
 
+      {/* Badge de nueva imagen */}
+      {isNew && (
+        <div className="absolute bottom-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+          {t('productForm.newImage') || 'Nueva'}
+        </div>
+      )}
+
       {/* Número de orden */}
-      <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+      <div className="absolute top-2 left-1/2 transform -translate-x-1/2 bg-black/70 text-white text-xs px-2 py-1 rounded">
         #{index + 1}
       </div>
     </div>
@@ -150,9 +169,35 @@ export function ProductImagesManager({
   onDeleteImage,
 }: ProductImagesManagerProps) {
   const t = useTranslations("admin");
+  const [newImagesWithMetadata, setNewImagesWithMetadata] = useState<NewImageItem[]>([]);
 
-  // Ensure all images have valid IDs for DnD
-  const imagesWithIds: ExistingImageWithId[] = existingImages.map((img, index) => ({
+  // Convertir File[] a NewImageItem[] con metadata
+  useEffect(() => {
+    const convertedImages = newImages.map((file, index) => {
+      // Buscar si ya existe en el estado para preservar is_primary
+      const existingItem = newImagesWithMetadata.find(
+        item => item.file.name === file.name && item.file.size === file.size
+      );
+
+      return {
+        id: `new-${index}-${file.name}`,
+        file,
+        preview: URL.createObjectURL(file),
+        display_order: index,
+        is_primary: existingItem?.is_primary ?? (index === 0 && existingImages.length === 0),
+      };
+    });
+
+    setNewImagesWithMetadata(convertedImages);
+
+    // Cleanup URLs cuando el componente se desmonte o las imágenes cambien
+    return () => {
+      convertedImages.forEach(item => URL.revokeObjectURL(item.preview));
+    };
+  }, [newImages, existingImages.length]);
+
+  // Ensure all existing images have valid IDs for DnD
+  const existingImagesWithIds: ExistingImageWithId[] = existingImages.map((img, index) => ({
     ...img,
     id: img.id || `temp-${index}-${img.image_url.slice(-20)}`,
   }));
@@ -164,35 +209,88 @@ export function ProductImagesManager({
     })
   );
 
+  // Combinar todas las imágenes para un único contexto de DnD
+  const allImages = [...existingImagesWithIds, ...newImagesWithMetadata];
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      const oldIndex = imagesWithIds.findIndex((img) => img.id === active.id);
-      const newIndex = imagesWithIds.findIndex((img) => img.id === over.id);
+      const oldIndex = allImages.findIndex((img) => img.id === active.id);
+      const newIndex = allImages.findIndex((img) => img.id === over.id);
 
-      const reorderedImages = arrayMove(imagesWithIds, oldIndex, newIndex).map(
+      const reorderedImages = arrayMove(allImages, oldIndex, newIndex).map(
         (img, index) => ({
           ...img,
           display_order: index,
         })
       );
 
-      onExistingImagesChange(reorderedImages);
+      // Separar imágenes existentes y nuevas
+      const existingReordered = reorderedImages
+        .filter((img): img is ExistingImageWithId => !('preview' in img))
+        .map((img, index) => ({ ...img, display_order: index }));
+
+      const newReordered = reorderedImages
+        .filter((img): img is NewImageItem => 'preview' in img)
+        .map((img, index) => ({ ...img, display_order: index }));
+
+      onExistingImagesChange(existingReordered);
+
+      // Actualizar el orden de los archivos
+      const reorderedFiles = newReordered.map(item => item.file);
+      onNewImagesChange(reorderedFiles);
     }
   };
 
   const handleSetPrimary = (imageId: string) => {
-    const updatedImages = imagesWithIds.map((img) => ({
-      ...img,
-      is_primary: img.id === imageId,
-    }));
-    onExistingImagesChange(updatedImages);
+    const isNewImage = imageId.startsWith('new-');
+
+    if (isNewImage) {
+      // Actualizar nuevas imágenes
+      const updatedNew = newImagesWithMetadata.map((img) => ({
+        ...img,
+        is_primary: img.id === imageId,
+      }));
+      setNewImagesWithMetadata(updatedNew);
+
+      // Quitar primary de imágenes existentes
+      if (existingImagesWithIds.length > 0) {
+        const updatedExisting = existingImagesWithIds.map((img) => ({
+          ...img,
+          is_primary: false,
+        }));
+        onExistingImagesChange(updatedExisting);
+      }
+    } else {
+      // Actualizar imágenes existentes
+      const updatedExisting = existingImagesWithIds.map((img) => ({
+        ...img,
+        is_primary: img.id === imageId,
+      }));
+      onExistingImagesChange(updatedExisting);
+
+      // Quitar primary de nuevas imágenes
+      if (newImagesWithMetadata.length > 0) {
+        const updatedNew = newImagesWithMetadata.map((img) => ({
+          ...img,
+          is_primary: false,
+        }));
+        setNewImagesWithMetadata(updatedNew);
+      }
+    }
   };
 
   const handleDeleteExistingImage = (imageId: string, index: number) => {
     onDeleteImage(imageId, index);
   };
+
+  const handleDeleteNewImage = (index: number) => {
+    const filtered = newImages.filter((_, i) => i !== index);
+    onNewImagesChange(filtered);
+  };
+
+  const totalImages = allImages.length;
 
   return (
     <div className="space-y-6">
@@ -211,53 +309,15 @@ export function ProductImagesManager({
           className="mt-2"
         />
         <p className="text-sm text-muted-foreground mt-1">
-          {t('productForm.imagesHint') || 'Puedes subir múltiples imágenes. La primera será la principal por defecto.'}
+          {t('productForm.imagesHint') || 'Puedes subir múltiples imágenes. Arrastra para reordenar y haz clic en la estrella para establecer como principal.'}
         </p>
       </div>
 
-      {/* Preview de nuevas imágenes */}
-      {newImages.length > 0 && (
-        <div>
-          <h4 className="font-medium mb-3 text-sm text-muted-foreground">
-            {t('productForm.newImages') || 'Nuevas Imágenes'} ({newImages.length})
-          </h4>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {newImages.map((file, index) => (
-              <div key={index} className="relative border rounded-lg p-2">
-                <img
-                  src={URL.createObjectURL(file)}
-                  alt={`Nueva ${index + 1}`}
-                  className="w-full h-32 object-cover rounded"
-                />
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="sm"
-                  className="absolute top-1 right-1"
-                  onClick={() => {
-                    const filtered = newImages.filter((_, i) => i !== index);
-                    onNewImagesChange(filtered);
-                  }}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-                <p className="text-xs text-center mt-1 truncate">{file.name}</p>
-                {index === 0 && newImages.length > 0 && existingImages.length === 0 && (
-                  <div className="absolute bottom-1 left-1 bg-[#D4AF37] text-white text-xs px-2 py-1 rounded">
-                    {t('productForm.willBePrimary') || 'Será principal'}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Imágenes existentes con drag and drop */}
-      {imagesWithIds.length > 0 && (
+      {/* Todas las imágenes con drag and drop */}
+      {totalImages > 0 && (
         <div>
           <h4 className="font-medium mb-3">
-            {t('productForm.existingImages') || 'Imágenes Actuales'} ({imagesWithIds.length})
+            {t('productForm.allImages') || 'Todas las Imágenes'} ({totalImages})
           </h4>
           <p className="text-sm text-muted-foreground mb-4">
             {t('productForm.dragToReorder') || 'Arrastra para reordenar. Haz clic en la estrella para establecer como imagen principal.'}
@@ -269,19 +329,31 @@ export function ProductImagesManager({
             onDragEnd={handleDragEnd}
           >
             <SortableContext
-              items={imagesWithIds.map((img) => img.id)}
+              items={allImages.map((img) => img.id)}
               strategy={verticalListSortingStrategy}
             >
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {imagesWithIds.map((image, index) => (
-                  <SortableImageItem
-                    key={image.id}
-                    image={image}
-                    index={index}
-                    onDelete={() => handleDeleteExistingImage(image.id, index)}
-                    onSetPrimary={() => handleSetPrimary(image.id)}
-                  />
-                ))}
+                {allImages.map((image, index) => {
+                  const isNew = 'preview' in image;
+                  const actualIndex = isNew
+                    ? newImagesWithMetadata.findIndex(img => img.id === image.id)
+                    : existingImagesWithIds.findIndex(img => img.id === image.id);
+
+                  return (
+                    <SortableImageItem
+                      key={image.id}
+                      image={image}
+                      index={index}
+                      isNew={isNew}
+                      onDelete={() =>
+                        isNew
+                          ? handleDeleteNewImage(actualIndex)
+                          : handleDeleteExistingImage(image.id, actualIndex)
+                      }
+                      onSetPrimary={() => handleSetPrimary(image.id)}
+                    />
+                  );
+                })}
               </div>
             </SortableContext>
           </DndContext>

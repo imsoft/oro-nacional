@@ -911,7 +911,9 @@
       "deleteImage": "Delete image",
       "newImages": "New Images",
       "willBePrimary": "Will be primary",
-      "dragToReorder": "Drag to reorder. Click the star to set as primary image."
+      "dragToReorder": "Drag to reorder. Click the star to set as primary image.",
+      "allImages": "All Images",
+      "newImage": "New"
     },
     "settings": {
       "title": "Settings",
