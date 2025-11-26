@@ -13,7 +13,8 @@ import {
   X,
   Users,
   Settings,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Calculator
 } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ export default function AdminLayout({
     { name: t('heroImages'), href: "/admin/hero", icon: ImageIcon },
     { name: t('products'), href: "/admin/productos", icon: Package },
     { name: t('productCategories'), href: "/admin/productos/categorias", icon: Package },
+    { name: t('priceCalculator'), href: "/admin/calculadora-precios", icon: Calculator },
     { name: t('blog'), href: "/admin/blog", icon: FileText },
     { name: t('blogCategories'), href: "/admin/blog/categorias", icon: FileText },
     { name: t('orders'), href: "/admin/pedidos", icon: ShoppingCart },

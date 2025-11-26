@@ -929,3 +929,51 @@ export async function getFeaturedCategories(): Promise<FeaturedCategory[]> {
     return [];
   }
 }
+
+/**
+ * Update product price
+ * Used by price calculator to apply calculated prices
+ */
+export async function updateProductPrice(productId: string, newPrice: number) {
+  const { data, error } = await supabase
+    .from("products")
+    .update({ price: newPrice })
+    .eq("id", productId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error updating product price:", error);
+    throw error;
+  }
+
+  return data;
+}
+
+/**
+ * Update multiple product prices at once
+ * Used by price calculator for bulk price updates
+ */
+export async function updateMultipleProductPrices(
+  priceUpdates: Array<{ id: string; price: number }>
+) {
+  const results = {
+    successful: [] as string[],
+    failed: [] as Array<{ id: string; error: string }>,
+  };
+
+  // Update products one by one to ensure proper error handling
+  for (const update of priceUpdates) {
+    try {
+      await updateProductPrice(update.id, update.price);
+      results.successful.push(update.id);
+    } catch (error) {
+      results.failed.push({
+        id: update.id,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }
+
+  return results;
+}
