@@ -134,106 +134,13 @@ const CheckoutPage = () => {
     return null;
   };
 
-  // Crear Payment Intent cuando el método de pago es tarjeta
+  // Limpiar clientSecret cuando cambia el método de pago
   useEffect(() => {
-    let isExecuting = false;
-
-    const createPaymentIntent = async () => {
-      // Prevenir ejecuciones múltiples
-      if (isExecuting) {
-        console.log('Payment Intent creation already in progress, skipping...');
-        return;
-      }
-
-      // Solo crear Payment Intent si:
-      // 1. El método de pago es tarjeta
-      // 2. Stripe está habilitado
-      // 3. No hay un clientSecret ya creado
-      if (paymentMethod !== 'card' || !stripeEnabled || clientSecret) {
-        if (paymentMethod !== 'card') {
-          setClientSecret(null);
-          setOrderId(null);
-        }
-        return;
-      }
-
-      // Validar que todos los campos de envío estén completos
-      if (!shippingData.fullName || !shippingData.email || !shippingData.phone ||
-          !shippingData.street || !shippingData.number || !shippingData.colony ||
-          !shippingData.city || !shippingData.state || !shippingData.zipCode) {
-        return;
-      }
-
-      isExecuting = true;
-
-      try {
-        // Primero crear el pedido
-        console.log('Creating order for Stripe...');
-        const createdOrderId = await createOrderForStripe();
-        console.log('Order created with ID:', createdOrderId);
-        if (!createdOrderId) {
-          console.error('Failed to create order - no ID returned');
-          setError("Error al crear el pedido");
-          return;
-        }
-
-        // Crear Payment Intent
-        const response = await fetch('/api/stripe/create-payment-intent', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            amount: finalTotal,
-            currency: 'mxn',
-            orderId: createdOrderId,
-            customerEmail: shippingData.email,
-            installments: selectedInstallments,
-          }),
-        });
-
-        if (!response.ok) {
-          console.error('Stripe API response not OK:', response.status, response.statusText);
-          let errorData;
-          try {
-            errorData = await response.json();
-          } catch (jsonError) {
-            console.error('Failed to parse error response as JSON:', jsonError);
-            setError(`Error al inicializar el pago (${response.status}): ${response.statusText}`);
-            return;
-          }
-          console.error('Stripe API error:', errorData);
-          setError(errorData.error || "Error al inicializar el pago");
-          return;
-        }
-
-        let data;
-        try {
-          data = await response.json();
-        } catch (jsonError) {
-          console.error('Failed to parse success response as JSON:', jsonError);
-          setError("Error al procesar la respuesta del servidor");
-          return;
-        }
-        console.log('Payment Intent created successfully:', data);
-        setClientSecret(data.clientSecret);
-      } catch (err) {
-        console.error('Error creating payment intent:', err);
-        const errorMessage = err instanceof Error ? err.message : 'Error al inicializar el pago con Stripe';
-        setError(errorMessage);
-      } finally {
-        isExecuting = false;
-      }
-    };
-
-    // Debounce para evitar múltiples llamadas
-    const timeoutId = setTimeout(() => {
-      createPaymentIntent();
-    }, 500);
-
-    return () => clearTimeout(timeoutId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paymentMethod, stripeEnabled, finalTotal, shippingData, items, clientSecret, selectedInstallments]);
+    if (paymentMethod !== 'card') {
+      setClientSecret(null);
+      setOrderId(null);
+    }
+  }, [paymentMethod]);
 
   // Manejar pago exitoso con Stripe
   const handleStripePaymentSuccess = async (paymentIntentId: string) => {
@@ -480,7 +387,7 @@ const CheckoutPage = () => {
                       id="street"
                       value={shippingData.street}
                       onChange={(e) => handleShippingChange("street", e.target.value)}
-                      placeholder="Av. Chapultepec"
+                      placeholder="Magno centro joyero, San Juan de Dios"
                       required
                     />
                   </div>
@@ -588,21 +495,72 @@ const CheckoutPage = () => {
                           isLoading={isLoading}
                         />
                       </Elements>
-                    ) : stripeEnabled ? (
-                      <div className="p-4 rounded-lg bg-muted">
-                        <p className="text-sm text-muted-foreground">
-                          {clientSecret === null
-                            ? "Completa la información de envío para continuar con el pago"
-                            : "Cargando método de pago..."}
-                        </p>
-                      </div>
-                    ) : (
+                    ) : stripeEnabled && !clientSecret ? (
+                      <Button
+                        type="button"
+                        onClick={async () => {
+                          setIsLoading(true);
+                          setError("");
+
+                          try {
+                            // Crear pedido
+                            console.log('Creating order for Stripe...');
+                            const createdOrderId = await createOrderForStripe();
+                            console.log('Order created with ID:', createdOrderId);
+
+                            if (!createdOrderId) {
+                              setError("Error al crear el pedido");
+                              setIsLoading(false);
+                              return;
+                            }
+
+                            // Crear Payment Intent
+                            console.log('Creating Payment Intent...');
+                            const response = await fetch('/api/stripe/create-payment-intent', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                amount: finalTotal,
+                                currency: 'mxn',
+                                orderId: createdOrderId,
+                                customerEmail: shippingData.email,
+                                installments: selectedInstallments,
+                              }),
+                            });
+
+                            if (!response.ok) {
+                              const errorText = await response.text();
+                              console.error('API Error:', response.status, errorText);
+                              setError(`Error ${response.status}: ${errorText || 'No se pudo crear el pago'}`);
+                              setIsLoading(false);
+                              return;
+                            }
+
+                            const data = await response.json();
+                            console.log('Payment Intent created:', data);
+                            setClientSecret(data.clientSecret);
+                          } catch (err) {
+                            console.error('Error:', err);
+                            setError(err instanceof Error ? err.message : 'Error desconocido');
+                          } finally {
+                            setIsLoading(false);
+                          }
+                        }}
+                        disabled={isLoading || !shippingData.fullName || !shippingData.email || !shippingData.phone ||
+                          !shippingData.street || !shippingData.number || !shippingData.colony ||
+                          !shippingData.city || !shippingData.state || !shippingData.zipCode}
+                        className="w-full bg-[#D4AF37] hover:bg-[#B8941E] text-white"
+                        size="lg"
+                      >
+                        {isLoading ? "Preparando pago..." : "Continuar al pago con tarjeta"}
+                      </Button>
+                    ) : !stripeEnabled ? (
                       <div className="p-4 rounded-lg bg-muted">
                         <p className="text-sm text-muted-foreground">
                           El pago con tarjeta no está disponible en este momento. Por favor selecciona otro método de pago.
                         </p>
                       </div>
-                    )}
+                    ) : null}
                   </TabsContent>
 
                   <TabsContent value="transfer" className="mt-6">

@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Contacto - Joyería en Guadalajara | Oro Nacional",
   description:
-    "Contacta con Oro Nacional, joyería fina en Guadalajara, Jalisco. Teléfono: +52 33 1234 5678. Dirección: Av. Chapultepec 234, Col. Americana. Diseños personalizados y atención profesional.",
+    "Contacta con Oro Nacional, joyería fina en Guadalajara, Jalisco. Teléfono: +52 33 1234 5678. Dirección: Magno centro joyero, San Juan de Dios interior #4041. Diseños personalizados y atención profesional.",
   keywords:
-    "contacto joyería Guadalajara, joyería Americana Guadalajara, diseños personalizados oro, teléfono joyería Jalisco, ubicación Oro Nacional",
+    "contacto joyería Guadalajara, joyería San Juan de Dios, diseños personalizados oro, teléfono joyería Jalisco, ubicación Oro Nacional",
   openGraph: {
     title: "Contacto - Oro Nacional Guadalajara",
     description:
