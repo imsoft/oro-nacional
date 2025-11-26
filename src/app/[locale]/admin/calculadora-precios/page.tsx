@@ -31,6 +31,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { getAllProducts, updateProductPrice, updateMultipleProductPrices } from "@/lib/supabase/products";
+import {
+  getPricingParameters,
+  updatePricingParameters,
+  getAllProductPricing,
+  upsertProductPricing,
+  batchUpsertProductPricing
+} from "@/lib/supabase/pricing";
 import type { ProductListItem } from "@/types/product";
 import type {
   PricingParameters,
@@ -47,6 +54,8 @@ export default function PriceCalculatorPage() {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [updatingProducts, setUpdatingProducts] = useState<Set<string>>(new Set());
   const [isUpdatingAll, setIsUpdatingAll] = useState(false);
+  const [isSavingParameters, setIsSavingParameters] = useState(false);
+  const [isSavingProductData, setIsSavingProductData] = useState(false);
 
   // Format currency in Mexican Pesos
   const formatMXN = (amount: number): string => {
@@ -74,28 +83,61 @@ export default function PriceCalculatorPage() {
   >(new Map());
 
   useEffect(() => {
-    loadProducts();
+    loadData();
   }, []);
 
-  const loadProducts = async () => {
+  const loadData = async () => {
     setIsLoading(true);
-    const data = await getAllProducts();
-    setProducts(data);
+    try {
+      // Load pricing parameters from database
+      const params = await getPricingParameters();
+      setParameters(params);
 
-    // Initialize pricing data with default values
-    const pricingMap = new Map<string, Partial<ProductPricingData>>();
-    data.forEach((product) => {
-      pricingMap.set(product.id, {
-        goldGrams: 5, // Default value
-        factor: 1.0,
-        laborCost: 50,
-        stoneCost: 0,
-        salesCommission: 10,
-        shippingCost: 150,
+      // Load products
+      const productsData = await getAllProducts();
+      setProducts(productsData);
+
+      // Load product pricing data from database
+      const allPricingData = await getAllProductPricing();
+
+      // Create a map of product pricing data
+      const pricingMap = new Map<string, Partial<ProductPricingData>>();
+      const pricingDataMap = new Map(
+        allPricingData.map((item) => [item.productId, item])
+      );
+
+      // Initialize pricing data for all products
+      productsData.forEach((product) => {
+        const savedData = pricingDataMap.get(product.id);
+        if (savedData) {
+          // Use saved data from database
+          pricingMap.set(product.id, {
+            goldGrams: savedData.goldGrams,
+            factor: savedData.factor,
+            laborCost: savedData.laborCost,
+            stoneCost: savedData.stoneCost,
+            salesCommission: savedData.salesCommission,
+            shippingCost: savedData.shippingCost,
+          });
+        } else {
+          // Use default values for new products
+          pricingMap.set(product.id, {
+            goldGrams: 5,
+            factor: 1.0,
+            laborCost: 50,
+            stoneCost: 0,
+            salesCommission: 10,
+            shippingCost: 150,
+          });
+        }
       });
-    });
-    setProductPricingData(pricingMap);
-    setIsLoading(false);
+      setProductPricingData(pricingMap);
+    } catch (error) {
+      console.error("Error loading data:", error);
+      alert("Error al cargar los datos. Por favor recarga la página.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Function to calculate final price of a product
@@ -162,21 +204,55 @@ export default function PriceCalculatorPage() {
       .filter((calc) => calc !== null) as ProductPricingCalculation[];
   }, [products, productPricingData, parameters]);
 
-  const handleParameterChange = (key: keyof PricingParameters, value: string) => {
+  const handleParameterChange = async (key: keyof PricingParameters, value: string) => {
     const numValue = parseFloat(value) || 0;
-    setParameters((prev) => ({ ...prev, [key]: numValue }));
+    const newParameters = { ...parameters, [key]: numValue };
+    setParameters(newParameters);
+
+    // Auto-save to database
+    setIsSavingParameters(true);
+    try {
+      await updatePricingParameters(newParameters);
+    } catch (error) {
+      console.error("Error saving pricing parameters:", error);
+    } finally {
+      setIsSavingParameters(false);
+    }
   };
 
-  const handleProductDataChange = (
+  const handleProductDataChange = async (
     productId: string,
     key: keyof ProductPricingData,
     value: string
   ) => {
     const numValue = parseFloat(value) || 0;
+
+    // Update local state
     setProductPricingData((prev) => {
       const newMap = new Map(prev);
       const currentData = newMap.get(productId) || {};
-      newMap.set(productId, { ...currentData, [key]: numValue });
+      const updatedData = { ...currentData, [key]: numValue };
+      newMap.set(productId, updatedData);
+
+      // Auto-save to database
+      setIsSavingProductData(true);
+      const pricingData = {
+        goldGrams: updatedData.goldGrams || 5,
+        factor: updatedData.factor || 1.0,
+        laborCost: updatedData.laborCost || 50,
+        stoneCost: updatedData.stoneCost || 0,
+        salesCommission: updatedData.salesCommission || 10,
+        shippingCost: updatedData.shippingCost || 150,
+      };
+
+      upsertProductPricing(productId, pricingData)
+        .catch((error) => {
+          console.error("Error saving product pricing data:", error);
+        })
+        .finally(() => {
+          setIsSavingProductData(false);
+        });
+
       return newMap;
     });
   };
