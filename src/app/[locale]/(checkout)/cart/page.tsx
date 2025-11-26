@@ -97,33 +97,6 @@ const CartPage = () => {
                 ))}
               </div>
             </div>
-
-            {/* Métodos de pago aceptados */}
-            <div className="mt-6 rounded-lg bg-muted/50 p-6">
-              <h3 className="text-sm font-semibold text-foreground mb-4">
-                {t('acceptedPaymentMethods')}
-              </h3>
-              <div className="flex flex-wrap gap-4 items-center">
-                <div className="px-4 py-2 bg-white rounded border border-border">
-                  <span className="text-xs font-medium">💳 Visa</span>
-                </div>
-                <div className="px-4 py-2 bg-white rounded border border-border">
-                  <span className="text-xs font-medium">💳 Mastercard</span>
-                </div>
-                <div className="px-4 py-2 bg-white rounded border border-border">
-                  <span className="text-xs font-medium">💳 American Express</span>
-                </div>
-                <div className="px-4 py-2 bg-white rounded border border-border">
-                  <span className="text-xs font-medium">🏦 {t('transfer')}</span>
-                </div>
-                <div className="px-4 py-2 bg-white rounded border border-border">
-                  <span className="text-xs font-medium">💰 {t('cash')}</span>
-                </div>
-              </div>
-              <p className="mt-4 text-xs text-muted-foreground">
-                {t('installmentsAvailable')}
-              </p>
-            </div>
           </div>
 
           {/* Resumen de orden - 1 columna */}
