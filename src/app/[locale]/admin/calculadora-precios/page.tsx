@@ -48,6 +48,16 @@ export default function PriceCalculatorPage() {
   const [updatingProducts, setUpdatingProducts] = useState<Set<string>>(new Set());
   const [isUpdatingAll, setIsUpdatingAll] = useState(false);
 
+  // Format currency in Mexican Pesos
+  const formatMXN = (amount: number): string => {
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  };
+
   // Pricing parameters - default values
   const [parameters, setParameters] = useState<PricingParameters>({
     goldQuotation: 1500, // Gold price per gram in MXN
@@ -417,7 +427,7 @@ export default function PriceCalculatorPage() {
             <div>
               <p className="text-sm text-muted-foreground">Cotización Oro</p>
               <p className="text-lg font-semibold">
-                ${parameters.goldQuotation.toFixed(2)} MXN/gr
+                {formatMXN(parameters.goldQuotation)}/gr
               </p>
             </div>
             <div>
@@ -441,7 +451,7 @@ export default function PriceCalculatorPage() {
             <div>
               <p className="text-sm text-muted-foreground">Stripe Fija</p>
               <p className="text-lg font-semibold">
-                ${parameters.stripeFixedFee.toFixed(2)} MXN
+                {formatMXN(parameters.stripeFixedFee)}
               </p>
             </div>
           </div>
@@ -623,30 +633,30 @@ export default function PriceCalculatorPage() {
                           />
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm bg-amber-50/50">
-                          ${calc.goldCost.toFixed(2)}
+                          {formatMXN(calc.goldCost)}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm bg-amber-50/50">
-                          ${calc.materialsCost.toFixed(2)}
+                          {formatMXN(calc.materialsCost)}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm bg-blue-50/50">
-                          ${calc.subtotalWithProfit.toFixed(2)}
+                          {formatMXN(calc.subtotalWithProfit)}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm bg-blue-50/50">
-                          ${calc.subtotalWithCommissions.toFixed(2)}
+                          {formatMXN(calc.subtotalWithCommissions)}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm bg-green-50/50">
-                          ${calc.subtotalWithVat.toFixed(2)}
+                          {formatMXN(calc.subtotalWithVat)}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm bg-green-50/50">
-                          ${calc.subtotalWithStripePercentage.toFixed(2)}
+                          {formatMXN(calc.subtotalWithStripePercentage)}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm bg-[#D4AF37]/10 border-l">
                           <div className="space-y-1">
                             <div className="font-bold text-foreground">
-                              ${calc.finalPrice.toFixed(2)}
+                              {formatMXN(calc.finalPrice)}
                             </div>
                             <div className="text-xs text-muted-foreground">
-                              Actual: ${currentPrice.toFixed(2)}
+                              Actual: {formatMXN(currentPrice)}
                             </div>
                             {priceDifference !== 0 && (
                               <div
@@ -657,7 +667,7 @@ export default function PriceCalculatorPage() {
                                 }`}
                               >
                                 {priceDifference > 0 ? "+" : ""}
-                                ${priceDifference.toFixed(2)}
+                                {formatMXN(priceDifference)}
                               </div>
                             )}
                           </div>
@@ -714,13 +724,13 @@ export default function PriceCalculatorPage() {
                     <div className="flex justify-between text-sm">
                       <span className="text-blue-800">Precio actual:</span>
                       <span className="font-semibold text-blue-900">
-                        ${currentSelectedProduct.price.toFixed(2)} MXN
+                        {formatMXN(currentSelectedProduct.price)}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-blue-800">Precio nuevo:</span>
                       <span className="font-semibold text-blue-900">
-                        ${selectedProduct.finalPrice.toFixed(2)} MXN
+                        {formatMXN(selectedProduct.finalPrice)}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm pt-2 border-t border-blue-200">
@@ -735,11 +745,9 @@ export default function PriceCalculatorPage() {
                         {selectedProduct.finalPrice - currentSelectedProduct.price > 0
                           ? "+"
                           : ""}
-                        $
-                        {(
+                        {formatMXN(
                           selectedProduct.finalPrice - currentSelectedProduct.price
-                        ).toFixed(2)}{" "}
-                        MXN
+                        )}
                       </span>
                     </div>
                   </div>
