@@ -136,7 +136,15 @@ const CheckoutPage = () => {
 
   // Crear Payment Intent cuando el método de pago es tarjeta
   useEffect(() => {
+    let isExecuting = false;
+
     const createPaymentIntent = async () => {
+      // Prevenir ejecuciones múltiples
+      if (isExecuting) {
+        console.log('Payment Intent creation already in progress, skipping...');
+        return;
+      }
+
       // Solo crear Payment Intent si:
       // 1. El método de pago es tarjeta
       // 2. Stripe está habilitado
@@ -155,6 +163,8 @@ const CheckoutPage = () => {
           !shippingData.city || !shippingData.state || !shippingData.zipCode) {
         return;
       }
+
+      isExecuting = true;
 
       try {
         // Primero crear el pedido
@@ -183,19 +193,36 @@ const CheckoutPage = () => {
         });
 
         if (!response.ok) {
-          const errorData = await response.json();
+          console.error('Stripe API response not OK:', response.status, response.statusText);
+          let errorData;
+          try {
+            errorData = await response.json();
+          } catch (jsonError) {
+            console.error('Failed to parse error response as JSON:', jsonError);
+            setError(`Error al inicializar el pago (${response.status}): ${response.statusText}`);
+            return;
+          }
           console.error('Stripe API error:', errorData);
           setError(errorData.error || "Error al inicializar el pago");
           return;
         }
 
-        const data = await response.json();
+        let data;
+        try {
+          data = await response.json();
+        } catch (jsonError) {
+          console.error('Failed to parse success response as JSON:', jsonError);
+          setError("Error al procesar la respuesta del servidor");
+          return;
+        }
         console.log('Payment Intent created successfully:', data);
         setClientSecret(data.clientSecret);
       } catch (err) {
         console.error('Error creating payment intent:', err);
         const errorMessage = err instanceof Error ? err.message : 'Error al inicializar el pago con Stripe';
         setError(errorMessage);
+      } finally {
+        isExecuting = false;
       }
     };
 
