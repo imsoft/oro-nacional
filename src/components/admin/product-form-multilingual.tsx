@@ -602,9 +602,9 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
         <MultilingualCard title={t('productForm.availableSizesTitle')}>
           <div className="space-y-4">
             {formData.sizes.map((size, index) => (
-              <div key={index} className="flex items-start gap-4 border rounded-lg p-4">
+              <div key={index} className="flex items-end gap-4 border rounded-lg p-4">
                 {/* Botones de reordenamiento */}
-                <div className="flex flex-col gap-1 pt-7">
+                <div className="flex flex-col gap-1">
                   <Button
                     type="button"
                     variant="outline"
@@ -664,7 +664,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
                   variant="outline"
                   size="sm"
                   onClick={() => removeSize(index)}
-                  className="mt-7"
+                  className="h-10 w-10 p-0"
                   title="Eliminar talla"
                 >
                   <Trash2 className="w-4 h-4" />
