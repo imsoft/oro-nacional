@@ -401,6 +401,61 @@ export async function getProductInternalCategoriesAndSubcategories(productId: st
 }
 
 /**
+ * Obtener productos por subcategorías internas de una categoría interna
+ */
+export async function getProductsByInternalSubcategories(categoryName: string): Promise<string[]> {
+  // Primero, buscar la categoría interna por nombre
+  const { data: categories, error: categoryError } = await supabase
+    .from("internal_categories")
+    .select("id")
+    .ilike("name", categoryName)
+    .eq("is_active", true)
+    .limit(1);
+
+  if (categoryError || !categories || categories.length === 0) {
+    console.error("Error finding internal category:", categoryError);
+    return [];
+  }
+
+  const categoryId = categories[0].id;
+
+  // Obtener todas las subcategorías de esta categoría
+  const { data: subcategories, error: subcategoryError } = await supabase
+    .from("internal_subcategories")
+    .select("id")
+    .eq("internal_category_id", categoryId)
+    .eq("is_active", true);
+
+  if (subcategoryError) {
+    console.error("Error fetching subcategories:", subcategoryError);
+    return [];
+  }
+
+  if (!subcategories || subcategories.length === 0) {
+    return [];
+  }
+
+  const subcategoryIds = subcategories.map(sub => sub.id);
+
+  // Obtener IDs de productos que tienen estas subcategorías
+  const { data: productRelations, error: relationError } = await supabase
+    .from("product_internal_categories")
+    .select("product_id")
+    .in("internal_subcategory_id", subcategoryIds);
+
+  if (relationError) {
+    console.error("Error fetching product relations:", relationError);
+    return [];
+  }
+
+  if (!productRelations) {
+    return [];
+  }
+
+  return productRelations.map(rel => rel.product_id);
+}
+
+/**
  * Actualizar categorías y subcategorías internas de un producto
  */
 export async function updateProductInternalCategoriesAndSubcategories(

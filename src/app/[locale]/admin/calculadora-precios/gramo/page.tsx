@@ -30,7 +30,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { getProductsExcludingCategory, updateProductPrice, updateMultipleProductPrices } from "@/lib/supabase/products";
+import { getProductsExcludingCategory, updateProductPrice, updateMultipleProductPrices, getAllProducts } from "@/lib/supabase/products";
+import { getProductsByInternalSubcategories } from "@/lib/supabase/internal-categories";
 import {
   getPricingParameters,
   updatePricingParameters,
@@ -96,8 +97,20 @@ export default function PriceCalculatorPage() {
       const params = await getPricingParameters();
       setParameters(params);
 
-      // Load products (excluding Broqueles category)
-      const productsData = await getProductsExcludingCategory("Broqueles");
+      // Obtener IDs de productos que tienen subcategorías de la categoría interna "Gramo"
+      const productIds = await getProductsByInternalSubcategories("Gramo");
+      
+      // Si hay productos con subcategorías, cargarlos; si no, no mostrar nada
+      let productsData: ProductListItem[] = [];
+      if (productIds.length > 0) {
+        // Cargar todos los productos y filtrar por los IDs obtenidos
+        const allProducts = await getAllProducts();
+        productsData = allProducts.filter(product => productIds.includes(product.id));
+      } else {
+        // Si no hay productos con subcategorías de "Gramo", no mostrar nada
+        productsData = [];
+      }
+      
       setProducts(productsData);
 
       // Load product pricing data from database
