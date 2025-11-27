@@ -130,3 +130,75 @@ export async function deleteInternalCategory(id: string): Promise<boolean> {
   return true;
 }
 
+/**
+ * Obtener categorías internas de un producto
+ */
+export async function getProductInternalCategories(productId: string): Promise<InternalCategory[]> {
+  const { data, error } = await supabase
+    .from("product_internal_categories")
+    .select(`
+      internal_category_id,
+      internal_categories (
+        id,
+        name,
+        description,
+        color,
+        is_active,
+        created_at,
+        updated_at,
+        created_by
+      )
+    `)
+    .eq("product_id", productId);
+
+  if (error) {
+    console.error("Error fetching product internal categories:", error);
+    throw error;
+  }
+
+  if (!data) return [];
+
+  return data
+    .map((item: any) => item.internal_categories)
+    .filter((cat: InternalCategory | null) => cat !== null) as InternalCategory[];
+}
+
+/**
+ * Actualizar categorías internas de un producto
+ */
+export async function updateProductInternalCategories(
+  productId: string,
+  internalCategoryIds: string[]
+): Promise<void> {
+  // Primero, eliminar todas las relaciones existentes
+  const { error: deleteError } = await supabase
+    .from("product_internal_categories")
+    .delete()
+    .eq("product_id", productId);
+
+  if (deleteError) {
+    console.error("Error deleting product internal categories:", deleteError);
+    throw deleteError;
+  }
+
+  // Si no hay categorías para agregar, terminar aquí
+  if (internalCategoryIds.length === 0) {
+    return;
+  }
+
+  // Insertar las nuevas relaciones
+  const relationships = internalCategoryIds.map((categoryId) => ({
+    product_id: productId,
+    internal_category_id: categoryId,
+  }));
+
+  const { error: insertError } = await supabase
+    .from("product_internal_categories")
+    .insert(relationships);
+
+  if (insertError) {
+    console.error("Error inserting product internal categories:", insertError);
+    throw insertError;
+  }
+}
+

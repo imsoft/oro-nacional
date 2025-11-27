@@ -25,6 +25,8 @@ import type {
 } from "@/types/multilingual";
 import { createProduct, updateProduct, getCategoriesForAdmin } from "@/lib/supabase/products-multilingual";
 import { getProductById, deleteProductImages } from "@/lib/supabase/products";
+import { getAllInternalCategories, getProductInternalCategories, updateProductInternalCategories } from "@/lib/supabase/internal-categories";
+import type { InternalCategory } from "@/lib/supabase/internal-categories";
 
 interface ProductFormProps {
   productId?: string;
@@ -37,6 +39,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
   const t = useTranslations("admin");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [categories, setCategories] = useState<any[]>([]);
+  const [internalCategories, setInternalCategories] = useState<InternalCategory[]>([]);
   const [previewLocale, setPreviewLocale] = useState<Locale>("es");
   const [isLoading, setIsLoading] = useState(false);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
@@ -46,6 +49,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
     description: { es: "", en: "" },
     material: { es: "", en: "" },
     category_id: "",
+    internal_category_ids: [],
     price: 0,
     stock: 0, // Ya no se usa, pero se mantiene para compatibilidad
     weight: undefined,
@@ -76,6 +80,19 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
     loadCategories();
   }, []);
 
+  // Cargar categorías internas
+  useEffect(() => {
+    const loadInternalCategories = async () => {
+      try {
+        const cats = await getAllInternalCategories();
+        setInternalCategories(cats.filter(cat => cat.is_active));
+      } catch (error) {
+        console.error("Error loading internal categories:", error);
+      }
+    };
+    loadInternalCategories();
+  }, []);
+
   // Cargar producto existente para edición
   useEffect(() => {
     const loadProduct = async () => {
@@ -98,6 +115,16 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
         updateField("category_id", product.category_id || "");
         updateField("price", 0); // Ya no se usa, pero se mantiene para compatibilidad
         updateField("is_active", product.is_active);
+
+        // Cargar categorías internas del producto
+        try {
+          const productInternalCategories = await getProductInternalCategories(productId);
+          const internalCategoryIds = productInternalCategories.map(cat => cat.id);
+          updateField("internal_category_ids", internalCategoryIds);
+        } catch (error) {
+          console.error("Error loading product internal categories:", error);
+          updateField("internal_category_ids", []);
+        }
 
         // Cargar imágenes existentes
         if (product.images && Array.isArray(product.images)) {
@@ -230,11 +257,18 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
       };
 
       // Validar que productId sea un UUID válido si existe
+      let savedProductId: string;
       if (productId && productId.trim() !== "") {
         await updateProduct(productId, productData);
+        savedProductId = productId;
       } else {
-        await createProduct(productData);
+        const newProduct = await createProduct(productData);
+        savedProductId = newProduct.id;
       }
+
+      // Guardar categorías internas
+      const internalCategoryIds = formData.internal_category_ids || [];
+      await updateProductInternalCategories(savedProductId, internalCategoryIds);
 
       onSuccess?.();
     } catch (error) {
@@ -476,7 +510,49 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
                 </SelectContent>
               </Select>
             </div>
+          </div>
 
+          {/* Categorías Internas */}
+          <div className="space-y-3 mt-4">
+            <Label htmlFor="internal_categories">{t('productForm.internalCategories') || 'Categorías Internas'}</Label>
+            <p className="text-sm text-muted-foreground">
+              {t('productForm.internalCategoriesDescription') || 'Selecciona las categorías internas para este producto (solo uso administrativo)'}
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-2">
+              {internalCategories.map((category) => (
+                <div key={category.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`internal-category-${category.id}`}
+                    checked={formData.internal_category_ids?.includes(category.id) || false}
+                    onCheckedChange={(checked) => {
+                      const currentIds = formData.internal_category_ids || [];
+                      if (checked) {
+                        updateField("internal_category_ids", [...currentIds, category.id]);
+                      } else {
+                        updateField("internal_category_ids", currentIds.filter(id => id !== category.id));
+                      }
+                    }}
+                  />
+                  <Label
+                    htmlFor={`internal-category-${category.id}`}
+                    className="text-sm font-normal cursor-pointer flex items-center gap-2"
+                  >
+                    {category.color && (
+                      <div
+                        className="w-4 h-4 rounded border border-border"
+                        style={{ backgroundColor: category.color }}
+                      />
+                    )}
+                    {category.name}
+                  </Label>
+                </div>
+              ))}
+              {internalCategories.length === 0 && (
+                <p className="text-sm text-muted-foreground col-span-full">
+                  {t('productForm.noInternalCategories') || 'No hay categorías internas disponibles'}
+                </p>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center space-x-2 mt-4">
