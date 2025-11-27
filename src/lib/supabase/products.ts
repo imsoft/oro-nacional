@@ -292,7 +292,7 @@ export async function getProductBySlug(slug: string, locale: 'es' | 'en' = 'es')
     category:product_categories(id, name_es, name_en, slug_es, slug_en, description_es, description_en),
     images:product_images(id, image_url, alt_text, display_order, is_primary, created_at),
     specifications:product_specifications(id, spec_key_es, spec_key_en, spec_value_es, spec_value_en, display_order),
-    sizes:product_sizes(id, size, stock, price, weight, display_order)
+    sizes:product_sizes(id, size, stock, price, display_order)
   `;
 
   let { data, error } = await supabase

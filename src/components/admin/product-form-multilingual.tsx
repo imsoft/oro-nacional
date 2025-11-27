@@ -154,13 +154,11 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
             size: string;
             price?: number;
             stock: number;
-            weight?: number;
             display_order?: number;
           }, index: number) => ({
             size: size.size,
             price: size.price || product.price || 0,
             stock: size.stock,
-            weight: size.weight,
             display_order: size.display_order ?? index
           })));
         }
@@ -226,7 +224,6 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
           size: size.size,
           stock: size.stock,
           price: size.price,
-          weight: size.weight,
           display_order: size.display_order ?? index
         })),
         images: formData.images
@@ -274,7 +271,6 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
       size: "",
       stock: 0,
       price: formData.price || 0, // Default to base price
-      weight: undefined,
       display_order: maxOrder + 1
     };
     updateField("sizes", [...formData.sizes, newSize]);
@@ -290,7 +286,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
     updateField("sizes", reorderedSizes);
   };
 
-  const updateSize = (index: number, field: "size" | "stock" | "price" | "weight", value: string | number | undefined) => {
+  const updateSize = (index: number, field: "size" | "stock" | "price", value: string | number | undefined) => {
     const newSizes = [...formData.sizes];
     newSizes[index] = { ...newSizes[index], [field]: value };
     updateField("sizes", newSizes);
@@ -661,25 +657,6 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
                     value={size.stock}
                     onChange={(e) => updateSize(index, "stock", parseInt(e.target.value) || 0)}
                     placeholder="0"
-                  />
-                </div>
-                <div className="flex-1">
-                  <Label htmlFor={`weight-${index}`} className="mb-2 block">Gramos</Label>
-                  <Input
-                    id={`weight-${index}`}
-                    type="number"
-                    value={size.weight !== undefined ? size.weight : ""}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (value === "" || value === null) {
-                        updateSize(index, "weight", undefined);
-                      } else {
-                        const parsed = parseFloat(value);
-                        updateSize(index, "weight", isNaN(parsed) ? undefined : parsed);
-                      }
-                    }}
-                    placeholder="0.000"
-                    step="0.001"
                   />
                 </div>
                 <Button

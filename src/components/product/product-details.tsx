@@ -1,11 +1,10 @@
 "use client";
 
-import { Package, Scale, Gem, Shield, Truck, Award, Clock } from "lucide-react";
+import { Package, Gem, Shield, Truck, Award, Clock } from "lucide-react";
 
 interface ProductDetailsProps {
   product: {
     material: string;
-    weight?: number;
     stock?: number;
     hasEngraving?: boolean;
   };
@@ -29,17 +28,7 @@ const ProductDetails = ({ product }: ProductDetailsProps) => {
               <p className="text-sm text-muted-foreground">{product.material}</p>
             </div>
           </div>
-          
-          {product.weight && (
-            <div className="flex items-center gap-3">
-              <Scale className="h-5 w-5 text-[#D4AF37]" />
-              <div>
-                <p className="text-sm font-medium">Peso</p>
-                <p className="text-sm text-muted-foreground">{product.weight}g</p>
-              </div>
-            </div>
-          )}
-          
+
           {product.hasEngraving && (
             <div className="flex items-center gap-3">
               <Clock className="h-5 w-5 text-[#D4AF37]" />

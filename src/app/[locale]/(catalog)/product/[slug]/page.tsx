@@ -117,7 +117,6 @@ export default function ProductPage({ params }: ProductPageProps) {
     specifications: productSpecs,
     sizes: productSizes,
     stock: product.stock,
-    weight: product.weight,
     slug: product.slug,
   };
 
