@@ -724,7 +724,18 @@
       "loadError": "Error al cargar las categorías",
       "categoryNotFound": "Categoría no encontrada",
       "active": "Activo",
-      "inactive": "Inactivo"
+      "inactive": "Inactivo",
+      "subcategories": "Subcategorías",
+      "subcategoriesDescription": "Gestiona las subcategorías de esta categoría interna",
+      "addSubcategory": "Agregar Subcategoría",
+      "noSubcategories": "No hay subcategorías. Haz clic en 'Agregar Subcategoría' para crear una.",
+      "subcategoryName": "Nombre",
+      "subcategoryNamePrompt": "Nombre de la subcategoría:",
+      "createSubcategoryError": "Error al crear la subcategoría",
+      "updateSubcategoryError": "Error al actualizar la subcategoría",
+      "deleteSubcategoryConfirm": "¿Estás seguro de eliminar esta subcategoría?",
+      "deleteSubcategoryError": "Error al eliminar la subcategoría",
+      "moveSubcategoryError": "Error al mover la subcategoría"
     },
     "orders": {
       "title": "Pedidos",
@@ -915,7 +926,7 @@
       "noDescription": "Sin descripción",
       "description": "Descripción",
       "internalCategories": "Categorías Internas",
-      "internalCategoriesDescription": "Selecciona las categorías internas para este producto (solo uso administrativo)",
+      "internalCategoriesDescription": "Selecciona las categorías internas y subcategorías para este producto (solo uso administrativo)",
       "noInternalCategories": "No hay categorías internas disponibles",
       "price": "Precio:",
       "specifications": "Especificaciones",

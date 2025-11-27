@@ -25,8 +25,13 @@ import type {
 } from "@/types/multilingual";
 import { createProduct, updateProduct, getCategoriesForAdmin } from "@/lib/supabase/products-multilingual";
 import { getProductById, deleteProductImages } from "@/lib/supabase/products";
-import { getAllInternalCategories, getProductInternalCategories, updateProductInternalCategories } from "@/lib/supabase/internal-categories";
-import type { InternalCategory } from "@/lib/supabase/internal-categories";
+import { 
+  getAllInternalCategories, 
+  getProductInternalCategoriesAndSubcategories, 
+  updateProductInternalCategoriesAndSubcategories,
+  getInternalSubcategories,
+} from "@/lib/supabase/internal-categories";
+import type { InternalCategory, InternalSubcategory } from "@/lib/supabase/internal-categories";
 
 interface ProductFormProps {
   productId?: string;
@@ -40,6 +45,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [categories, setCategories] = useState<any[]>([]);
   const [internalCategories, setInternalCategories] = useState<InternalCategory[]>([]);
+  const [internalSubcategories, setInternalSubcategories] = useState<Map<string, InternalSubcategory[]>>(new Map());
   const [previewLocale, setPreviewLocale] = useState<Locale>("es");
   const [isLoading, setIsLoading] = useState(false);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
@@ -50,6 +56,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
     material: { es: "", en: "" },
     category_id: "",
     internal_category_ids: [],
+    internal_subcategory_ids: [],
     price: 0,
     stock: 0, // Ya no se usa, pero se mantiene para compatibilidad
     weight: undefined,
@@ -80,12 +87,26 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
     loadCategories();
   }, []);
 
-  // Cargar categorías internas
+  // Cargar categorías internas y sus subcategorías
   useEffect(() => {
     const loadInternalCategories = async () => {
       try {
         const cats = await getAllInternalCategories();
-        setInternalCategories(cats.filter(cat => cat.is_active));
+        const activeCats = cats.filter(cat => cat.is_active);
+        setInternalCategories(activeCats);
+
+        // Cargar subcategorías para cada categoría
+        const subcategoriesMap = new Map<string, InternalSubcategory[]>();
+        for (const cat of activeCats) {
+          try {
+            const subs = await getInternalSubcategories(cat.id);
+            subcategoriesMap.set(cat.id, subs.filter(sub => sub.is_active));
+          } catch (error) {
+            console.error(`Error loading subcategories for category ${cat.id}:`, error);
+            subcategoriesMap.set(cat.id, []);
+          }
+        }
+        setInternalSubcategories(subcategoriesMap);
       } catch (error) {
         console.error("Error loading internal categories:", error);
       }
@@ -116,14 +137,18 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
         updateField("price", 0); // Ya no se usa, pero se mantiene para compatibilidad
         updateField("is_active", product.is_active);
 
-        // Cargar categorías internas del producto
+        // Cargar categorías y subcategorías internas del producto
         try {
-          const productInternalCategories = await getProductInternalCategories(productId);
-          const internalCategoryIds = productInternalCategories.map(cat => cat.id);
+          const { categories: productCategories, subcategories: productSubcategories } = 
+            await getProductInternalCategoriesAndSubcategories(productId);
+          const internalCategoryIds = productCategories.map(cat => cat.id);
+          const internalSubcategoryIds = productSubcategories.map(sub => sub.id);
           updateField("internal_category_ids", internalCategoryIds);
+          updateField("internal_subcategory_ids", internalSubcategoryIds);
         } catch (error) {
           console.error("Error loading product internal categories:", error);
           updateField("internal_category_ids", []);
+          updateField("internal_subcategory_ids", []);
         }
 
         // Cargar imágenes existentes
@@ -266,9 +291,14 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
         savedProductId = newProduct.id;
       }
 
-      // Guardar categorías internas
+      // Guardar categorías y subcategorías internas
       const internalCategoryIds = formData.internal_category_ids || [];
-      await updateProductInternalCategories(savedProductId, internalCategoryIds);
+      const internalSubcategoryIds = formData.internal_subcategory_ids || [];
+      await updateProductInternalCategoriesAndSubcategories(
+        savedProductId,
+        internalCategoryIds,
+        internalSubcategoryIds
+      );
 
       onSuccess?.();
     } catch (error) {
@@ -512,43 +542,90 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
             </div>
           </div>
 
-          {/* Categorías Internas */}
+          {/* Categorías Internas y Subcategorías */}
           <div className="space-y-3 mt-4">
             <Label htmlFor="internal_categories">{t('productForm.internalCategories') || 'Categorías Internas'}</Label>
             <p className="text-sm text-muted-foreground">
-              {t('productForm.internalCategoriesDescription') || 'Selecciona las categorías internas para este producto (solo uso administrativo)'}
+              {t('productForm.internalCategoriesDescription') || 'Selecciona las categorías internas y subcategorías para este producto (solo uso administrativo)'}
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-2">
-              {internalCategories.map((category) => (
-                <div key={category.id} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`internal-category-${category.id}`}
-                    checked={formData.internal_category_ids?.includes(category.id) || false}
-                    onCheckedChange={(checked) => {
-                      const currentIds = formData.internal_category_ids || [];
-                      if (checked) {
-                        updateField("internal_category_ids", [...currentIds, category.id]);
-                      } else {
-                        updateField("internal_category_ids", currentIds.filter(id => id !== category.id));
-                      }
-                    }}
-                  />
-                  <Label
-                    htmlFor={`internal-category-${category.id}`}
-                    className="text-sm font-normal cursor-pointer flex items-center gap-2"
-                  >
-                    {category.color && (
-                      <div
-                        className="w-4 h-4 rounded border border-border"
-                        style={{ backgroundColor: category.color }}
+            <div className="space-y-4 mt-2">
+              {internalCategories.map((category) => {
+                const subcategories = internalSubcategories.get(category.id) || [];
+                const hasSubcategories = subcategories.length > 0;
+                const isCategorySelected = formData.internal_category_ids?.includes(category.id) || false;
+
+                return (
+                  <div key={category.id} className="border rounded-lg p-3 space-y-2">
+                    {/* Categoría Principal */}
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`internal-category-${category.id}`}
+                        checked={isCategorySelected}
+                        onCheckedChange={(checked) => {
+                          const currentIds = formData.internal_category_ids || [];
+                          if (checked) {
+                            updateField("internal_category_ids", [...currentIds, category.id]);
+                          } else {
+                            updateField("internal_category_ids", currentIds.filter(id => id !== category.id));
+                            // Si se deselecciona la categoría, también deseleccionar todas sus subcategorías
+                            const currentSubIds = formData.internal_subcategory_ids || [];
+                            const subIdsToRemove = subcategories.map(sub => sub.id);
+                            updateField("internal_subcategory_ids", currentSubIds.filter(id => !subIdsToRemove.includes(id)));
+                          }
+                        }}
                       />
+                      <Label
+                        htmlFor={`internal-category-${category.id}`}
+                        className="text-sm font-medium cursor-pointer flex items-center gap-2"
+                      >
+                        {category.color && (
+                          <div
+                            className="w-4 h-4 rounded border border-border"
+                            style={{ backgroundColor: category.color }}
+                          />
+                        )}
+                        {category.name}
+                      </Label>
+                    </div>
+
+                    {/* Subcategorías */}
+                    {hasSubcategories && (
+                      <div className="ml-6 space-y-2 border-l-2 pl-4">
+                        {subcategories.map((subcategory) => (
+                          <div key={subcategory.id} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`internal-subcategory-${subcategory.id}`}
+                              checked={formData.internal_subcategory_ids?.includes(subcategory.id) || false}
+                              onCheckedChange={(checked) => {
+                                const currentSubIds = formData.internal_subcategory_ids || [];
+                                if (checked) {
+                                  updateField("internal_subcategory_ids", [...currentSubIds, subcategory.id]);
+                                } else {
+                                  updateField("internal_subcategory_ids", currentSubIds.filter(id => id !== subcategory.id));
+                                }
+                              }}
+                            />
+                            <Label
+                              htmlFor={`internal-subcategory-${subcategory.id}`}
+                              className="text-sm font-normal cursor-pointer flex items-center gap-2"
+                            >
+                              {subcategory.color && (
+                                <div
+                                  className="w-3 h-3 rounded border border-border"
+                                  style={{ backgroundColor: subcategory.color }}
+                                />
+                              )}
+                              {subcategory.name}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
                     )}
-                    {category.name}
-                  </Label>
-                </div>
-              ))}
+                  </div>
+                );
+              })}
               {internalCategories.length === 0 && (
-                <p className="text-sm text-muted-foreground col-span-full">
+                <p className="text-sm text-muted-foreground">
                   {t('productForm.noInternalCategories') || 'No hay categorías internas disponibles'}
                 </p>
               )}

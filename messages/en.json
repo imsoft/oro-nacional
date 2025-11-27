@@ -732,7 +732,18 @@
       "loadError": "Error loading categories",
       "categoryNotFound": "Category not found",
       "active": "Active",
-      "inactive": "Inactive"
+      "inactive": "Inactive",
+      "subcategories": "Subcategories",
+      "subcategoriesDescription": "Manage subcategories of this internal category",
+      "addSubcategory": "Add Subcategory",
+      "noSubcategories": "No subcategories. Click 'Add Subcategory' to create one.",
+      "subcategoryName": "Name",
+      "subcategoryNamePrompt": "Subcategory name:",
+      "createSubcategoryError": "Error creating subcategory",
+      "updateSubcategoryError": "Error updating subcategory",
+      "deleteSubcategoryConfirm": "Are you sure you want to delete this subcategory?",
+      "deleteSubcategoryError": "Error deleting subcategory",
+      "moveSubcategoryError": "Error moving subcategory"
     },
     "orders": {
       "title": "Orders",
@@ -937,7 +948,7 @@
       "material": "Material",
       "productDetails": "Product Details",
       "internalCategories": "Internal Categories",
-      "internalCategoriesDescription": "Select internal categories for this product (administrative use only)",
+      "internalCategoriesDescription": "Select internal categories and subcategories for this product (administrative use only)",
       "noInternalCategories": "No internal categories available",
       "category": "Category",
       "selectCategory": "Select category",
