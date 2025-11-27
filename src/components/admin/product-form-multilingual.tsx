@@ -785,14 +785,32 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
                 </div>
                 <div className="flex-1">
                   <Label htmlFor={`price-${index}`} className="mb-2 block">Precio (MXN)</Label>
-                  <Input
-                    id={`price-${index}`}
-                    type="number"
-                    value={size.price}
-                    onChange={(e) => updateSize(index, "price", parseFloat(e.target.value) || 0)}
-                    placeholder="0.00"
-                    step="0.01"
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      id={`price-${index}`}
+                      type="number"
+                      value={size.price}
+                      onChange={(e) => updateSize(index, "price", parseFloat(e.target.value) || 0)}
+                      placeholder="0.00"
+                      step="0.01"
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => calculatePriceForSize(index)}
+                      disabled={calculatingPriceForIndex === index || !formData.internal_category_id || !formData.internal_subcategory_id || !size.weight}
+                      className="h-10 px-3"
+                      title="Calcular precio usando la calculadora"
+                    >
+                      {calculatingPriceForIndex === index ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Calculator className="w-4 h-4" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
                 <div className="flex-1">
                   <Label htmlFor={`grams-${index}`} className="mb-2 block">{t('productForm.grams')}</Label>
