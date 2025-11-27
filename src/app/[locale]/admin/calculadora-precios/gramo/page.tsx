@@ -386,6 +386,46 @@ export default function PriceCalculatorPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          {!isUnlocked && (
+            <Dialog open={unlockDialogOpen} onOpenChange={setUnlockDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="gap-2 border-amber-500 text-amber-600 hover:bg-amber-50">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                  Desbloquear Campos
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Desbloquear Campos de Edición</DialogTitle>
+                  <DialogDescription>
+                    Ingresa el código para habilitar la edición de todos los campos
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="unlockCode">Código de Desbloqueo</Label>
+                    <Input
+                      id="unlockCode"
+                      type="password"
+                      value={unlockCode}
+                      onChange={(e) => setUnlockCode(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          handleUnlockSubmit();
+                        }
+                      }}
+                      placeholder="Ingresa el código"
+                    />
+                  </div>
+                  <Button onClick={handleUnlockSubmit} className="w-full">
+                    Desbloquear
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
           <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" className="gap-2">
@@ -429,6 +469,7 @@ export default function PriceCalculatorPage() {
                           (parseFloat(e.target.value) / 100).toString()
                         )
                       }
+                      disabled={!isUnlocked}
                     />
                   </div>
                 </div>
@@ -446,6 +487,7 @@ export default function PriceCalculatorPage() {
                           (parseFloat(e.target.value) / 100).toString()
                         )
                       }
+                      disabled={!isUnlocked}
                     />
                   </div>
                   <div className="space-y-2">
@@ -461,6 +503,7 @@ export default function PriceCalculatorPage() {
                           (parseFloat(e.target.value) / 100).toString()
                         )
                       }
+                      disabled={!isUnlocked}
                     />
                   </div>
                 </div>
@@ -476,6 +519,7 @@ export default function PriceCalculatorPage() {
                     onChange={(e) =>
                       handleParameterChange("stripeFixedFee", e.target.value)
                     }
+                    disabled={!isUnlocked}
                   />
                 </div>
               </div>
@@ -659,6 +703,7 @@ export default function PriceCalculatorPage() {
                                 e.target.value
                               )
                             }
+                            disabled={!isUnlocked}
                             className="w-16 h-7 text-[11px] px-1"
                           />
                         </td>
@@ -674,6 +719,7 @@ export default function PriceCalculatorPage() {
                                 e.target.value
                               )
                             }
+                            disabled={!isUnlocked}
                             className="w-16 h-7 text-[11px] px-1"
                           />
                         </td>
@@ -689,6 +735,7 @@ export default function PriceCalculatorPage() {
                                 e.target.value
                               )
                             }
+                            disabled={!isUnlocked}
                             className="w-16 h-7 text-[11px] px-1"
                           />
                         </td>
@@ -704,6 +751,7 @@ export default function PriceCalculatorPage() {
                                 e.target.value
                               )
                             }
+                            disabled={!isUnlocked}
                             className="w-16 h-7 text-[11px] px-1"
                           />
                         </td>
@@ -719,6 +767,7 @@ export default function PriceCalculatorPage() {
                                 e.target.value
                               )
                             }
+                            disabled={!isUnlocked}
                             className="w-16 h-7 text-[11px] px-1"
                           />
                         </td>
