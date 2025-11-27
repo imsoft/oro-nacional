@@ -172,10 +172,7 @@ const FeaturedCollection = () => {
                 <p className="mt-2 text-sm text-muted-foreground">
                   {product.description}
                 </p>
-                <div className="mt-4 flex items-center justify-between">
-                  <p className="text-2xl font-semibold text-foreground">
-                    {product.price}
-                  </p>
+                <div className="mt-4 flex items-center justify-end">
                   <Button
                     asChild
                     variant="outline"

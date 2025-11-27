@@ -105,19 +105,7 @@ export function MultilingualProductGrid() {
                 {product.description}
               </p>
               
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-2xl font-bold text-green-600">
-                    ${product.price.toLocaleString()}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    {product.stock > 0 
-                      ? `${product.stock} ${t('available')}`
-                      : t('outOfStock')
-                    }
-                  </p>
-                </div>
-                
+              <div className="flex items-center justify-end">
                 <Button asChild>
                   <Link href={`/product/${product.slug}`}>
                     {t('viewDetails')}
