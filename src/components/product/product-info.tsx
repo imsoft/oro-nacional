@@ -159,14 +159,7 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
 
       {/* Precio */}
       <div className="flex items-baseline gap-4">
-        <div>
-          {stripeParams && finalPrice > currentPrice && (
-            <p className="text-xl font-semibold text-muted-foreground line-through">
-              ${currentPrice.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN
-            </p>
-          )}
-          <p className="text-4xl font-semibold text-foreground">{displayPrice}</p>
-        </div>
+        <p className="text-4xl font-semibold text-foreground">{displayPrice}</p>
         <p className="text-sm text-muted-foreground">IVA incluido</p>
       </div>
 
@@ -294,27 +287,17 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
           </RadioGroup>
         </div>
 
-        {/* Información de precio final y pago mensual */}
-        {stripeParams && (
-          <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+        {/* Información de pago mensual */}
+        {selectedMSI > 0 && (
+          <div className="bg-muted/50 rounded-lg p-4">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Precio final:</span>
-              <span className="text-lg font-semibold text-foreground">{displayPrice}</span>
+              <span className="text-sm text-muted-foreground">
+                Pago mensual ({selectedMSI} meses):
+              </span>
+              <span className="text-base font-semibold text-[#D4AF37]">
+                ${monthlyPayment.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN
+              </span>
             </div>
-            {selectedMSI > 0 && (
-              <div className="flex justify-between items-center pt-2 border-t border-border">
-                <span className="text-sm text-muted-foreground">
-                  Pago mensual ({selectedMSI} meses):
-                </span>
-                <span className="text-base font-semibold text-[#D4AF37]">
-                  ${monthlyPayment.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN
-                </span>
-              </div>
-            )}
-            <p className="text-xs text-muted-foreground pt-2">
-              * Incluye comisión de Stripe {stripeParams.percentage * 100}% + ${stripeParams.fixedFee.toFixed(2)} MXN
-              {selectedMSI > 0 && ` + ${MSI_FEES[selectedMSI as keyof typeof MSI_FEES] * 100}% MSI`}
-            </p>
           </div>
         )}
 
