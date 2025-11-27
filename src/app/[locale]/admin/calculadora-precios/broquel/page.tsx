@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Gem, Settings, Loader2, Info, Save, CheckCircle2, AlertCircle, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -250,9 +250,14 @@ export default function BroquelCalculatorPage() {
       const updatedData = { ...currentData, [key]: numValue };
       newMap.set(subcategoryId, updatedData);
       
-      // Auto-save to database (debounced by React's state batching)
-      // Save after a short delay to avoid too many database calls
-      setTimeout(async () => {
+      // Clear existing timeout for this subcategory
+      const existingTimeout = saveTimeoutsRef.current.get(subcategoryId);
+      if (existingTimeout) {
+        clearTimeout(existingTimeout);
+      }
+      
+      // Auto-save to database with debounce
+      const timeout = setTimeout(async () => {
         try {
           await upsertSubcategoryBroquelPricing(subcategoryId, {
             pz: updatedData.pz ?? 1.0,
@@ -265,10 +270,14 @@ export default function BroquelCalculatorPage() {
             salesCommission: updatedData.salesCommission ?? 30.00,
             shipping: updatedData.shipping ?? 800.00,
           });
+          saveTimeoutsRef.current.delete(subcategoryId);
         } catch (error) {
           console.error("Error saving subcategory broquel pricing:", error);
+          saveTimeoutsRef.current.delete(subcategoryId);
         }
       }, 1000); // 1 second debounce
+      
+      saveTimeoutsRef.current.set(subcategoryId, timeout);
       
       return newMap;
     });

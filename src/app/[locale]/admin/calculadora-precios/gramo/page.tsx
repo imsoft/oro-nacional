@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Calculator, Settings, Loader2, Info, Save, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -220,9 +220,14 @@ export default function PriceCalculatorPage() {
       const updatedData = { ...currentData, [key]: numValue };
       newMap.set(subcategoryId, updatedData);
       
-      // Auto-save to database (debounced by React's state batching)
-      // Save after a short delay to avoid too many database calls
-      setTimeout(async () => {
+      // Clear existing timeout for this subcategory
+      const existingTimeout = saveTimeoutsRef.current.get(subcategoryId);
+      if (existingTimeout) {
+        clearTimeout(existingTimeout);
+      }
+      
+      // Auto-save to database with debounce
+      const timeout = setTimeout(async () => {
         try {
           await upsertSubcategoryPricing(subcategoryId, {
             goldGrams: updatedData.goldGrams ?? 5,
@@ -232,10 +237,14 @@ export default function PriceCalculatorPage() {
             salesCommission: updatedData.salesCommission ?? 30,
             shippingCost: updatedData.shippingCost ?? 800,
           });
+          saveTimeoutsRef.current.delete(subcategoryId);
         } catch (error) {
           console.error("Error saving subcategory pricing:", error);
+          saveTimeoutsRef.current.delete(subcategoryId);
         }
       }, 1000); // 1 second debounce
+      
+      saveTimeoutsRef.current.set(subcategoryId, timeout);
       
       return newMap;
     });
