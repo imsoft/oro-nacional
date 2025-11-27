@@ -403,25 +403,6 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
           </Button>
         </div>
 
-        {/* Información de stock */}
-        {isSizesWithPrice && selectedSize && (() => {
-          const selectedSizeObj = (sizesArray as Array<{ size: string; price: number; stock: number }>)
-            .find(s => s.size === selectedSize);
-          if (!selectedSizeObj) return null;
-          return (
-            <div className="text-center">
-              {selectedSizeObj.stock > 0 ? (
-                <p className="text-sm text-green-600 font-medium">
-                  ✓ Disponible ({selectedSizeObj.stock} en stock)
-                </p>
-              ) : (
-                <p className="text-sm text-red-600 font-medium">
-                  ✗ Agotado - Contacta para disponibilidad
-                </p>
-              )}
-            </div>
-          );
-        })()}
 
         {/* Botones secundarios */}
         <div className="flex gap-3">

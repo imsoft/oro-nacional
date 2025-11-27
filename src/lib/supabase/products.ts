@@ -361,7 +361,7 @@ export async function getProductBySlug(slug: string, locale: 'es' | 'en' = 'es')
     category?: { id: string; name_es: string; name_en: string; slug_es: string; slug_en: string; description_es: string; description_en: string } | null;
     images?: Array<{ id: string; image_url: string; alt_text?: { es: string; en: string } | null; display_order: number; is_primary: boolean; created_at: string }>;
     specifications?: Array<{ id: string; spec_key_es: string; spec_key_en: string; spec_value_es: string; spec_value_en: string; display_order: number }>;
-    sizes?: Array<{ id: string; size: string; stock: number; price?: number; display_order?: number }>;
+    sizes?: Array<{ id: string; size: string; stock: number; price?: number; weight?: number; display_order?: number }>;
   };
 
   const product: ProductDetail = {
@@ -413,6 +413,7 @@ export async function getProductBySlug(slug: string, locale: 'es' | 'en' = 'es')
         size: size.size,
         stock: size.stock,
         price: size.price,
+        weight: size.weight,
         display_order: size.display_order ?? 0,
         created_at: '',
       })),
