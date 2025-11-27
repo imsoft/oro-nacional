@@ -58,6 +58,9 @@ export default function PriceCalculatorPage() {
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [unlockDialogOpen, setUnlockDialogOpen] = useState(false);
   const [unlockCode, setUnlockCode] = useState("");
+  
+  // Refs for debouncing save operations
+  const saveTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   // Format currency in Mexican Pesos
   const formatMXN = (amount: number): string => {

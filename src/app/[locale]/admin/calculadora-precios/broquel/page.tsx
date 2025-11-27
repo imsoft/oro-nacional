@@ -88,6 +88,9 @@ export default function BroquelCalculatorPage() {
   const [selectedSubcategoryId, setSelectedProductId] = useState<string | null>(null);
   const [updatingSubcategories, setUpdatingProducts] = useState<Set<string>>(new Set());
   const [isUpdatingAll, setIsUpdatingAll] = useState(false);
+  
+  // Refs for debouncing save operations
+  const saveTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   // Format currency in Mexican Pesos
   const formatMXN = (amount: number): string => {
