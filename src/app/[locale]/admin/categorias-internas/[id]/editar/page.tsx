@@ -98,7 +98,7 @@ export default function EditInternalCategoryPage({ params }: EditInternalCategor
   }
 
   return (
-    <div className="max-w-4xl">
+    <div className="w-full">
       {/* Header */}
       <div className="mb-8">
         <Button
