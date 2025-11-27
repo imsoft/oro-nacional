@@ -16,6 +16,7 @@ import {
   LogOut,
   Scale,
   Gem,
+  Folder,
 } from "lucide-react";
 import {
   Sidebar,
@@ -67,6 +68,7 @@ export function AppSidebar() {
     },
     { name: t("orders"), href: "/admin/pedidos", icon: ShoppingCart },
     { name: t("users"), href: "/admin/usuarios", icon: Users },
+    { name: t("internalCategories"), href: "/admin/categorias-internas", icon: Folder },
   ];
 
   const calculatorItems = [
