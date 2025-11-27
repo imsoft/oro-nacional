@@ -219,7 +219,7 @@ export async function getProductsExcludingCategory(categoryName: string) {
       material_en,
       is_active,
       created_at,
-      category:product_categories(id, name_es, name_en),
+      category:product_categories!inner(id, name_es, name_en),
       images:product_images(image_url, is_primary)
     `
     )
