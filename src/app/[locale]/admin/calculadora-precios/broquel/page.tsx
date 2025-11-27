@@ -31,7 +31,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { getProductsByCategoryName, updateProductPrice, updateMultipleProductPrices } from "@/lib/supabase/products";
+import { getAllProducts, updateProductPrice, updateMultipleProductPrices } from "@/lib/supabase/products";
+import { getProductsByInternalSubcategories } from "@/lib/supabase/internal-categories";
 import type { ProductListItem } from "@/types/product";
 
 // Parámetros globales para Broquel
@@ -115,7 +116,21 @@ export default function BroquelCalculatorPage() {
 
   const loadProducts = async () => {
     setIsLoading(true);
-    const data = await getProductsByCategoryName("Broqueles");
+    
+    // Obtener IDs de productos que tienen subcategorías de la categoría interna "Broquel"
+    const productIds = await getProductsByInternalSubcategories("Broquel");
+    
+    // Si hay productos con subcategorías, cargarlos; si no, no mostrar nada
+    let data: ProductListItem[] = [];
+    if (productIds.length > 0) {
+      // Cargar todos los productos y filtrar por los IDs obtenidos
+      const allProducts = await getAllProducts();
+      data = allProducts.filter(product => productIds.includes(product.id));
+    } else {
+      // Si no hay productos con subcategorías de "Broquel", no mostrar nada
+      data = [];
+    }
+    
     setProducts(data);
 
     // Initialize broquel data with default values
