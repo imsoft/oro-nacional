@@ -54,6 +54,7 @@ interface ProductBroquelData {
   merma: number; // Merma %
   laborCost: number; // Mano de obra
   stoneCost: number; // Piedra
+  salesCommission: number; // Comisión de venta
   shipping: number; // Envío
   material: string;
   stock: number;
@@ -64,7 +65,6 @@ interface ProductBroquelData {
 
 // Cálculos completos por producto
 interface ProductBroquelCalculation extends ProductBroquelData {
-  salesCommission: number; // Comisión de venta
   subtotalBeforeProfit: number; // Subtotal antes de utilidad
   subtotalWithProfit: number; // + Utilidad
   subtotalWithVat: number; // + IVA
@@ -126,6 +126,7 @@ export default function BroquelCalculatorPage() {
         merma: 10.00, // 10%
         laborCost: 20.00,
         stoneCost: 0.00,
+        salesCommission: 30.00,
         shipping: 800.00,
       });
     });
@@ -134,7 +135,8 @@ export default function BroquelCalculatorPage() {
   };
 
   // Función para calcular el precio final de un producto broquel
-  // Fórmula del Excel: ((COTIZACIÓN * ORO(GRS) * KILATAJE/FACTOR * MERMA% + MANO DE OBRA + PIEDRA) * (1 + UTILIDAD) + COMISIÓN DE VENTA + ENVÍO) * (1 + IVA) * (1 + STRIPE%) + STRIPE FIJO
+  // Fórmula del Excel: =((((($I$2*F7/24*E7)*(1+H7)+I7+J7))*D7)*(1+K7)+(D7*L7)+M7)*(1+N7)*(1+O7)+P7
+  // I2=COTIZACIÓN, F7=KILATAJE, E7=ORO(GRS), H7=MERMA, I7=MANO DE OBRA, J7=PIEDRA, D7=PZ, K7=UTILIDAD, L7=COMISIÓN DE VENTA, M7=ENVÍO, N7=IVA, O7=STRIPE%, P7=STRIPE FIJO
   const calculateProductPrice = (
     product: ProductListItem,
     broquelData: Partial<ProductBroquelData>
@@ -142,34 +144,42 @@ export default function BroquelCalculatorPage() {
     const pz = broquelData.pz || 1;
     const goldGrams = broquelData.goldGrams || 0;
     const carats = broquelData.carats || 10;
-    const factor = broquelData.factor || 0;
     const merma = (broquelData.merma || 0) / 100; // Convertir % a decimal
     const laborCost = broquelData.laborCost || 0;
     const stoneCost = broquelData.stoneCost || 0;
     const shipping = broquelData.shipping || 0;
+    const salesCommission = broquelData.salesCommission || 30.00;
 
-    // Cálculo: COTIZACIÓN * ORO(GRS) * KILATAJE * FACTOR * MERMA%
-    const goldCost = parameters.quotation * goldGrams * (carats / 10) * factor * (1 + merma);
+    // Fórmula Excel paso a paso:
+    // 1. (COTIZACIÓN * KILATAJE / 24 * ORO(GRS))
+    const goldCost = parameters.quotation * (carats / 24) * goldGrams;
 
-    // Subtotal antes de utilidad: goldCost + laborCost + stoneCost
-    const subtotalBeforeProfit = goldCost + laborCost + stoneCost;
+    // 2. goldCost * (1 + MERMA%)
+    const goldCostWithMerma = goldCost * (1 + merma);
 
-    // + Utilidad
-    const subtotalWithProfit = subtotalBeforeProfit * (1 + parameters.profitMargin);
+    // 3. + MANO DE OBRA + PIEDRA
+    const subtotalBeforeProfit = goldCostWithMerma + laborCost + stoneCost;
 
-    // Comisión de venta (30.00 por defecto según Excel)
-    const salesCommission = 30.00;
+    // 4. * PZ
+    const subtotalByPieces = subtotalBeforeProfit * pz;
 
-    // + Comisión + Envío
-    const subtotalWithCommissions = subtotalWithProfit + salesCommission + shipping;
+    // 5. * (1 + UTILIDAD)
+    const subtotalWithProfit = subtotalByPieces * (1 + parameters.profitMargin);
 
-    // + IVA
-    const subtotalWithVat = subtotalWithCommissions * (1 + parameters.vat);
+    // 6. + (PZ * COMISIÓN DE VENTA)
+    const commissionCost = pz * salesCommission;
+    const subtotalWithCommission = subtotalWithProfit + commissionCost;
 
-    // + Stripe %
+    // 7. + ENVÍO
+    const subtotalWithShipping = subtotalWithCommission + shipping;
+
+    // 8. * (1 + IVA)
+    const subtotalWithVat = subtotalWithShipping * (1 + parameters.vat);
+
+    // 9. * (1 + STRIPE%)
     const subtotalWithStripe = subtotalWithVat * (1 + parameters.stripePercentage);
 
-    // + Stripe fijo
+    // 10. + STRIPE FIJO
     const finalPrice = subtotalWithStripe + parameters.stripeFixedFee;
 
     return {
@@ -178,7 +188,7 @@ export default function BroquelCalculatorPage() {
       pz,
       goldGrams,
       carats,
-      factor,
+      factor: 0, // No se usa en la fórmula nueva
       merma: broquelData.merma || 0,
       laborCost,
       stoneCost,
@@ -189,7 +199,7 @@ export default function BroquelCalculatorPage() {
       primary_image: product.primary_image,
       is_active: product.is_active,
       salesCommission,
-      subtotalBeforeProfit,
+      subtotalBeforeProfit: subtotalByPieces,
       subtotalWithProfit,
       subtotalWithVat,
       subtotalWithStripe,
@@ -539,6 +549,9 @@ export default function BroquelCalculatorPage() {
                     Piedra
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Comisión Vta
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Envío
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider bg-blue-50">
@@ -562,7 +575,7 @@ export default function BroquelCalculatorPage() {
                 {calculatedProducts.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={14}
+                      colSpan={15}
                       className="px-6 py-12 text-center text-muted-foreground"
                     >
                       No hay productos para calcular
@@ -655,6 +668,17 @@ export default function BroquelCalculatorPage() {
                             value={calc.stoneCost}
                             onChange={(e) =>
                               handleProductDataChange(calc.id, "stoneCost", e.target.value)
+                            }
+                            className="w-20 h-8 text-xs"
+                          />
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm">
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={calc.salesCommission}
+                            onChange={(e) =>
+                              handleProductDataChange(calc.id, "salesCommission", e.target.value)
                             }
                             className="w-20 h-8 text-xs"
                           />
