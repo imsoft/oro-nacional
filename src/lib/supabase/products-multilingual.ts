@@ -64,6 +64,7 @@ export async function getProducts(locale: Locale = 'es') {
         size,
         stock,
         price,
+        weight,
         display_order
       )
     `)
@@ -185,6 +186,7 @@ export async function getProductBySlug(slug: string, locale: Locale = 'es') {
         size,
         stock,
         price,
+        weight,
         display_order
       )
     `)
@@ -254,6 +256,7 @@ export async function getProductById(id: string, locale: Locale = 'es') {
         size,
         stock,
         price,
+        weight,
         display_order
       )
     `)
@@ -514,7 +517,8 @@ export async function createProduct(
         size: size.size,
         stock: size.stock,
         price: size.price || productData.price, // Use size price or fall back to base price
-        display_order: (size as { size: string; stock: number; price: number; display_order?: number }).display_order ?? index,
+        weight: size.weight || null, // Include weight field
+        display_order: (size as { size: string; stock: number; price?: number; weight?: number; display_order?: number }).display_order ?? index,
       }));
 
       const { error: sizesError } = await supabase
@@ -691,7 +695,8 @@ export async function updateProduct(
           size: size.size,
           stock: size.stock,
           price: size.price || updates.price || 0,
-          display_order: (size as { size: string; stock: number; price: number; display_order?: number }).display_order ?? index,
+          weight: size.weight || null, // Include weight field
+          display_order: (size as { size: string; stock: number; price?: number; weight?: number; display_order?: number }).display_order ?? index,
         }));
 
         const { error: insertSizesError } = await supabase
