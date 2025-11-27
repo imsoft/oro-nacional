@@ -267,13 +267,14 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
   };
 
   const addSize = () => {
-    const maxOrder = formData.sizes.length > 0 
+    const maxOrder = formData.sizes.length > 0
       ? Math.max(...formData.sizes.map(s => s.display_order ?? 0))
       : -1;
     const newSize = {
       size: "",
       stock: 0,
       price: formData.price || 0, // Default to base price
+      weight: undefined,
       display_order: maxOrder + 1
     };
     updateField("sizes", [...formData.sizes, newSize]);
@@ -667,9 +668,17 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
                   <Input
                     id={`weight-${index}`}
                     type="number"
-                    value={size.weight || ""}
-                    onChange={(e) => updateSize(index, "weight", parseFloat(e.target.value) || undefined)}
-                    placeholder="0.00"
+                    value={size.weight !== undefined ? size.weight : ""}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === "" || value === null) {
+                        updateSize(index, "weight", undefined);
+                      } else {
+                        const parsed = parseFloat(value);
+                        updateSize(index, "weight", isNaN(parsed) ? undefined : parsed);
+                      }
+                    }}
+                    placeholder="0.000"
                     step="0.001"
                   />
                 </div>

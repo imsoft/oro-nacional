@@ -20,8 +20,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { getAllOrders, getOrderStats, updateOrderStatus } from "@/lib/supabase/orders";
-import type { OrderListItem, OrderStatus, OrderStats } from "@/types/order";
+import { getAllOrders, getOrderStats, updateOrderStatus, getOrderById } from "@/lib/supabase/orders";
+import type { OrderListItem, OrderStatus, OrderStats, Order } from "@/types/order";
+import Image from "next/image";
 
 export default function OrdersAdmin() {
   const t = useTranslations('admin.orders');
@@ -30,6 +31,8 @@ export default function OrdersAdmin() {
   const [orders, setOrders] = useState<OrderListItem[]>([]);
   const [stats, setStats] = useState<OrderStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isLoadingOrder, setIsLoadingOrder] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -63,6 +66,13 @@ export default function OrdersAdmin() {
     if (result.success) {
       loadData();
     }
+  };
+
+  const handleViewOrder = async (orderId: string) => {
+    setIsLoadingOrder(true);
+    const orderData = await getOrderById(orderId);
+    setSelectedOrder(orderData);
+    setIsLoadingOrder(false);
   };
 
   const getStatusColor = (status: OrderStatus) => {
@@ -271,40 +281,159 @@ export default function OrdersAdmin() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button variant="ghost" size="sm">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewOrder(order.id)}
+                          >
                             <Eye className="h-4 w-4" />
                           </Button>
                         </DialogTrigger>
-                        <DialogContent>
+                        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
                           <DialogHeader>
                             <DialogTitle>{t('orderDetails')}</DialogTitle>
                             <DialogDescription>
                               {order.order_number}
                             </DialogDescription>
                           </DialogHeader>
-                          <div className="space-y-4">
-                            <div>
-                              <p className="text-sm font-medium">{t('customer')}</p>
-                              <p className="text-sm text-muted-foreground">{order.customer_name}</p>
-                              <p className="text-sm text-muted-foreground">{order.customer_email}</p>
+
+                          {isLoadingOrder ? (
+                            <div className="flex items-center justify-center py-8">
+                              <Loader2 className="h-8 w-8 animate-spin text-[#D4AF37]" />
                             </div>
-                            <div>
-                              <p className="text-sm font-medium">{t('total')}</p>
-                              <p className="text-lg font-bold text-[#D4AF37]">
-                                ${order.total.toLocaleString("es-MX")} MXN
-                              </p>
+                          ) : selectedOrder ? (
+                            <div className="space-y-6 mt-4">
+                              {/* Customer Information */}
+                              <div>
+                                <h4 className="font-semibold text-foreground mb-2">{t('customer')}</h4>
+                                <p className="text-sm text-muted-foreground">{selectedOrder.customer_name}</p>
+                                <p className="text-sm text-muted-foreground">{selectedOrder.customer_email}</p>
+                                {selectedOrder.customer_phone && (
+                                  <p className="text-sm text-muted-foreground">{selectedOrder.customer_phone}</p>
+                                )}
+                              </div>
+
+                              {/* Shipping Address */}
+                              <div>
+                                <h4 className="font-semibold text-foreground mb-2">Dirección de Envío</h4>
+                                <p className="text-sm text-muted-foreground">{selectedOrder.shipping_address}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {selectedOrder.shipping_city}, {selectedOrder.shipping_state} {selectedOrder.shipping_zip_code}
+                                </p>
+                                <p className="text-sm text-muted-foreground">{selectedOrder.shipping_country}</p>
+                              </div>
+
+                              {/* Order Status */}
+                              <div>
+                                <h4 className="font-semibold text-foreground mb-2">{t('status')}</h4>
+                                <div className="flex gap-4">
+                                  <div>
+                                    <p className="text-xs text-muted-foreground mb-1">Estado del Pedido</p>
+                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(selectedOrder.status)}`}>
+                                      {getStatusTranslation(selectedOrder.status)}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-muted-foreground mb-1">Estado de Pago</p>
+                                    <p className="text-sm text-foreground">{selectedOrder.payment_status}</p>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Order Items */}
+                              <div>
+                                <h4 className="font-semibold text-foreground mb-3">Productos ({selectedOrder.items?.length || 0})</h4>
+                                <div className="space-y-3">
+                                  {selectedOrder.items?.map((item) => (
+                                    <div key={item.id} className="flex gap-4 pb-3 border-b border-border last:border-0">
+                                      <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                                        {item.product_image ? (
+                                          <Image
+                                            src={item.product_image}
+                                            alt={item.product_name}
+                                            fill
+                                            className="object-cover"
+                                          />
+                                        ) : (
+                                          <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
+                                            Sin imagen
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div className="flex-1">
+                                        <p className="font-medium text-foreground">{item.product_name}</p>
+                                        {item.size && (
+                                          <p className="text-xs text-muted-foreground">Talla: {item.size}</p>
+                                        )}
+                                        {item.material && (
+                                          <p className="text-xs text-muted-foreground">Material: {item.material}</p>
+                                        )}
+                                        <p className="text-sm text-muted-foreground mt-1">
+                                          Cantidad: {item.quantity} × ${item.unit_price.toLocaleString("es-MX")} MXN
+                                        </p>
+                                        <p className="text-sm font-semibold text-[#D4AF37] mt-1">
+                                          Subtotal: ${item.subtotal.toLocaleString("es-MX")} MXN
+                                        </p>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+
+                              {/* Order Summary */}
+                              <div className="border-t border-border pt-4">
+                                <div className="space-y-2">
+                                  <div className="flex justify-between text-sm">
+                                    <span className="text-muted-foreground">Subtotal</span>
+                                    <span className="text-foreground">${selectedOrder.subtotal.toLocaleString("es-MX")} MXN</span>
+                                  </div>
+                                  {selectedOrder.shipping_cost > 0 && (
+                                    <div className="flex justify-between text-sm">
+                                      <span className="text-muted-foreground">Envío</span>
+                                      <span className="text-foreground">${selectedOrder.shipping_cost.toLocaleString("es-MX")} MXN</span>
+                                    </div>
+                                  )}
+                                  {selectedOrder.tax > 0 && (
+                                    <div className="flex justify-between text-sm">
+                                      <span className="text-muted-foreground">IVA</span>
+                                      <span className="text-foreground">${selectedOrder.tax.toLocaleString("es-MX")} MXN</span>
+                                    </div>
+                                  )}
+                                  <div className="flex justify-between text-lg font-semibold border-t border-border pt-2">
+                                    <span className="text-foreground">{t('total')}</span>
+                                    <span className="text-[#D4AF37]">${selectedOrder.total.toLocaleString("es-MX")} MXN</span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Payment Method */}
+                              {selectedOrder.payment_method && (
+                                <div>
+                                  <h4 className="font-semibold text-foreground mb-2">Método de Pago</h4>
+                                  <p className="text-sm text-muted-foreground">{selectedOrder.payment_method}</p>
+                                </div>
+                              )}
+
+                              {/* Notes */}
+                              {selectedOrder.customer_notes && (
+                                <div>
+                                  <h4 className="font-semibold text-foreground mb-2">Notas del Cliente</h4>
+                                  <p className="text-sm text-muted-foreground">{selectedOrder.customer_notes}</p>
+                                </div>
+                              )}
+
+                              {selectedOrder.admin_notes && (
+                                <div>
+                                  <h4 className="font-semibold text-foreground mb-2">Notas del Admin</h4>
+                                  <p className="text-sm text-muted-foreground">{selectedOrder.admin_notes}</p>
+                                </div>
+                              )}
                             </div>
-                            <div>
-                              <p className="text-sm font-medium">{t('status')}</p>
-                              <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
-                                {getStatusTranslation(order.status)}
-                              </span>
+                          ) : (
+                            <div className="text-center py-8 text-muted-foreground">
+                              No se pudo cargar la información del pedido
                             </div>
-                            <div>
-                              <p className="text-sm font-medium">{t('paymentStatus')}</p>
-                              <p className="text-sm text-muted-foreground">{order.payment_status}</p>
-                            </div>
-                          </div>
+                          )}
                         </DialogContent>
                       </Dialog>
                     </td>
