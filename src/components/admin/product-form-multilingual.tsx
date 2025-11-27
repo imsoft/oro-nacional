@@ -370,21 +370,20 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
 
     const size = formData.sizes[index];
     
-    // Determinar el nombre del campo según la categoría
+    // Obtener el nombre de la categoría interna
     const selectedCategory = internalCategories.find(cat => cat.id === formData.internal_category_id);
-    const isBroquel = selectedCategory?.name?.toLowerCase() === "broquel";
+    if (!selectedCategory) {
+      alert("No se encontró la categoría interna seleccionada.");
+      return;
+    }
+
+    // Determinar el nombre del campo según la categoría
+    const isBroquel = selectedCategory.name?.toLowerCase() === "broquel";
     const fieldName = isBroquel ? "piezas" : "gramos";
     
     // Validar que la talla tenga gramos/piezas definidos
     if (!size.weight || size.weight <= 0) {
       alert(`Por favor ingresa las ${fieldName} para esta talla primero.`);
-      return;
-    }
-
-    // Obtener el nombre de la categoría interna
-    const selectedCategory = internalCategories.find(cat => cat.id === formData.internal_category_id);
-    if (!selectedCategory) {
-      alert("No se encontró la categoría interna seleccionada.");
       return;
     }
 
