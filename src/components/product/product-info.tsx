@@ -239,17 +239,32 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
               className="mt-4 grid grid-cols-4 gap-3"
             >
               {(() => {
+                // Determinar el label según la categoría interna
+                const isBroquel = product.internalCategory?.name?.toLowerCase() === "broquel";
+                const weightLabel = isBroquel ? "Piezas" : "Gramos";
+                
                 // Normalizar las tallas a un formato consistente
-                const normalizedSizes: Array<{ size: string; price: number; stock: number }> = isSizesWithPrice
-                  ? (product.sizes as Array<{ size: string; price: number; stock: number }>)
+                const normalizedSizes: Array<{ size: string; price: number; stock: number; weight?: number }> = isSizesWithPrice
+                  ? (product.sizes as Array<{ size: string; price: number; stock: number; weight?: number }>)
                   : (product.sizes as string[]).map(s => ({ 
                       size: s, 
                       price: currentPrice, 
-                      stock: 1 // Stock por defecto si no hay información de stock por talla
+                      stock: 1, // Stock por defecto si no hay información de stock por talla
+                      weight: undefined
                     }));
 
                 return normalizedSizes.map((sizeObj) => {
                   const isOutOfStock = sizeObj.stock === 0;
+                  
+                  // Formatear el peso según el tipo
+                  const formatWeight = (weight?: number) => {
+                    if (weight === undefined || weight === null) return null;
+                    if (isBroquel) {
+                      return weight.toFixed(2); // Piezas con 2 decimales
+                    } else {
+                      return weight.toFixed(3); // Gramos con 3 decimales
+                    }
+                  };
                   
                   return (
                     <div key={sizeObj.size}>
@@ -271,6 +286,11 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
                         {isSizesWithPrice && (
                           <span className="text-xs text-muted-foreground mt-1">
                             ${sizeObj.price.toLocaleString("es-MX")}
+                          </span>
+                        )}
+                        {sizeObj.weight !== undefined && sizeObj.weight !== null && (
+                          <span className="text-xs text-muted-foreground mt-0.5">
+                            {formatWeight(sizeObj.weight)} {weightLabel}
                           </span>
                         )}
                       </Label>
