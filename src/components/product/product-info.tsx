@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Heart, Share2, ShoppingCart, Shield, Truck, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCartStore } from "@/stores/cart-store";
+import { getPricingParameters } from "@/lib/supabase/pricing";
 
 interface ProductInfoProps {
   product: {
@@ -41,23 +42,71 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
     : (sizesArray[0] as string) || "";
   
   const [selectedSize, setSelectedSize] = useState(firstSize);
+  const [selectedMSI, setSelectedMSI] = useState<number>(0); // 0 = Sin MSI (pago de contado)
   const [isFavorite, setIsFavorite] = useState(false);
+  const [stripeParams, setStripeParams] = useState<{ percentage: number; fixedFee: number } | null>(null);
   const { addItem } = useCartStore();
 
-  // Calcular precio actual según talla seleccionada
-  const getCurrentPrice = () => {
+  // Comisiones adicionales de MSI (sobre el precio base)
+  const MSI_FEES = {
+    0: 0,      // Sin MSI (pago de contado - solo comisión base de Stripe)
+    3: 0.05,   // 3 meses - 5%
+    6: 0.075,  // 6 meses - 7.5%
+    9: 0.10,   // 9 meses - 10%
+    12: 0.125, // 12 meses - 12.5%
+  };
+
+  // Obtener parámetros de Stripe desde la base de datos
+  useEffect(() => {
+    const loadStripeParams = async () => {
+      try {
+        const params = await getPricingParameters();
+        setStripeParams({
+          percentage: params.stripePercentage,
+          fixedFee: params.stripeFixedFee,
+        });
+      } catch (error) {
+        console.error("Error loading Stripe parameters:", error);
+        // Valores por defecto si falla la carga
+        setStripeParams({
+          percentage: 0.036, // 3.6%
+          fixedFee: 3.00,   // $3 MXN
+        });
+      }
+    };
+    loadStripeParams();
+  }, []);
+
+  // Calcular precio base según talla seleccionada (ya incluye IVA)
+  const currentPrice = useMemo(() => {
     if (!isSizesWithPrice || !selectedSize) {
       return product.basePrice ?? parseFloat(product.price.replace(/[^0-9.-]+/g, ""));
     }
-    
+
     const selectedSizeObj = (sizesArray as Array<{ size: string; price: number; stock: number }>)
       .find(s => s.size === selectedSize);
-    
-    return selectedSizeObj?.price ?? product.basePrice ?? parseFloat(product.price.replace(/[^0-9.-]+/g, ""));
-  };
 
-  const currentPrice = getCurrentPrice();
-  const displayPrice = `$${currentPrice.toLocaleString("es-MX")} MXN`;
+    return selectedSizeObj?.price ?? product.basePrice ?? parseFloat(product.price.replace(/[^0-9.-]+/g, ""));
+  }, [isSizesWithPrice, selectedSize, sizesArray, product.basePrice, product.price]);
+
+  // Calcular precio final con comisión de Stripe y MSI
+  const finalPrice = useMemo(() => {
+    if (!stripeParams) return currentPrice;
+
+    const basePrice = currentPrice;
+    const msiFee = MSI_FEES[selectedMSI as keyof typeof MSI_FEES] || 0;
+
+    // Si es pago de contado (0 MSI), solo aplicar comisión base de Stripe
+    if (selectedMSI === 0) {
+      return basePrice * (1 + stripeParams.percentage) + stripeParams.fixedFee;
+    }
+
+    // Si es MSI, aplicar comisión adicional de MSI sobre el precio base, luego Stripe
+    const priceWithMSI = basePrice * (1 + msiFee);
+    return priceWithMSI * (1 + stripeParams.percentage) + stripeParams.fixedFee;
+  }, [currentPrice, selectedMSI, stripeParams]);
+  const displayPrice = `$${finalPrice.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN`;
+  const monthlyPayment = selectedMSI > 0 ? finalPrice / selectedMSI : finalPrice;
 
   const handleShare = async () => {
     const shareData = {
@@ -81,10 +130,11 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
 
 
   const handleAddToCart = () => {
+    // Usar el precio final que incluye comisiones de Stripe y MSI
     addItem({
       id: product.id,
       name: product.name,
-      price: currentPrice,
+      price: finalPrice,
       image: product.images?.[0] || "/placeholder-product.jpg",
       material: product.material,
       size: selectedSize || undefined,
@@ -109,7 +159,14 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
 
       {/* Precio */}
       <div className="flex items-baseline gap-4">
-        <p className="text-4xl font-semibold text-foreground">{displayPrice}</p>
+        <div>
+          {stripeParams && finalPrice > currentPrice && (
+            <p className="text-xl font-semibold text-muted-foreground line-through">
+              ${currentPrice.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN
+            </p>
+          )}
+          <p className="text-4xl font-semibold text-foreground">{displayPrice}</p>
+        </div>
         <p className="text-sm text-muted-foreground">IVA incluido</p>
       </div>
 
@@ -174,6 +231,92 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
           </div>
         )}
 
+        {/* Selector de MSI */}
+        <div>
+          <Label className="text-base font-semibold">
+            Meses Sin Intereses (MSI)
+          </Label>
+          <RadioGroup
+            value={selectedMSI.toString()}
+            onValueChange={(value) => setSelectedMSI(parseInt(value))}
+            className="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-3"
+          >
+            <div>
+              <RadioGroupItem value="0" id="msi-0" className="peer sr-only" />
+              <Label
+                htmlFor="msi-0"
+                className="flex flex-col items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium cursor-pointer transition-all border-muted bg-card hover:bg-muted peer-data-[state=checked]:border-[#D4AF37] peer-data-[state=checked]:bg-[#D4AF37]/10"
+              >
+                <span className="text-xs text-muted-foreground">De contado</span>
+                <span className="text-xs font-semibold mt-1">Sin recargo</span>
+              </Label>
+            </div>
+            <div>
+              <RadioGroupItem value="3" id="msi-3" className="peer sr-only" />
+              <Label
+                htmlFor="msi-3"
+                className="flex flex-col items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium cursor-pointer transition-all border-muted bg-card hover:bg-muted peer-data-[state=checked]:border-[#D4AF37] peer-data-[state=checked]:bg-[#D4AF37]/10"
+              >
+                <span className="text-xs text-muted-foreground">3 meses</span>
+                <span className="text-sm font-semibold text-blue-600 mt-1">5%</span>
+              </Label>
+            </div>
+            <div>
+              <RadioGroupItem value="6" id="msi-6" className="peer sr-only" />
+              <Label
+                htmlFor="msi-6"
+                className="flex flex-col items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium cursor-pointer transition-all border-muted bg-card hover:bg-muted peer-data-[state=checked]:border-[#D4AF37] peer-data-[state=checked]:bg-[#D4AF37]/10"
+              >
+                <span className="text-xs text-muted-foreground">6 meses</span>
+                <span className="text-sm font-semibold text-blue-600 mt-1">7.5%</span>
+              </Label>
+            </div>
+            <div>
+              <RadioGroupItem value="9" id="msi-9" className="peer sr-only" />
+              <Label
+                htmlFor="msi-9"
+                className="flex flex-col items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium cursor-pointer transition-all border-muted bg-card hover:bg-muted peer-data-[state=checked]:border-[#D4AF37] peer-data-[state=checked]:bg-[#D4AF37]/10"
+              >
+                <span className="text-xs text-muted-foreground">9 meses</span>
+                <span className="text-sm font-semibold text-blue-600 mt-1">10%</span>
+              </Label>
+            </div>
+            <div>
+              <RadioGroupItem value="12" id="msi-12" className="peer sr-only" />
+              <Label
+                htmlFor="msi-12"
+                className="flex flex-col items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium cursor-pointer transition-all border-muted bg-card hover:bg-muted peer-data-[state=checked]:border-[#D4AF37] peer-data-[state=checked]:bg-[#D4AF37]/10"
+              >
+                <span className="text-xs text-muted-foreground">12 meses</span>
+                <span className="text-sm font-semibold text-blue-600 mt-1">12.5%</span>
+              </Label>
+            </div>
+          </RadioGroup>
+        </div>
+
+        {/* Información de precio final y pago mensual */}
+        {stripeParams && (
+          <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Precio final:</span>
+              <span className="text-lg font-semibold text-foreground">{displayPrice}</span>
+            </div>
+            {selectedMSI > 0 && (
+              <div className="flex justify-between items-center pt-2 border-t border-border">
+                <span className="text-sm text-muted-foreground">
+                  Pago mensual ({selectedMSI} meses):
+                </span>
+                <span className="text-base font-semibold text-[#D4AF37]">
+                  ${monthlyPayment.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN
+                </span>
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground pt-2">
+              * Incluye comisión de Stripe {stripeParams.percentage * 100}% + ${stripeParams.fixedFee.toFixed(2)} MXN
+              {selectedMSI > 0 && ` + ${MSI_FEES[selectedMSI as keyof typeof MSI_FEES] * 100}% MSI`}
+            </p>
+          </div>
+        )}
 
         {/* Botones de acción */}
         <div className="space-y-3">
