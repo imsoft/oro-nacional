@@ -68,7 +68,6 @@ export function AppSidebar() {
     },
     { name: t("orders"), href: "/admin/pedidos", icon: ShoppingCart },
     { name: t("users"), href: "/admin/usuarios", icon: Users },
-    { name: t("settings"), href: "/admin/configuracion", icon: Settings },
   ];
 
   const calculatorItems = [
@@ -159,6 +158,16 @@ export function AppSidebar() {
                   </CollapsibleContent>
                 </SidebarMenuItem>
               </Collapsible>
+
+              {/* Settings at the end */}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link href="/admin/configuracion">
+                    <Settings />
+                    <span>{t("settings")}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
