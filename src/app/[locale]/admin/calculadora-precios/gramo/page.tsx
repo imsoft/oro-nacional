@@ -126,11 +126,11 @@ export default function PriceCalculatorPage() {
           // Use default values for new products
           pricingMap.set(product.id, {
             goldGrams: 5,
-            factor: 1.0,
-            laborCost: 50,
+            factor: 0.442,
+            laborCost: 15,
             stoneCost: 0,
-            salesCommission: 10,
-            shippingCost: 150,
+            salesCommission: 30,
+            shippingCost: 800,
           });
         }
       });
@@ -150,11 +150,11 @@ export default function PriceCalculatorPage() {
   ): ProductPricingCalculation | null => {
     // Default values if not defined
     const goldGrams = pricingData.goldGrams || 0;
-    const factor = pricingData.factor || 1;
-    const laborCost = pricingData.laborCost || 0;
+    const factor = pricingData.factor || 0.442;
+    const laborCost = pricingData.laborCost || 15;
     const stoneCost = pricingData.stoneCost || 0;
-    const salesCommission = pricingData.salesCommission || 0;
-    const shippingCost = pricingData.shippingCost || 0;
+    const salesCommission = pricingData.salesCommission || 30;
+    const shippingCost = pricingData.shippingCost || 800;
 
     // Formula: ((($H$2*D5*F5)+(D5*(H5+I5)))*(1+J5)+(D5*K5)+L5)*(1+M5)*(1+N5)+O5
     const goldCost = parameters.goldQuotation * goldGrams * factor;
@@ -241,11 +241,11 @@ export default function PriceCalculatorPage() {
       setIsSavingProductData(true);
       const pricingData = {
         goldGrams: updatedData.goldGrams || 5,
-        factor: updatedData.factor || 1.0,
-        laborCost: updatedData.laborCost || 50,
+        factor: updatedData.factor || 0.442,
+        laborCost: updatedData.laborCost || 15,
         stoneCost: updatedData.stoneCost || 0,
-        salesCommission: updatedData.salesCommission || 10,
-        shippingCost: updatedData.shippingCost || 150,
+        salesCommission: updatedData.salesCommission || 30,
+        shippingCost: updatedData.shippingCost || 800,
       };
 
       upsertProductPricing(productId, pricingData)
