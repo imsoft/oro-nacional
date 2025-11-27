@@ -112,26 +112,52 @@ export default function PriceCalculatorPage() {
       // Initialize pricing data for all products
       productsData.forEach((product: ProductListItem) => {
         const savedData = pricingDataMap.get(product.id);
+        
+        // Default values
+        const defaults = {
+          goldGrams: 5,
+          factor: 0.442,
+          laborCost: 15,
+          stoneCost: 0,
+          salesCommission: 30,
+          shippingCost: 800,
+        };
+        
         if (savedData) {
-          // Use saved data from database, but fill missing values with defaults
-          pricingMap.set(product.id, {
-            goldGrams: savedData.goldGrams ?? 5,
-            factor: savedData.factor ?? 0.442,
-            laborCost: savedData.laborCost ?? 15,
-            stoneCost: savedData.stoneCost ?? 0,
-            salesCommission: savedData.salesCommission ?? 30,
-            shippingCost: savedData.shippingCost ?? 800,
-          });
+          // Check if values are old defaults and replace with new defaults
+          const isOldFactor = savedData.factor === 1.0 || savedData.factor === 1;
+          const isOldLaborCost = savedData.laborCost === 50 || savedData.laborCost === 50.0;
+          const isOldCommission = savedData.salesCommission === 10 || savedData.salesCommission === 10.0;
+          const isOldShipping = savedData.shippingCost === 150 || savedData.shippingCost === 150.0;
+          
+          // Use saved data, but replace old defaults with new defaults
+          const updatedData = {
+            goldGrams: savedData.goldGrams ?? defaults.goldGrams,
+            factor: isOldFactor ? defaults.factor : (savedData.factor ?? defaults.factor),
+            laborCost: isOldLaborCost ? defaults.laborCost : (savedData.laborCost ?? defaults.laborCost),
+            stoneCost: savedData.stoneCost ?? defaults.stoneCost,
+            salesCommission: isOldCommission ? defaults.salesCommission : (savedData.salesCommission ?? defaults.salesCommission),
+            shippingCost: isOldShipping ? defaults.shippingCost : (savedData.shippingCost ?? defaults.shippingCost),
+          };
+          
+          pricingMap.set(product.id, updatedData);
+          
+          // Auto-update database if old values were detected
+          if (isOldFactor || isOldLaborCost || isOldCommission || isOldShipping) {
+            upsertProductPricing(product.id, {
+              goldGrams: updatedData.goldGrams,
+              factor: updatedData.factor,
+              laborCost: updatedData.laborCost,
+              stoneCost: updatedData.stoneCost,
+              salesCommission: updatedData.salesCommission,
+              shippingCost: updatedData.shippingCost,
+            }).catch((error) => {
+              console.error(`Error updating pricing for product ${product.id}:`, error);
+            });
+          }
         } else {
           // Use default values for new products
-          pricingMap.set(product.id, {
-            goldGrams: 5,
-            factor: 0.442,
-            laborCost: 15,
-            stoneCost: 0,
-            salesCommission: 30,
-            shippingCost: 800,
-          });
+          pricingMap.set(product.id, defaults);
         }
       });
       setProductPricingData(pricingMap);
