@@ -208,8 +208,8 @@ export interface ProductFormData {
   description: MultilingualFormData;
   material: MultilingualFormData;
   category_id: string;
-  internal_category_ids?: string[]; // IDs de categorías internas
-  internal_subcategory_ids?: string[]; // IDs de subcategorías internas
+  internal_category_id?: string; // ID de categoría interna (solo una)
+  internal_subcategory_id?: string; // ID de subcategoría interna (solo una)
   price: number;
   stock?: number; // Ya no se usa, pero se mantiene para compatibilidad
   weight?: number;

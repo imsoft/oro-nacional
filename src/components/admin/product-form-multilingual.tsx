@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { Plus, Trash2, Save, Eye, X, ArrowUp, ArrowDown, GripVertical } from "lucide-react";
 import { ProductImagesManager } from "./product-images-manager";
@@ -55,8 +56,8 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
     description: { es: "", en: "" },
     material: { es: "", en: "" },
     category_id: "",
-    internal_category_ids: [],
-    internal_subcategory_ids: [],
+    internal_category_id: undefined,
+    internal_subcategory_id: undefined,
     price: 0,
     stock: 0, // Ya no se usa, pero se mantiene para compatibilidad
     weight: undefined,
@@ -137,18 +138,18 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
         updateField("price", 0); // Ya no se usa, pero se mantiene para compatibilidad
         updateField("is_active", product.is_active);
 
-        // Cargar categorías y subcategorías internas del producto
+        // Cargar categoría y subcategoría interna del producto (solo la primera)
         try {
           const { categories: productCategories, subcategories: productSubcategories } = 
             await getProductInternalCategoriesAndSubcategories(productId);
-          const internalCategoryIds = productCategories.map(cat => cat.id);
-          const internalSubcategoryIds = productSubcategories.map(sub => sub.id);
-          updateField("internal_category_ids", internalCategoryIds);
-          updateField("internal_subcategory_ids", internalSubcategoryIds);
+          const internalCategoryId = productCategories.length > 0 ? productCategories[0].id : undefined;
+          const internalSubcategoryId = productSubcategories.length > 0 ? productSubcategories[0].id : undefined;
+          updateField("internal_category_id", internalCategoryId);
+          updateField("internal_subcategory_id", internalSubcategoryId);
         } catch (error) {
           console.error("Error loading product internal categories:", error);
-          updateField("internal_category_ids", []);
-          updateField("internal_subcategory_ids", []);
+          updateField("internal_category_id", undefined);
+          updateField("internal_subcategory_id", undefined);
         }
 
         // Cargar imágenes existentes
@@ -291,9 +292,9 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
         savedProductId = newProduct.id;
       }
 
-      // Guardar categorías y subcategorías internas
-      const internalCategoryIds = formData.internal_category_ids || [];
-      const internalSubcategoryIds = formData.internal_subcategory_ids || [];
+      // Guardar categoría y subcategoría interna (solo una de cada una)
+      const internalCategoryIds = formData.internal_category_id ? [formData.internal_category_id] : [];
+      const internalSubcategoryIds = formData.internal_subcategory_id ? [formData.internal_subcategory_id] : [];
       await updateProductInternalCategoriesAndSubcategories(
         savedProductId,
         internalCategoryIds,
@@ -546,84 +547,82 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
           <div className="space-y-3 mt-4">
             <Label htmlFor="internal_categories">{t('productForm.internalCategories') || 'Categorías Internas'}</Label>
             <p className="text-sm text-muted-foreground">
-              {t('productForm.internalCategoriesDescription') || 'Selecciona las categorías internas y subcategorías para este producto (solo uso administrativo)'}
+              {t('productForm.internalCategoriesDescription') || 'Selecciona una categoría interna y una subcategoría para este producto (solo uso administrativo)'}
             </p>
             <div className="space-y-4 mt-2">
-              {internalCategories.map((category) => {
-                const subcategories = internalSubcategories.get(category.id) || [];
-                const hasSubcategories = subcategories.length > 0;
-                const isCategorySelected = formData.internal_category_ids?.includes(category.id) || false;
+              <RadioGroup
+                value={formData.internal_category_id || ""}
+                onValueChange={(value) => {
+                  updateField("internal_category_id", value || undefined);
+                  // Si se cambia la categoría, limpiar la subcategoría seleccionada
+                  updateField("internal_subcategory_id", undefined);
+                }}
+                className="space-y-3"
+              >
+                {internalCategories.map((category) => {
+                  const subcategories = internalSubcategories.get(category.id) || [];
+                  const hasSubcategories = subcategories.length > 0;
+                  const isCategorySelected = formData.internal_category_id === category.id;
 
-                return (
-                  <div key={category.id} className="border rounded-lg p-3 space-y-2">
-                    {/* Categoría Principal */}
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`internal-category-${category.id}`}
-                        checked={isCategorySelected}
-                        onCheckedChange={(checked) => {
-                          const currentIds = formData.internal_category_ids || [];
-                          if (checked) {
-                            updateField("internal_category_ids", [...currentIds, category.id]);
-                          } else {
-                            updateField("internal_category_ids", currentIds.filter(id => id !== category.id));
-                            // Si se deselecciona la categoría, también deseleccionar todas sus subcategorías
-                            const currentSubIds = formData.internal_subcategory_ids || [];
-                            const subIdsToRemove = subcategories.map(sub => sub.id);
-                            updateField("internal_subcategory_ids", currentSubIds.filter(id => !subIdsToRemove.includes(id)));
-                          }
-                        }}
-                      />
-                      <Label
-                        htmlFor={`internal-category-${category.id}`}
-                        className="text-sm font-medium cursor-pointer flex items-center gap-2"
-                      >
-                        {category.color && (
-                          <div
-                            className="w-4 h-4 rounded border border-border"
-                            style={{ backgroundColor: category.color }}
-                          />
-                        )}
-                        {category.name}
-                      </Label>
-                    </div>
-
-                    {/* Subcategorías */}
-                    {hasSubcategories && (
-                      <div className="ml-6 space-y-2 border-l-2 pl-4">
-                        {subcategories.map((subcategory) => (
-                          <div key={subcategory.id} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`internal-subcategory-${subcategory.id}`}
-                              checked={formData.internal_subcategory_ids?.includes(subcategory.id) || false}
-                              onCheckedChange={(checked) => {
-                                const currentSubIds = formData.internal_subcategory_ids || [];
-                                if (checked) {
-                                  updateField("internal_subcategory_ids", [...currentSubIds, subcategory.id]);
-                                } else {
-                                  updateField("internal_subcategory_ids", currentSubIds.filter(id => id !== subcategory.id));
-                                }
-                              }}
+                  return (
+                    <div key={category.id} className="border rounded-lg p-3 space-y-2">
+                      {/* Categoría Principal */}
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem
+                          value={category.id}
+                          id={`internal-category-${category.id}`}
+                        />
+                        <Label
+                          htmlFor={`internal-category-${category.id}`}
+                          className="text-sm font-medium cursor-pointer flex items-center gap-2"
+                        >
+                          {category.color && (
+                            <div
+                              className="w-4 h-4 rounded border border-border"
+                              style={{ backgroundColor: category.color }}
                             />
-                            <Label
-                              htmlFor={`internal-subcategory-${subcategory.id}`}
-                              className="text-sm font-normal cursor-pointer flex items-center gap-2"
-                            >
-                              {subcategory.color && (
-                                <div
-                                  className="w-3 h-3 rounded border border-border"
-                                  style={{ backgroundColor: subcategory.color }}
-                                />
-                              )}
-                              {subcategory.name}
-                            </Label>
-                          </div>
-                        ))}
+                          )}
+                          {category.name}
+                        </Label>
                       </div>
-                    )}
-                  </div>
-                );
-              })}
+
+                      {/* Subcategorías */}
+                      {hasSubcategories && isCategorySelected && (
+                        <div className="ml-6 space-y-2 border-l-2 pl-4">
+                          <RadioGroup
+                            value={formData.internal_subcategory_id || ""}
+                            onValueChange={(value) => {
+                              updateField("internal_subcategory_id", value || undefined);
+                            }}
+                            className="space-y-2"
+                          >
+                            {subcategories.map((subcategory) => (
+                              <div key={subcategory.id} className="flex items-center space-x-2">
+                                <RadioGroupItem
+                                  value={subcategory.id}
+                                  id={`internal-subcategory-${subcategory.id}`}
+                                />
+                                <Label
+                                  htmlFor={`internal-subcategory-${subcategory.id}`}
+                                  className="text-sm font-normal cursor-pointer flex items-center gap-2"
+                                >
+                                  {subcategory.color && (
+                                    <div
+                                      className="w-3 h-3 rounded border border-border"
+                                      style={{ backgroundColor: subcategory.color }}
+                                    />
+                                  )}
+                                  {subcategory.name}
+                                </Label>
+                              </div>
+                            ))}
+                          </RadioGroup>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </RadioGroup>
               {internalCategories.length === 0 && (
                 <p className="text-sm text-muted-foreground">
                   {t('productForm.noInternalCategories') || 'No hay categorías internas disponibles'}
