@@ -96,9 +96,8 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
         updateField("description", { es: product.description_es || "", en: product.description_en || "" });
         updateField("material", { es: product.material_es || "", en: product.material_en || "" });
         updateField("category_id", product.category_id || "");
-        updateField("price", product.price || 0);
+        updateField("price", 0); // Ya no se usa, pero se mantiene para compatibilidad
         updateField("stock", product.stock || 0);
-        updateField("weight", product.weight || undefined);
         updateField("is_active", product.is_active);
 
         // Cargar imágenes existentes
@@ -154,11 +153,13 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
             size: string;
             price?: number;
             stock: number;
+            weight?: number;
             display_order?: number;
           }, index: number) => ({
             size: size.size,
             price: size.price || product.price || 0,
             stock: size.stock,
+            weight: size.weight,
             display_order: size.display_order ?? index
           })));
         }
@@ -210,9 +211,8 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
         description: formData.description,
         material: formData.material,
         category_id: formData.category_id,
-        price: formData.price,
+        price: 0, // Ya no se usa, pero se mantiene para compatibilidad
         stock: formData.stock,
-        weight: formData.weight || undefined,
         is_active: formData.is_active,
         available_languages: formData.available_languages,
         specifications: formData.specifications.map(spec => ({
@@ -224,6 +224,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
           size: size.size,
           stock: size.stock,
           price: size.price,
+          weight: size.weight || undefined,
           display_order: size.display_order ?? index
         })),
         images: formData.images
@@ -270,7 +271,8 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
     const newSize = {
       size: "",
       stock: 0,
-      price: formData.price || 0, // Default to base price
+      price: 0, // Precio inicial en 0, se debe especificar por talla
+      weight: undefined, // Gramos iniciales en undefined
       display_order: maxOrder + 1
     };
     updateField("sizes", [...formData.sizes, newSize]);
@@ -286,7 +288,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
     updateField("sizes", reorderedSizes);
   };
 
-  const updateSize = (index: number, field: "size" | "stock" | "price", value: string | number | undefined) => {
+  const updateSize = (index: number, field: "size" | "stock" | "price" | "weight", value: string | number | undefined) => {
     const newSizes = [...formData.sizes];
     newSizes[index] = { ...newSizes[index], [field]: value };
     updateField("sizes", newSizes);
@@ -347,12 +349,6 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
               </p>
             </div>
 
-            <div>
-              <h4 className="font-medium mb-2">{t('productForm.price')}</h4>
-              <p className="text-lg font-semibold text-green-600">
-                ${formData.price.toLocaleString()}
-              </p>
-            </div>
 
             {formData.specifications.length > 0 && (
               <div>
@@ -483,21 +479,6 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
             </div>
 
             <div className="space-y-3">
-              <Label htmlFor="price">{t('productForm.priceLabel')}</Label>
-              <Input
-                id="price"
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.price}
-                onChange={(e) => {
-                  updateField("price", parseFloat(e.target.value) || 0);
-                }}
-                placeholder="0.00"
-              />
-            </div>
-
-            <div className="space-y-3">
               <Label htmlFor="stock">{t('productForm.stock')}</Label>
               <Input
                 id="stock"
@@ -508,27 +489,6 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
                   updateField("stock", parseInt(e.target.value) || 0);
                 }}
                 placeholder="0"
-              />
-            </div>
-
-            <div className="space-y-3">
-              <Label htmlFor="weight">{t('productForm.weight')}</Label>
-              <Input
-                id="weight"
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.weight !== undefined ? formData.weight : ""}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (value === "" || value === null) {
-                    updateField("weight", undefined);
-                  } else {
-                    const parsed = parseFloat(value);
-                    updateField("weight", isNaN(parsed) ? undefined : parsed);
-                  }
-                }}
-                placeholder=""
               />
             </div>
           </div>
@@ -647,6 +607,26 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
                     onChange={(e) => updateSize(index, "price", parseFloat(e.target.value) || 0)}
                     placeholder="0.00"
                     step="0.01"
+                  />
+                </div>
+                <div className="flex-1">
+                  <Label htmlFor={`grams-${index}`} className="mb-2 block">{t('productForm.grams')}</Label>
+                  <Input
+                    id={`grams-${index}`}
+                    type="number"
+                    step="0.001"
+                    min="0"
+                    value={size.weight !== undefined ? size.weight : ""}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === "" || value === null) {
+                        updateSize(index, "weight", undefined);
+                      } else {
+                        const parsed = parseFloat(value);
+                        updateSize(index, "weight", isNaN(parsed) ? undefined : parsed);
+                      }
+                    }}
+                    placeholder="0.000"
                   />
                 </div>
                 <div className="flex-1">

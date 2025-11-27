@@ -96,20 +96,26 @@ export default function ProductPage({ params }: ProductPageProps) {
         }, {} as Record<string, string>)
     : {};
 
-  // Transformar tallas con información completa (size, price, stock)
+  // Transformar tallas con información completa (size, price, stock, weight)
   const productSizes = product.sizes && product.sizes.length > 0
     ? product.sizes.map((s) => ({
         size: s.size,
-        price: s.price ?? product.price,
+        price: s.price ?? 0, // Precio debe estar definido en la talla
         stock: s.stock,
+        weight: s.weight, // Gramos de oro para esta talla
       }))
     : [];
+
+  // Obtener precio base de la primera talla disponible, o 0 si no hay tallas
+  const basePrice = productSizes.length > 0 && productSizes[0].price > 0
+    ? productSizes[0].price
+    : 0;
 
   const transformedProduct = {
     id: product.id,
     name: product.name,
-    price: `$${product.price.toLocaleString("es-MX")} MXN`,
-    basePrice: product.price, // Precio base para cálculos
+    price: basePrice > 0 ? `$${basePrice.toLocaleString("es-MX")} MXN` : "Consultar precio",
+    basePrice: basePrice, // Precio base para cálculos (de la primera talla)
     category: product.category?.name || "Sin categoría",
     material: product.material,
     description: product.description,
@@ -123,11 +129,15 @@ export default function ProductPage({ params }: ProductPageProps) {
   // Transform related products for compatibility
   const transformedRelated = relatedProducts.map((p) => {
     const primaryImage = p.images?.find((img) => img.is_primary)?.image_url;
+    // Obtener precio de la primera talla disponible, o 0 si no hay tallas
+    const relatedBasePrice = p.sizes && p.sizes.length > 0 && p.sizes[0].price
+      ? p.sizes[0].price
+      : 0;
     return {
       id: p.id,
       name: p.name,
       description: p.description,
-      price: `$${p.price.toLocaleString("es-MX")} MXN`,
+      price: relatedBasePrice > 0 ? `$${relatedBasePrice.toLocaleString("es-MX")} MXN` : "Consultar precio",
       image: primaryImage || "https://via.placeholder.com/600x600?text=Sin+Imagen",
       category: p.category?.name || "Sin categoría",
       material: p.material,

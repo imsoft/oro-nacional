@@ -46,6 +46,7 @@ export interface ProductSize {
   size: string;
   stock: number;
   price?: number;
+  weight?: number; // Gramos de oro
   display_order?: number;
   created_at: string;
 }

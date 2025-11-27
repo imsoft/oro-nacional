@@ -25,6 +25,7 @@ interface ProductInfoProps {
       size: string;
       price: number;
       stock: number;
+      weight?: number; // Gramos de oro
     }> | string[];
     stock?: number;
     weight?: number;
