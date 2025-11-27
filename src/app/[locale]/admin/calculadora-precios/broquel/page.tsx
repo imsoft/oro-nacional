@@ -126,7 +126,7 @@ export default function BroquelCalculatorPage() {
         goldGrams: 0.185,
         carats: 10,
         factor: 0.000,
-        merma: 10.00, // 10%
+        merma: 8.00, // 8%
         laborCost: 20.00,
         stoneCost: 0.00,
         salesCommission: 30.00,
@@ -146,11 +146,11 @@ export default function BroquelCalculatorPage() {
   ): ProductBroquelCalculation | null => {
     const pz = broquelData.pz || 1;
     const goldGrams = broquelData.goldGrams || 0;
-    const carats = broquelData.carats || 10;
-    const merma = (broquelData.merma || 0) / 100; // Convertir % a decimal
+    const carats = broquelData.carats ?? 10;
+    const merma = ((broquelData.merma ?? 8) / 100); // Convertir % a decimal, default 8%
     const laborCost = broquelData.laborCost || 0;
     const stoneCost = broquelData.stoneCost || 0;
-    const shipping = broquelData.shipping || 0;
+    const shipping = broquelData.shipping ?? 800;
     const salesCommission = broquelData.salesCommission || 30.00;
 
     // Fórmula Excel paso a paso:
@@ -192,7 +192,7 @@ export default function BroquelCalculatorPage() {
       goldGrams,
       carats,
       factor: 0, // No se usa en la fórmula nueva
-      merma: broquelData.merma || 0,
+      merma: broquelData.merma ?? 8,
       laborCost,
       stoneCost,
       shipping,
