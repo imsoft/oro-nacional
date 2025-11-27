@@ -236,6 +236,42 @@ export async function getInternalSubcategories(categoryId: string): Promise<Inte
 }
 
 /**
+ * Obtener subcategorías internas por nombre de categoría interna
+ */
+export async function getInternalSubcategoriesByCategoryName(categoryName: string): Promise<InternalSubcategory[]> {
+  // Buscar la categoría interna por nombre
+  let { data: categories, error: categoryError } = await supabase
+    .from("internal_categories")
+    .select("id")
+    .eq("name", categoryName)
+    .eq("is_active", true)
+    .limit(1);
+
+  // Si no se encuentra con búsqueda exacta, intentar con ilike
+  if ((!categories || categories.length === 0) && !categoryError) {
+    const result = await supabase
+      .from("internal_categories")
+      .select("id")
+      .ilike("name", `%${categoryName}%`)
+      .eq("is_active", true)
+      .limit(1);
+    
+    categories = result.data;
+    categoryError = result.error;
+  }
+
+  if (categoryError || !categories || categories.length === 0) {
+    console.error("Error finding internal category:", categoryError);
+    return [];
+  }
+
+  const categoryId = categories[0].id;
+
+  // Obtener todas las subcategorías de esta categoría
+  return await getInternalSubcategories(categoryId);
+}
+
+/**
  * Obtener una subcategoría interna por ID
  */
 export async function getInternalSubcategoryById(id: string): Promise<InternalSubcategory | null> {

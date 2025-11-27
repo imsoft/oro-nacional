@@ -31,9 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { getAllProducts, updateProductPrice, updateMultipleProductPrices } from "@/lib/supabase/products";
-import { getProductsByInternalSubcategories } from "@/lib/supabase/internal-categories";
-import type { ProductListItem } from "@/types/product";
+import { getInternalSubcategoriesByCategoryName, type InternalSubcategory } from "@/lib/supabase/internal-categories";
 
 // Parámetros globales para Broquel
 interface BroquelParameters {
@@ -44,7 +42,7 @@ interface BroquelParameters {
   stripeFixedFee: number; // Stripe comisión fija en pesos
 }
 
-// Datos específicos por producto
+// Datos específicos por subcategoría
 interface ProductBroquelData {
   id: string;
   name: string;
@@ -64,7 +62,7 @@ interface ProductBroquelData {
   is_active: boolean;
 }
 
-// Cálculos completos por producto
+// Cálculos completos por subcategoría
 interface ProductBroquelCalculation extends ProductBroquelData {
   subtotalBeforeProfit: number; // Subtotal antes de utilidad
   subtotalWithProfit: number; // + Utilidad
@@ -74,7 +72,7 @@ interface ProductBroquelCalculation extends ProductBroquelData {
 }
 
 export default function BroquelCalculatorPage() {
-  const [products, setProducts] = useState<ProductListItem[]>([]);
+  const [subcategories, setSubcategories] = useState<InternalSubcategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
@@ -82,8 +80,8 @@ export default function BroquelCalculatorPage() {
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [unlockDialogOpen, setUnlockDialogOpen] = useState(false);
   const [unlockCode, setUnlockCode] = useState("");
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
-  const [updatingProducts, setUpdatingProducts] = useState<Set<string>>(new Set());
+  const [selectedSubcategoryId, setSelectedProductId] = useState<string | null>(null);
+  const [updatingSubcategories, setUpdatingProducts] = useState<Set<string>>(new Set());
   const [isUpdatingAll, setIsUpdatingAll] = useState(false);
 
   // Format currency in Mexican Pesos
@@ -105,7 +103,7 @@ export default function BroquelCalculatorPage() {
     stripeFixedFee: 3.00, // $3 MXN Stripe fijo
   });
 
-  // Datos por producto - valores por defecto
+  // Datos por subcategoría - valores por defecto
   const [productBroquelData, setProductBroquelData] = useState<
     Map<string, Partial<ProductBroquelData>>
   >(new Map());
@@ -117,26 +115,14 @@ export default function BroquelCalculatorPage() {
   const loadProducts = async () => {
     setIsLoading(true);
     
-    // Obtener IDs de productos que tienen subcategorías de la categoría interna "Broquel"
-    const productIds = await getProductsByInternalSubcategories("Broquel");
-    
-    // Si hay productos con subcategorías, cargarlos; si no, no mostrar nada
-    let data: ProductListItem[] = [];
-    if (productIds.length > 0) {
-      // Cargar todos los productos y filtrar por los IDs obtenidos
-      const allProducts = await getAllProducts();
-      data = allProducts.filter(product => productIds.includes(product.id));
-    } else {
-      // Si no hay productos con subcategorías de "Broquel", no mostrar nada
-      data = [];
-    }
-    
-    setProducts(data);
+    // Obtener subcategorías de la categoría interna "Broquel"
+    const subcategoriesData = await getInternalSubcategoriesByCategoryName("Broquel");
+    setSubcategories(subcategoriesData);
 
     // Initialize broquel data with default values
     const broquelMap = new Map<string, Partial<ProductBroquelData>>();
-    data.forEach((product: ProductListItem) => {
-      broquelMap.set(product.id, {
+    subcategoriesData.forEach((subcategory: InternalSubcategory) => {
+      broquelMap.set(subcategory.id, {
         pz: 1.0,
         goldGrams: 0.185,
         carats: 10,
@@ -152,11 +138,11 @@ export default function BroquelCalculatorPage() {
     setIsLoading(false);
   };
 
-  // Función para calcular el precio final de un producto broquel
+  // Función para calcular el precio final de un subcategoría broquel
   // Fórmula del Excel: =((((($I$2*F7/24*E7)*(1+H7)+I7+J7))*D7)*(1+K7)+(D7*L7)+M7)*(1+N7)*(1+O7)+P7
   // I2=COTIZACIÓN, F7=KILATAJE, E7=ORO(GRS), H7=MERMA, I7=MANO DE OBRA, J7=PIEDRA, D7=PZ, K7=UTILIDAD, L7=COMISIÓN DE VENTA, M7=ENVÍO, N7=IVA, O7=STRIPE%, P7=STRIPE FIJO
-  const calculateProductPrice = (
-    product: ProductListItem,
+  const calculateSubcategoryPrice = (
+    subcategoryItem: InternalSubcategory,
     broquelData: Partial<ProductBroquelData>
   ): ProductBroquelCalculation | null => {
     const pz = broquelData.pz || 1;
@@ -201,8 +187,8 @@ export default function BroquelCalculatorPage() {
     const finalPrice = subtotalWithStripe + parameters.stripeFixedFee;
 
     return {
-      id: product.id,
-      name: product.name,
+      id: subcategoryItem.id,
+      name: subcategoryItem.name,
       pz,
       goldGrams,
       carats,
@@ -211,11 +197,11 @@ export default function BroquelCalculatorPage() {
       laborCost,
       stoneCost,
       shipping,
-      material: product.material,
-      stock: product.stock,
-      category_name: product.category_name,
-      primary_image: product.primary_image,
-      is_active: product.is_active,
+      material: "",
+      stock: 0,
+      category_name: "",
+      primary_image: undefined,
+      is_active: subcategoryItem.is_active,
       salesCommission,
       subtotalBeforeProfit: subtotalByPieces,
       subtotalWithProfit,
@@ -225,31 +211,31 @@ export default function BroquelCalculatorPage() {
     };
   };
 
-  // Calculate prices for all products
-  const calculatedProducts = useMemo(() => {
-    return products
-      .map((product) => {
-        const broquelData = productBroquelData.get(product.id) || {};
-        return calculateProductPrice(product, broquelData);
+  // Calculate prices for all subcategories
+  const calculatedSubcategories = useMemo(() => {
+    return subcategories
+      .map((subcategory) => {
+        const broquelData = productBroquelData.get(subcategory.id) || {};
+        return calculateSubcategoryPrice(subcategory, broquelData);
       })
       .filter((calc) => calc !== null) as ProductBroquelCalculation[];
-  }, [products, productBroquelData, parameters]);
+  }, [subcategories, productBroquelData, parameters]);
 
   const handleParameterChange = (key: keyof BroquelParameters, value: string) => {
     const numValue = parseFloat(value) || 0;
     setParameters((prev) => ({ ...prev, [key]: numValue }));
   };
 
-  const handleProductDataChange = (
-    productId: string,
+  const handleSubcategoryDataChange = (
+    subcategoryId: string,
     key: keyof ProductBroquelData,
     value: string
   ) => {
     const numValue = parseFloat(value) || 0;
     setProductBroquelData((prev) => {
       const newMap = new Map(prev);
-      const currentData = newMap.get(productId) || {};
-      newMap.set(productId, { ...currentData, [key]: numValue });
+      const currentData = newMap.get(subcategoryId) || {};
+      newMap.set(subcategoryId, { ...currentData, [key]: numValue });
       return newMap;
     });
   };
@@ -265,83 +251,11 @@ export default function BroquelCalculatorPage() {
     }
   };
 
-  const handleUpdatePriceClick = (productId: string) => {
-    setSelectedProductId(productId);
-    setConfirmDialogOpen(true);
-  };
+  // Removed update functions - subcategories don't have prices to update
 
-  const handleUpdateAllClick = () => {
-    setConfirmAllDialogOpen(true);
-  };
+  // Removed update functions - subcategories don't have prices to update
 
-  const handleConfirmUpdate = async () => {
-    if (!selectedProductId) return;
-
-    const product = calculatedProducts.find((p) => p.id === selectedProductId);
-    if (!product) return;
-
-    setUpdatingProducts((prev) => new Set(prev).add(selectedProductId));
-    setConfirmDialogOpen(false);
-
-    try {
-      await updateProductPrice(selectedProductId, product.finalPrice);
-
-      setProducts((prev) =>
-        prev.map((p) =>
-          p.id === selectedProductId ? { ...p, price: product.finalPrice } : p
-        )
-      );
-
-      console.log(`Product ${product.name} price updated to ${product.finalPrice}`);
-    } catch (error) {
-      console.error("Error updating product price:", error);
-      alert("Error al actualizar el precio. Por favor intenta de nuevo.");
-    } finally {
-      setUpdatingProducts((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(selectedProductId);
-        return newSet;
-      });
-      setSelectedProductId(null);
-    }
-  };
-
-  const handleConfirmUpdateAll = async () => {
-    setConfirmAllDialogOpen(false);
-    setIsUpdatingAll(true);
-
-    try {
-      const priceUpdates = calculatedProducts.map((product) => ({
-        id: product.id,
-        price: product.finalPrice,
-      }));
-
-      const results = await updateMultipleProductPrices(priceUpdates);
-
-      setProducts((prev) =>
-        prev.map((p) => {
-          const calculated = calculatedProducts.find((c) => c.id === p.id);
-          return calculated ? { ...p, price: calculated.finalPrice } : p;
-        })
-      );
-
-      if (results.failed.length > 0) {
-        console.error("Some products failed to update:", results.failed);
-        alert(
-          `Se actualizaron ${results.successful.length} productos correctamente. ${results.failed.length} productos fallaron.`
-        );
-      } else {
-        alert(
-          `¡Éxito! Se actualizaron ${results.successful.length} productos correctamente.`
-        );
-      }
-    } catch (error) {
-      console.error("Error updating all prices:", error);
-      alert("Error al actualizar los precios. Por favor intenta de nuevo.");
-    } finally {
-      setIsUpdatingAll(false);
-    }
-  };
+  // Removed update functions - subcategories don't have prices to update
 
   if (isLoading) {
     return (
@@ -351,13 +265,11 @@ export default function BroquelCalculatorPage() {
     );
   }
 
-  const selectedProduct = selectedProductId
-    ? calculatedProducts.find((p) => p.id === selectedProductId)
+  const selectedSubcategory = selectedSubcategoryId
+    ? calculatedSubcategories.find((p) => p.id === selectedSubcategoryId)
     : null;
 
-  const currentSelectedProduct = selectedProductId
-    ? products.find((p) => p.id === selectedProductId)
-    : null;
+  // Removed currentSelectedSubcategory - subcategories don't have prices
 
   return (
     <div className="space-y-6">
@@ -376,7 +288,7 @@ export default function BroquelCalculatorPage() {
             </h1>
           </div>
           <p className="mt-2 text-muted-foreground ml-14">
-            Calcula el precio final de productos tipo broquel
+            Calcula el precio final de subcategorías tipo broquel
           </p>
         </div>
         <div className="flex gap-2">
@@ -518,21 +430,10 @@ export default function BroquelCalculatorPage() {
             </DialogContent>
           </Dialog>
           <Button
-            onClick={handleUpdateAllClick}
-            disabled={isUpdatingAll || calculatedProducts.length === 0}
-            className="gap-2 bg-green-600 hover:bg-green-700 text-white"
+            disabled={true}
+            className="gap-2 bg-gray-400 text-white cursor-not-allowed"
           >
-            {isUpdatingAll ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Actualizando...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4" />
-                Actualizar Todos
-              </>
-            )}
+            Solo Cálculo
           </Button>
         </div>
       </div>
@@ -589,7 +490,7 @@ export default function BroquelCalculatorPage() {
         <CardHeader>
           <CardTitle>Productos y Cálculos de Precio</CardTitle>
           <CardDescription>
-            {calculatedProducts.length} producto(s) con cálculo de precio final
+            {calculatedSubcategories.length} subcategoría(s) con cálculo de precio final
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -645,21 +546,20 @@ export default function BroquelCalculatorPage() {
                 </tr>
               </thead>
               <tbody className="bg-card divide-y divide-border">
-                {calculatedProducts.length === 0 ? (
+                {calculatedSubcategories.length === 0 ? (
                   <tr>
                     <td
                       colSpan={15}
                       className="px-6 py-12 text-center text-muted-foreground"
                     >
-                      No hay productos para calcular
+                      No hay subcategorías para calcular
                     </td>
                   </tr>
                 ) : (
-                  calculatedProducts.map((calc) => {
-                    const currentProduct = products.find((p) => p.id === calc.id);
-                    const currentPrice = currentProduct?.price || 0;
-                    const priceDifference = calc.finalPrice - currentPrice;
-                    const isUpdating = updatingProducts.has(calc.id);
+                  calculatedSubcategories.map((calc) => {
+                    // Subcategories don't have prices, so no price comparison needed
+                    const priceDifference = 0;
+                    const isUpdating = updatingSubcategories.has(calc.id);
 
                     return (
                       <tr key={calc.id} className="hover:bg-muted/50">
@@ -674,7 +574,7 @@ export default function BroquelCalculatorPage() {
                             step="0.01"
                             value={calc.pz}
                             onChange={(e) =>
-                              handleProductDataChange(calc.id, "pz", e.target.value)
+                              handleSubcategoryDataChange(calc.id, "pz", e.target.value)
                             }
                             className="w-14 h-7 text-[11px] px-1"
                             disabled={!isUnlocked}
@@ -686,7 +586,7 @@ export default function BroquelCalculatorPage() {
                             step="0.001"
                             value={calc.goldGrams}
                             onChange={(e) =>
-                              handleProductDataChange(calc.id, "goldGrams", e.target.value)
+                              handleSubcategoryDataChange(calc.id, "goldGrams", e.target.value)
                             }
                             className="w-16 h-7 text-[11px] px-1"
                           />
@@ -697,7 +597,7 @@ export default function BroquelCalculatorPage() {
                             step="1"
                             value={calc.carats}
                             onChange={(e) =>
-                              handleProductDataChange(calc.id, "carats", e.target.value)
+                              handleSubcategoryDataChange(calc.id, "carats", e.target.value)
                             }
                             className="w-14 h-7 text-[11px] px-1"
                             disabled={!isUnlocked}
@@ -709,7 +609,7 @@ export default function BroquelCalculatorPage() {
                             step="0.001"
                             value={calc.factor}
                             onChange={(e) =>
-                              handleProductDataChange(calc.id, "factor", e.target.value)
+                              handleSubcategoryDataChange(calc.id, "factor", e.target.value)
                             }
                             className="w-16 h-7 text-[11px] px-1"
                             disabled={!isUnlocked}
@@ -721,7 +621,7 @@ export default function BroquelCalculatorPage() {
                             step="0.01"
                             value={calc.merma}
                             onChange={(e) =>
-                              handleProductDataChange(calc.id, "merma", e.target.value)
+                              handleSubcategoryDataChange(calc.id, "merma", e.target.value)
                             }
                             className="w-16 h-7 text-[11px] px-1"
                             disabled={!isUnlocked}
@@ -733,7 +633,7 @@ export default function BroquelCalculatorPage() {
                             step="0.01"
                             value={calc.laborCost}
                             onChange={(e) =>
-                              handleProductDataChange(calc.id, "laborCost", e.target.value)
+                              handleSubcategoryDataChange(calc.id, "laborCost", e.target.value)
                             }
                             className="w-16 h-7 text-[11px] px-1"
                             disabled={!isUnlocked}
@@ -745,7 +645,7 @@ export default function BroquelCalculatorPage() {
                             step="0.01"
                             value={calc.stoneCost}
                             onChange={(e) =>
-                              handleProductDataChange(calc.id, "stoneCost", e.target.value)
+                              handleSubcategoryDataChange(calc.id, "stoneCost", e.target.value)
                             }
                             className="w-16 h-7 text-[11px] px-1"
                             disabled={!isUnlocked}
@@ -757,7 +657,7 @@ export default function BroquelCalculatorPage() {
                             step="0.01"
                             value={calc.salesCommission}
                             onChange={(e) =>
-                              handleProductDataChange(calc.id, "salesCommission", e.target.value)
+                              handleSubcategoryDataChange(calc.id, "salesCommission", e.target.value)
                             }
                             className="w-16 h-7 text-[11px] px-1"
                             disabled={!isUnlocked}
@@ -769,7 +669,7 @@ export default function BroquelCalculatorPage() {
                             step="0.01"
                             value={calc.shipping}
                             onChange={(e) =>
-                              handleProductDataChange(calc.id, "shipping", e.target.value)
+                              handleSubcategoryDataChange(calc.id, "shipping", e.target.value)
                             }
                             className="w-20 h-7 text-[11px] px-1"
                             disabled={!isUnlocked}
@@ -790,40 +690,17 @@ export default function BroquelCalculatorPage() {
                               {formatMXN(calc.finalPrice)}
                             </div>
                             <div className="text-[10px] text-muted-foreground">
-                              Actual: {formatMXN(currentPrice)}
+                              Precio Calculado: {formatMXN(calc.finalPrice)}
                             </div>
-                            {priceDifference !== 0 && (
-                              <div
-                                className={`text-[10px] font-semibold ${
-                                  priceDifference > 0
-                                    ? "text-green-600"
-                                    : "text-red-600"
-                                }`}
-                              >
-                                {priceDifference > 0 ? "+" : ""}
-                                {formatMXN(priceDifference)}
-                              </div>
-                            )}
                           </div>
                         </td>
                         <td className="sticky right-0 z-10 bg-card px-2 py-2 whitespace-nowrap border-l">
                           <Button
                             size="sm"
-                            onClick={() => handleUpdatePriceClick(calc.id)}
-                            disabled={isUpdating || isUpdatingAll}
-                            className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                            disabled={true}
+                            className="gap-2 bg-gray-400 text-white cursor-not-allowed"
                           >
-                            {isUpdating ? (
-                              <>
-                                <Loader2 className="h-3 w-3 animate-spin" />
-                                Guardando...
-                              </>
-                            ) : (
-                              <>
-                                <Save className="h-3 w-3" />
-                                Aplicar
-                              </>
-                            )}
+                            Solo Cálculo
                           </Button>
                         </td>
                       </tr>
@@ -845,43 +722,19 @@ export default function BroquelCalculatorPage() {
               Confirmar Actualización de Precio
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-3 pt-3">
-              {selectedProduct && currentSelectedProduct && (
+              {selectedSubcategory && (
                 <>
                   <p>
-                    ¿Estás seguro de que deseas actualizar el precio de{" "}
+                    Precio calculado para{" "}
                     <span className="font-semibold text-foreground">
-                      {selectedProduct.name}
+                      {selectedSubcategory.name}
                     </span>
-                    ?
                   </p>
                   <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-blue-800">Precio actual:</span>
+                      <span className="text-blue-800">Precio Calculado:</span>
                       <span className="font-semibold text-blue-900">
-                        {formatMXN(currentSelectedProduct.price)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-blue-800">Precio nuevo:</span>
-                      <span className="font-semibold text-blue-900">
-                        {formatMXN(selectedProduct.finalPrice)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm pt-2 border-t border-blue-200">
-                      <span className="text-blue-800">Diferencia:</span>
-                      <span
-                        className={`font-semibold ${
-                          selectedProduct.finalPrice - currentSelectedProduct.price > 0
-                            ? "text-green-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        {selectedProduct.finalPrice - currentSelectedProduct.price > 0
-                          ? "+"
-                          : ""}
-                        {formatMXN(
-                          selectedProduct.finalPrice - currentSelectedProduct.price
-                        )}
+                        {formatMXN(selectedSubcategory.finalPrice)}
                       </span>
                     </div>
                   </div>
@@ -892,10 +745,10 @@ export default function BroquelCalculatorPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleConfirmUpdate}
-              className="bg-blue-600 hover:bg-blue-700"
+              disabled={true}
+              className="bg-gray-400 cursor-not-allowed"
             >
-              Actualizar Precio
+              Solo Cálculo
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -913,13 +766,13 @@ export default function BroquelCalculatorPage() {
               <p>
                 ¿Estás seguro de que deseas actualizar los precios de{" "}
                 <span className="font-semibold text-foreground">
-                  {calculatedProducts.length} producto(s)
+                  {calculatedSubcategories.length} subcategoría(s)
                 </span>
                 ?
               </p>
               <div className="rounded-lg bg-amber-50 border border-amber-200 p-3">
                 <p className="text-sm text-amber-800">
-                  ⚠️ Esta acción actualizará todos los precios de los productos
+                  ⚠️ Esta acción actualizará todos los precios de los subcategorías
                   en la base de datos según los cálculos actuales. Esta acción
                   no se puede deshacer.
                 </p>
@@ -929,10 +782,10 @@ export default function BroquelCalculatorPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleConfirmUpdateAll}
-              className="bg-green-600 hover:bg-green-700"
+              disabled={true}
+              className="bg-gray-400 cursor-not-allowed"
             >
-              Actualizar Todos los Precios
+              Solo Cálculo
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

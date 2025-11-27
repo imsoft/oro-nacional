@@ -30,16 +30,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { getProductsExcludingCategory, updateProductPrice, updateMultipleProductPrices, getAllProducts } from "@/lib/supabase/products";
-import { getProductsByInternalSubcategories } from "@/lib/supabase/internal-categories";
+import { getInternalSubcategoriesByCategoryName, type InternalSubcategory } from "@/lib/supabase/internal-categories";
 import {
   getPricingParameters,
   updatePricingParameters,
-  getAllProductPricing,
-  upsertProductPricing,
-  batchUpsertProductPricing
 } from "@/lib/supabase/pricing";
-import type { ProductListItem } from "@/types/product";
 import type {
   PricingParameters,
   ProductPricingData,
@@ -47,16 +42,16 @@ import type {
 } from "@/types/pricing";
 
 export default function PriceCalculatorPage() {
-  const [products, setProducts] = useState<ProductListItem[]>([]);
+  const [subcategories, setSubcategories] = useState<InternalSubcategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [confirmAllDialogOpen, setConfirmAllDialogOpen] = useState(false);
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
-  const [updatingProducts, setUpdatingProducts] = useState<Set<string>>(new Set());
+  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string | null>(null);
+  const [updatingSubcategories, setUpdatingSubcategories] = useState<Set<string>>(new Set());
   const [isUpdatingAll, setIsUpdatingAll] = useState(false);
   const [isSavingParameters, setIsSavingParameters] = useState(false);
-  const [isSavingProductData, setIsSavingProductData] = useState(false);
+  const [isSavingSubcategoryData, setIsSavingSubcategoryData] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [unlockDialogOpen, setUnlockDialogOpen] = useState(false);
   const [unlockCode, setUnlockCode] = useState("");
@@ -80,9 +75,8 @@ export default function PriceCalculatorPage() {
     stripeFixedFee: 3, // $3 MXN Stripe fixed fee
   });
 
-  // Product pricing data with calculation values - for now example values
-  // In production, these should come from the database
-  const [productPricingData, setProductPricingData] = useState<
+  // Subcategory pricing data with calculation values
+  const [subcategoryPricingData, setSubcategoryPricingData] = useState<
     Map<string, Partial<ProductPricingData>>
   >(new Map());
 
@@ -97,35 +91,11 @@ export default function PriceCalculatorPage() {
       const params = await getPricingParameters();
       setParameters(params);
 
-      // Obtener IDs de productos que tienen subcategorías de la categoría interna "Gramo"
-      const productIds = await getProductsByInternalSubcategories("Gramo");
-      
-      // Si hay productos con subcategorías, cargarlos; si no, mostrar todos los productos
-      // (para que el usuario pueda asignarles subcategorías)
-      let productsData: ProductListItem[] = [];
-      if (productIds.length > 0) {
-        // Cargar todos los productos y filtrar por los IDs obtenidos
-        const allProducts = await getAllProducts();
-        productsData = allProducts.filter(product => productIds.includes(product.id));
-      } else {
-        // Si no hay productos con subcategorías asignadas, mostrar todos los productos
-        // para que el usuario pueda asignarles subcategorías
-        productsData = await getAllProducts();
-      }
-      
-      setProducts(productsData);
+      // Obtener subcategorías de la categoría interna "Gramo"
+      const subcategoriesData = await getInternalSubcategoriesByCategoryName("Gramo");
+      setSubcategories(subcategoriesData);
 
-      // Load product pricing data from database
-      const allPricingData = await getAllProductPricing();
-
-      // Create a map of product pricing data
-      const pricingMap = new Map<string, Partial<ProductPricingData>>();
-      const pricingDataMap = new Map(
-        allPricingData.map((item) => [item.productId, item])
-      );
-
-      // Initialize pricing data for all products
-      // Default values that should appear in all inputs
+      // Initialize pricing data for all subcategories with default values
       const defaults = {
         goldGrams: 5,
         factor: 0.442,
@@ -135,46 +105,12 @@ export default function PriceCalculatorPage() {
         shippingCost: 800,
       };
       
-      productsData.forEach((product: ProductListItem) => {
-        const savedData = pricingDataMap.get(product.id);
-        
-        if (savedData) {
-          // Check if values match old defaults or need to be updated
-          const needsUpdate = 
-            savedData.factor === 1.0 || savedData.factor === 1 ||
-            savedData.laborCost === 50 || savedData.laborCost === 50.0 ||
-            savedData.salesCommission === 10 || savedData.salesCommission === 10.0 ||
-            savedData.shippingCost === 150 || savedData.shippingCost === 150.0 ||
-            savedData.factor !== 0.442 ||
-            savedData.laborCost !== 15 ||
-            savedData.salesCommission !== 30 ||
-            savedData.shippingCost !== 800;
-          
-          // Always use new defaults for factor, laborCost, salesCommission, and shippingCost
-          // Keep goldGrams and stoneCost from saved data if they exist
-          const updatedData = {
-            goldGrams: savedData.goldGrams ?? defaults.goldGrams,
-            factor: defaults.factor, // Always use new default
-            laborCost: defaults.laborCost, // Always use new default
-            stoneCost: savedData.stoneCost ?? defaults.stoneCost,
-            salesCommission: defaults.salesCommission, // Always use new default
-            shippingCost: defaults.shippingCost, // Always use new default
-          };
-          
-          pricingMap.set(product.id, updatedData);
-          
-          // Auto-update database with new defaults
-          if (needsUpdate) {
-            upsertProductPricing(product.id, updatedData).catch((error) => {
-              console.error(`Error updating pricing for product ${product.id}:`, error);
-            });
-          }
-        } else {
-          // Use default values for new products
-          pricingMap.set(product.id, defaults);
-        }
+      const pricingMap = new Map<string, Partial<ProductPricingData>>();
+      subcategoriesData.forEach((subcategory) => {
+        // Use default values for all subcategories
+        pricingMap.set(subcategory.id, defaults);
       });
-      setProductPricingData(pricingMap);
+      setSubcategoryPricingData(pricingMap);
     } catch (error) {
       console.error("Error loading data:", error);
       alert("Error al cargar los datos. Por favor recarga la página.");
@@ -183,9 +119,9 @@ export default function PriceCalculatorPage() {
     }
   };
 
-  // Function to calculate final price of a product
-  const calculateProductPrice = (
-    product: ProductListItem,
+  // Function to calculate final price of a subcategory
+  const calculateSubcategoryPrice = (
+    subcategory: InternalSubcategory,
     pricingData: Partial<ProductPricingData>
   ): ProductPricingCalculation | null => {
     // Default values if not defined - use nullish coalescing to preserve 0 values
@@ -212,19 +148,19 @@ export default function PriceCalculatorPage() {
       subtotalWithStripePercentage + parameters.stripeFixedFee;
 
     return {
-      id: product.id,
-      name: product.name,
+      id: subcategory.id,
+      name: subcategory.name,
       goldGrams,
       factor,
       laborCost,
       stoneCost,
       salesCommission,
       shippingCost,
-      material: product.material,
-      stock: product.stock,
-      category_name: product.category_name,
-      primary_image: product.primary_image,
-      is_active: product.is_active,
+      material: "",
+      stock: 0,
+      category_name: "",
+      primary_image: undefined,
+      is_active: subcategory.is_active,
       goldCost,
       materialsCost,
       subtotalBeforeProfit,
@@ -237,15 +173,15 @@ export default function PriceCalculatorPage() {
     };
   };
 
-  // Calculate prices for all products
-  const calculatedProducts = useMemo(() => {
-    return products
-      .map((product) => {
-        const pricingData = productPricingData.get(product.id) || {};
-        return calculateProductPrice(product, pricingData);
+  // Calculate prices for all subcategories
+  const calculatedSubcategories = useMemo(() => {
+    return subcategories
+      .map((subcategory) => {
+        const pricingData = subcategoryPricingData.get(subcategory.id) || {};
+        return calculateSubcategoryPrice(subcategory, pricingData);
       })
       .filter((calc) => calc !== null) as ProductPricingCalculation[];
-  }, [products, productPricingData, parameters]);
+  }, [subcategories, subcategoryPricingData, parameters]);
 
   const handleParameterChange = async (key: keyof PricingParameters, value: string) => {
     const numValue = parseFloat(value) || 0;
@@ -263,51 +199,23 @@ export default function PriceCalculatorPage() {
     }
   };
 
-  const handleProductDataChange = async (
-    productId: string,
+  const handleSubcategoryDataChange = (
+    subcategoryId: string,
     key: keyof ProductPricingData,
     value: string
   ) => {
     const numValue = parseFloat(value) || 0;
 
     // Update local state
-    setProductPricingData((prev) => {
+    setSubcategoryPricingData((prev) => {
       const newMap = new Map(prev);
-      const currentData = newMap.get(productId) || {};
-      const updatedData = { ...currentData, [key]: numValue };
-      newMap.set(productId, updatedData);
-
-      // Auto-save to database
-      setIsSavingProductData(true);
-      const pricingData = {
-        goldGrams: updatedData.goldGrams ?? 5,
-        factor: updatedData.factor ?? 0.442,
-        laborCost: updatedData.laborCost ?? 15,
-        stoneCost: updatedData.stoneCost ?? 0,
-        salesCommission: updatedData.salesCommission ?? 30,
-        shippingCost: updatedData.shippingCost ?? 800,
-      };
-
-      upsertProductPricing(productId, pricingData)
-        .catch((error) => {
-          console.error("Error saving product pricing data:", error);
-        })
-        .finally(() => {
-          setIsSavingProductData(false);
-        });
-
+      const currentData = newMap.get(subcategoryId) || {};
+      newMap.set(subcategoryId, { ...currentData, [key]: numValue });
       return newMap;
     });
   };
 
-  const handleUpdatePriceClick = (productId: string) => {
-    setSelectedProductId(productId);
-    setConfirmDialogOpen(true);
-  };
-
-  const handleUpdateAllClick = () => {
-    setConfirmAllDialogOpen(true);
-  };
+  // Removed update functions - subcategories are for calculation only
 
   const handleUnlockSubmit = () => {
     if (unlockCode === "2487") {
@@ -320,78 +228,7 @@ export default function PriceCalculatorPage() {
     }
   };
 
-  const handleConfirmUpdate = async () => {
-    if (!selectedProductId) return;
-
-    const product = calculatedProducts.find((p) => p.id === selectedProductId);
-    if (!product) return;
-
-    setUpdatingProducts((prev) => new Set(prev).add(selectedProductId));
-    setConfirmDialogOpen(false);
-
-    try {
-      await updateProductPrice(selectedProductId, product.finalPrice);
-
-      // Update local product list
-      setProducts((prev) =>
-        prev.map((p) =>
-          p.id === selectedProductId ? { ...p, price: product.finalPrice } : p
-        )
-      );
-
-      // Show success (you could add a toast notification here)
-      console.log(`Product ${product.name} price updated to ${product.finalPrice}`);
-    } catch (error) {
-      console.error("Error updating product price:", error);
-      alert("Error al actualizar el precio. Por favor intenta de nuevo.");
-    } finally {
-      setUpdatingProducts((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(selectedProductId);
-        return newSet;
-      });
-      setSelectedProductId(null);
-    }
-  };
-
-  const handleConfirmUpdateAll = async () => {
-    setConfirmAllDialogOpen(false);
-    setIsUpdatingAll(true);
-
-    try {
-      const priceUpdates = calculatedProducts.map((product) => ({
-        id: product.id,
-        price: product.finalPrice,
-      }));
-
-      const results = await updateMultipleProductPrices(priceUpdates);
-
-      // Update local product list
-      setProducts((prev) =>
-        prev.map((p) => {
-          const calculated = calculatedProducts.find((c) => c.id === p.id);
-          return calculated ? { ...p, price: calculated.finalPrice } : p;
-        })
-      );
-
-      // Show results
-      if (results.failed.length > 0) {
-        console.error("Some products failed to update:", results.failed);
-        alert(
-          `Se actualizaron ${results.successful.length} productos correctamente. ${results.failed.length} productos fallaron.`
-        );
-      } else {
-        alert(
-          `¡Éxito! Se actualizaron ${results.successful.length} productos correctamente.`
-        );
-      }
-    } catch (error) {
-      console.error("Error updating all prices:", error);
-      alert("Error al actualizar los precios. Por favor intenta de nuevo.");
-    } finally {
-      setIsUpdatingAll(false);
-    }
-  };
+  // Removed update functions - subcategories don't have prices to update
 
   if (isLoading) {
     return (
@@ -401,12 +238,8 @@ export default function PriceCalculatorPage() {
     );
   }
 
-  const selectedProduct = selectedProductId
-    ? calculatedProducts.find((p) => p.id === selectedProductId)
-    : null;
-
-  const currentSelectedProduct = selectedProductId
-    ? products.find((p) => p.id === selectedProductId)
+  const selectedSubcategory = selectedSubcategoryId
+    ? calculatedSubcategories.find((s) => s.id === selectedSubcategoryId)
     : null;
 
   return (
@@ -566,21 +399,10 @@ export default function PriceCalculatorPage() {
             </DialogContent>
           </Dialog>
           <Button
-            onClick={handleUpdateAllClick}
-            disabled={isUpdatingAll || calculatedProducts.length === 0}
-            className="gap-2 bg-green-600 hover:bg-green-700 text-white"
+            disabled={true}
+            className="gap-2 bg-gray-400 text-white cursor-not-allowed"
           >
-            {isUpdatingAll ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Actualizando...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4" />
-                Actualizar Todos
-              </>
-            )}
+            Solo Cálculo
           </Button>
         </div>
       </div>
@@ -637,7 +459,7 @@ export default function PriceCalculatorPage() {
         <CardHeader>
           <CardTitle>Productos y Cálculos de Precio</CardTitle>
           <CardDescription>
-            {calculatedProducts.length} producto(s) con cálculo de precio final
+            {calculatedSubcategories.length} producto(s) con cálculo de precio final
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -693,7 +515,7 @@ export default function PriceCalculatorPage() {
                 </tr>
               </thead>
               <tbody className="bg-card divide-y divide-border">
-                {calculatedProducts.length === 0 ? (
+                {calculatedSubcategories.length === 0 ? (
                   <tr>
                     <td
                       colSpan={15}
@@ -703,11 +525,10 @@ export default function PriceCalculatorPage() {
                     </td>
                   </tr>
                 ) : (
-                  calculatedProducts.map((calc) => {
-                    const currentProduct = products.find((p) => p.id === calc.id);
-                    const currentPrice = currentProduct?.price || 0;
-                    const priceDifference = calc.finalPrice - currentPrice;
-                    const isUpdating = updatingProducts.has(calc.id);
+                  calculatedSubcategories.map((calc) => {
+                    // Subcategories don't have prices, so no price comparison needed
+                    const priceDifference = 0;
+                    const isUpdating = false;
 
                     return (
                       <tr key={calc.id} className="hover:bg-muted/50">
@@ -722,7 +543,7 @@ export default function PriceCalculatorPage() {
                             step="0.01"
                             value={calc.goldGrams}
                             onChange={(e) =>
-                              handleProductDataChange(
+                              handleSubcategoryDataChange(
                                 calc.id,
                                 "goldGrams",
                                 e.target.value
@@ -737,7 +558,7 @@ export default function PriceCalculatorPage() {
                             step="0.01"
                             value={calc.factor}
                             onChange={(e) =>
-                              handleProductDataChange(
+                              handleSubcategoryDataChange(
                                 calc.id,
                                 "factor",
                                 e.target.value
@@ -753,7 +574,7 @@ export default function PriceCalculatorPage() {
                             step="0.01"
                             value={calc.laborCost}
                             onChange={(e) =>
-                              handleProductDataChange(
+                              handleSubcategoryDataChange(
                                 calc.id,
                                 "laborCost",
                                 e.target.value
@@ -769,7 +590,7 @@ export default function PriceCalculatorPage() {
                             step="0.01"
                             value={calc.stoneCost}
                             onChange={(e) =>
-                              handleProductDataChange(
+                              handleSubcategoryDataChange(
                                 calc.id,
                                 "stoneCost",
                                 e.target.value
@@ -785,7 +606,7 @@ export default function PriceCalculatorPage() {
                             step="0.01"
                             value={calc.salesCommission}
                             onChange={(e) =>
-                              handleProductDataChange(
+                              handleSubcategoryDataChange(
                                 calc.id,
                                 "salesCommission",
                                 e.target.value
@@ -801,7 +622,7 @@ export default function PriceCalculatorPage() {
                             step="0.01"
                             value={calc.shippingCost}
                             onChange={(e) =>
-                              handleProductDataChange(
+                              handleSubcategoryDataChange(
                                 calc.id,
                                 "shippingCost",
                                 e.target.value
@@ -835,40 +656,17 @@ export default function PriceCalculatorPage() {
                               {formatMXN(calc.finalPrice)}
                             </div>
                             <div className="text-[10px] text-muted-foreground">
-                              Actual: {formatMXN(currentPrice)}
+                              Precio Calculado
                             </div>
-                            {priceDifference !== 0 && (
-                              <div
-                                className={`text-[10px] font-semibold ${
-                                  priceDifference > 0
-                                    ? "text-green-600"
-                                    : "text-red-600"
-                                }`}
-                              >
-                                {priceDifference > 0 ? "+" : ""}
-                                {formatMXN(priceDifference)}
-                              </div>
-                            )}
                           </div>
                         </td>
                         <td className="sticky right-0 z-10 bg-card px-2 py-2 whitespace-nowrap border-l">
                           <Button
                             size="sm"
-                            onClick={() => handleUpdatePriceClick(calc.id)}
-                            disabled={isUpdating || isUpdatingAll}
-                            className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                            disabled={true}
+                            className="gap-2 bg-gray-400 text-white cursor-not-allowed"
                           >
-                            {isUpdating ? (
-                              <>
-                                <Loader2 className="h-3 w-3 animate-spin" />
-                                Guardando...
-                              </>
-                            ) : (
-                              <>
-                                <Save className="h-3 w-3" />
-                                Aplicar
-                              </>
-                            )}
+                            Solo Cálculo
                           </Button>
                         </td>
                       </tr>
@@ -890,43 +688,19 @@ export default function PriceCalculatorPage() {
               Confirmar Actualización de Precio
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-3 pt-3">
-              {selectedProduct && currentSelectedProduct && (
+              {selectedSubcategory && (
                 <>
                   <p>
-                    ¿Estás seguro de que deseas actualizar el precio de{" "}
+                    Precio calculado para{" "}
                     <span className="font-semibold text-foreground">
-                      {selectedProduct.name}
+                      {selectedSubcategory.name}
                     </span>
-                    ?
                   </p>
                   <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-blue-800">Precio actual:</span>
+                      <span className="text-blue-800">Precio Calculado:</span>
                       <span className="font-semibold text-blue-900">
-                        {formatMXN(currentSelectedProduct.price)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-blue-800">Precio nuevo:</span>
-                      <span className="font-semibold text-blue-900">
-                        {formatMXN(selectedProduct.finalPrice)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm pt-2 border-t border-blue-200">
-                      <span className="text-blue-800">Diferencia:</span>
-                      <span
-                        className={`font-semibold ${
-                          selectedProduct.finalPrice - currentSelectedProduct.price > 0
-                            ? "text-green-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        {selectedProduct.finalPrice - currentSelectedProduct.price > 0
-                          ? "+"
-                          : ""}
-                        {formatMXN(
-                          selectedProduct.finalPrice - currentSelectedProduct.price
-                        )}
+                        {formatMXN(selectedSubcategory.finalPrice)}
                       </span>
                     </div>
                   </div>
@@ -937,7 +711,7 @@ export default function PriceCalculatorPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleConfirmUpdate}
+              disabled={true}
               className="bg-blue-600 hover:bg-blue-700"
             >
               Actualizar Precio
@@ -958,7 +732,7 @@ export default function PriceCalculatorPage() {
               <p>
                 ¿Estás seguro de que deseas actualizar los precios de{" "}
                 <span className="font-semibold text-foreground">
-                  {calculatedProducts.length} producto(s)
+                  {calculatedSubcategories.length} producto(s)
                 </span>
                 ?
               </p>
@@ -974,7 +748,7 @@ export default function PriceCalculatorPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleConfirmUpdateAll}
+              disabled={true}
               className="bg-green-600 hover:bg-green-700"
             >
               Actualizar Todos los Precios
