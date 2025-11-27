@@ -33,6 +33,8 @@ import {
   getInternalSubcategories,
 } from "@/lib/supabase/internal-categories";
 import type { InternalCategory, InternalSubcategory } from "@/lib/supabase/internal-categories";
+import { calculateDynamicProductPrice } from "@/lib/supabase/pricing";
+import { Calculator, Loader2 } from "lucide-react";
 
 interface ProductFormProps {
   productId?: string;
@@ -356,6 +358,50 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
     const newSizes = [...formData.sizes];
     newSizes[index] = { ...newSizes[index], [field]: value };
     updateField("sizes", newSizes);
+  };
+
+  const calculatePriceForSize = async (index: number) => {
+    // Validar que haya categoría y subcategoría interna seleccionadas
+    if (!formData.internal_category_id || !formData.internal_subcategory_id) {
+      alert("Por favor selecciona una categoría interna y subcategoría interna primero.");
+      return;
+    }
+
+    const size = formData.sizes[index];
+    
+    // Validar que la talla tenga gramos definidos
+    if (!size.weight || size.weight <= 0) {
+      alert("Por favor ingresa los gramos de oro para esta talla primero.");
+      return;
+    }
+
+    // Obtener el nombre de la categoría interna
+    const selectedCategory = internalCategories.find(cat => cat.id === formData.internal_category_id);
+    if (!selectedCategory) {
+      alert("No se encontró la categoría interna seleccionada.");
+      return;
+    }
+
+    setCalculatingPriceForIndex(index);
+
+    try {
+      const calculatedPrice = await calculateDynamicProductPrice({
+        goldGrams: size.weight,
+        subcategoryId: formData.internal_subcategory_id,
+        categoryName: selectedCategory.name,
+      });
+
+      if (calculatedPrice !== null) {
+        updateSize(index, "price", calculatedPrice);
+      } else {
+        alert("No se pudo calcular el precio. Por favor verifica la configuración de la subcategoría.");
+      }
+    } catch (error) {
+      console.error("Error calculating price:", error);
+      alert("Error al calcular el precio. Por favor intenta de nuevo.");
+    } finally {
+      setCalculatingPriceForIndex(null);
+    }
   };
 
   const moveSize = (index: number, direction: "up" | "down") => {
