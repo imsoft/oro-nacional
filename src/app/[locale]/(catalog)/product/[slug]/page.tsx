@@ -11,6 +11,7 @@ import RelatedProducts from "@/components/product/related-products";
 import { ProductNotFound } from "@/components/product/product-not-found";
 import { Loader2 } from "lucide-react";
 import { getProductBySlug, getProductsByCategory } from "@/lib/supabase/products";
+import { getProductInternalCategoriesAndSubcategories } from "@/lib/supabase/internal-categories";
 import type { ProductDetail, Product } from "@/types/product";
 
 interface ProductPageProps {
@@ -42,6 +43,18 @@ export default function ProductPage({ params }: ProductPageProps) {
       setIsLoading(false);
       setProduct(null);
       return;
+    }
+
+    // Fetch internal categories and subcategories
+    try {
+      const { categories, subcategories } = await getProductInternalCategoriesAndSubcategories(productData.id);
+      // Store in product data for later use
+      (productData as any).internalCategory = categories[0] || null;
+      (productData as any).internalSubcategory = subcategories[0] || null;
+    } catch (error) {
+      console.error("Error loading internal categories:", error);
+      (productData as any).internalCategory = null;
+      (productData as any).internalSubcategory = null;
     }
 
     setProduct(productData);

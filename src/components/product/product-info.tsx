@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCartStore } from "@/stores/cart-store";
-import { getPricingParameters } from "@/lib/supabase/pricing";
+import { getPricingParameters, calculateDynamicProductPrice } from "@/lib/supabase/pricing";
 
 interface ProductInfoProps {
   product: {
@@ -30,6 +30,8 @@ interface ProductInfoProps {
     weight?: number;
     slug?: string;
     images?: string[];
+    internalCategory?: { id: string; name: string } | null;
+    internalSubcategory?: { id: string; name: string } | null;
   };
 }
 
@@ -45,6 +47,8 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
   const [selectedMSI, setSelectedMSI] = useState<number>(0); // 0 = Sin MSI (pago de contado)
   const [isFavorite, setIsFavorite] = useState(false);
   const [stripeParams, setStripeParams] = useState<{ percentage: number; fixedFee: number } | null>(null);
+  const [calculatedPrice, setCalculatedPrice] = useState<number | null>(null);
+  const [isCalculatingPrice, setIsCalculatingPrice] = useState(false);
   const { addItem } = useCartStore();
 
   // Comisiones adicionales de MSI (sobre el precio base)
@@ -77,8 +81,58 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
     loadStripeParams();
   }, []);
 
+  // Calcular precio dinámicamente si hay categoría/subcategoría interna y gramos
+  useEffect(() => {
+    const calculatePrice = async () => {
+      // Solo calcular si hay categoría interna, subcategoría interna y gramos
+      if (
+        !product.internalCategory ||
+        !product.internalSubcategory ||
+        !isSizesWithPrice ||
+        !selectedSize
+      ) {
+        setCalculatedPrice(null);
+        return;
+      }
+
+      const selectedSizeObj = (sizesArray as Array<{ size: string; price: number; stock: number; weight?: number }>)
+        .find(s => s.size === selectedSize);
+
+      // Si no hay gramos en la talla, no calcular dinámicamente
+      if (!selectedSizeObj?.weight) {
+        setCalculatedPrice(null);
+        return;
+      }
+
+      setIsCalculatingPrice(true);
+      try {
+        const dynamicPrice = await calculateDynamicProductPrice({
+          goldGrams: selectedSizeObj.weight,
+          subcategoryId: product.internalSubcategory.id,
+          categoryName: product.internalCategory.name,
+        });
+
+        setCalculatedPrice(dynamicPrice);
+      } catch (error) {
+        console.error("Error calculating dynamic price:", error);
+        setCalculatedPrice(null);
+      } finally {
+        setIsCalculatingPrice(false);
+      }
+    };
+
+    calculatePrice();
+  }, [selectedSize, product.internalCategory, product.internalSubcategory, isSizesWithPrice, sizesArray]);
+
   // Calcular precio base según talla seleccionada (ya incluye IVA)
+  // Si hay precio calculado dinámicamente, usarlo; si no, usar el precio guardado
   const currentPrice = useMemo(() => {
+    // Si hay precio calculado dinámicamente, usarlo
+    if (calculatedPrice !== null) {
+      return calculatedPrice;
+    }
+
+    // Si no, usar el precio guardado
     if (!isSizesWithPrice || !selectedSize) {
       return product.basePrice ?? parseFloat(product.price.replace(/[^0-9.-]+/g, ""));
     }
@@ -87,7 +141,7 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
       .find(s => s.size === selectedSize);
 
     return selectedSizeObj?.price ?? product.basePrice ?? parseFloat(product.price.replace(/[^0-9.-]+/g, ""));
-  }, [isSizesWithPrice, selectedSize, sizesArray, product.basePrice, product.price]);
+  }, [calculatedPrice, isSizesWithPrice, selectedSize, sizesArray, product.basePrice, product.price]);
 
   // Calcular precio final con comisión de Stripe y MSI
   const finalPrice = useMemo(() => {
@@ -159,8 +213,12 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
 
       {/* Precio */}
       <div className="flex items-baseline gap-4">
-        <p className="text-4xl font-semibold text-foreground">{displayPrice}</p>
-        <p className="text-sm text-muted-foreground">IVA incluido</p>
+        <p className="text-4xl font-semibold text-foreground">
+          {isCalculatingPrice ? "Calculando..." : displayPrice}
+        </p>
+        <p className="text-sm text-muted-foreground">
+          {calculatedPrice !== null ? "Precio calculado dinámicamente" : "IVA incluido"}
+        </p>
       </div>
 
       {/* Descripción */}

@@ -540,3 +540,152 @@ export async function batchUpsertSubcategoryBroquelPricing(
 
   return data;
 }
+
+// ============================================
+// Dynamic Price Calculation for Products
+// ============================================
+
+export interface DynamicPriceCalculationParams {
+  goldGrams: number; // Gramos de oro de la talla seleccionada
+  subcategoryId: string; // ID de la subcategoría interna
+  categoryName: string; // Nombre de la categoría interna ("Gramo" o "Broquel")
+}
+
+/**
+ * Calcular precio dinámico para un producto basado en subcategoría interna y gramos
+ */
+export async function calculateDynamicProductPrice(
+  params: DynamicPriceCalculationParams
+): Promise<number | null> {
+  try {
+    // Obtener parámetros globales
+    const globalParams = await getPricingParameters();
+
+    // Determinar qué calculadora usar basándose en el nombre de la categoría
+    const isBroquel = params.categoryName.toLowerCase() === "broquel";
+
+    if (isBroquel) {
+      // Calcular precio usando fórmula de Broquel
+      const broquelData = await getSubcategoryBroquelPricing(params.subcategoryId);
+      
+      if (!broquelData) {
+        // Si no hay datos guardados, usar valores por defecto
+        const defaultData: SubcategoryBroquelPricingData = {
+          pz: 1.0,
+          goldGrams: params.goldGrams, // Usar los gramos de la talla
+          carats: 10,
+          factor: 0.000,
+          merma: 8.00,
+          laborCost: 20.00,
+          stoneCost: 0.00,
+          salesCommission: 30.00,
+          shipping: 800.00,
+        };
+        return calculateBroquelPrice(defaultData, globalParams);
+      }
+
+      // Usar los gramos de la talla en lugar de los guardados
+      const calculationData: SubcategoryBroquelPricingData = {
+        ...broquelData,
+        goldGrams: params.goldGrams,
+      };
+
+      return calculateBroquelPrice(calculationData, globalParams);
+    } else {
+      // Calcular precio usando fórmula de Gramo
+      const gramoData = await getSubcategoryPricing(params.subcategoryId);
+      
+      if (!gramoData) {
+        // Si no hay datos guardados, usar valores por defecto
+        const defaultData: SubcategoryPricingData = {
+          goldGrams: params.goldGrams, // Usar los gramos de la talla
+          factor: 0.442,
+          laborCost: 15,
+          stoneCost: 0,
+          salesCommission: 30,
+          shippingCost: 800,
+        };
+        return calculateGramoPrice(defaultData, globalParams);
+      }
+
+      // Usar los gramos de la talla en lugar de los guardados
+      const calculationData: SubcategoryPricingData = {
+        ...gramoData,
+        goldGrams: params.goldGrams,
+      };
+
+      return calculateGramoPrice(calculationData, globalParams);
+    }
+  } catch (error) {
+    console.error("Error calculating dynamic product price:", error);
+    return null;
+  }
+}
+
+/**
+ * Calcular precio usando fórmula de Gramo
+ */
+function calculateGramoPrice(
+  pricingData: SubcategoryPricingData,
+  globalParams: PricingParameters
+): number {
+  const { goldGrams, factor, laborCost, stoneCost, salesCommission, shippingCost } = pricingData;
+
+  // Formula: ((($H$2*D5*F5)+(D5*(H5+I5)))*(1+J5)+(D5*K5)+L5)*(1+M5)*(1+N5)+O5
+  const goldCost = globalParams.goldQuotation * goldGrams * factor;
+  const materialsCost = goldGrams * (laborCost + stoneCost);
+  const subtotalBeforeProfit = goldCost + materialsCost;
+  const subtotalWithProfit = subtotalBeforeProfit * (1 + globalParams.profitMargin);
+  const commissionCost = goldGrams * salesCommission;
+  const subtotalWithCommissions = subtotalWithProfit + commissionCost + shippingCost;
+  const subtotalWithVat = subtotalWithCommissions * (1 + globalParams.vat);
+  const subtotalWithStripePercentage = subtotalWithVat * (1 + globalParams.stripePercentage);
+  const finalPrice = subtotalWithStripePercentage + globalParams.stripeFixedFee;
+
+  return finalPrice;
+}
+
+/**
+ * Calcular precio usando fórmula de Broquel
+ */
+function calculateBroquelPrice(
+  pricingData: SubcategoryBroquelPricingData,
+  globalParams: PricingParameters
+): number {
+  const { pz, goldGrams, carats, merma, laborCost, stoneCost, salesCommission, shipping } = pricingData;
+
+  // Fórmula Excel paso a paso:
+  // 1. (COTIZACIÓN * KILATAJE / 24 * ORO(GRS))
+  const goldCost = globalParams.goldQuotation * (carats / 24) * goldGrams;
+
+  // 2. goldCost * (1 + MERMA%)
+  const mermaDecimal = merma / 100; // Convertir % a decimal
+  const goldCostWithMerma = goldCost * (1 + mermaDecimal);
+
+  // 3. + MANO DE OBRA + PIEDRA
+  const subtotalBeforeProfit = goldCostWithMerma + laborCost + stoneCost;
+
+  // 4. * PZ
+  const subtotalByPieces = subtotalBeforeProfit * pz;
+
+  // 5. * (1 + UTILIDAD)
+  const subtotalWithProfit = subtotalByPieces * (1 + globalParams.profitMargin);
+
+  // 6. + (PZ * COMISIÓN DE VENTA)
+  const commissionCost = pz * salesCommission;
+  const subtotalWithCommission = subtotalWithProfit + commissionCost;
+
+  // 7. + ENVÍO
+  const subtotalWithShipping = subtotalWithCommission + shipping;
+
+  // 8. * (1 + IVA)
+  const subtotalWithVat = subtotalWithShipping * (1 + globalParams.vat);
+
+  // 9. * (1 + STRIPE%)
+  const subtotalWithStripe = subtotalWithVat * (1 + globalParams.stripePercentage);
+
+  // 10. + STRIPE FIJO
+  const finalPrice = subtotalWithStripe + globalParams.stripeFixedFee;
+
+  return finalPrice;
+}
