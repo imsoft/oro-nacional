@@ -100,15 +100,17 @@ export default function PriceCalculatorPage() {
       // Obtener IDs de productos que tienen subcategorías de la categoría interna "Gramo"
       const productIds = await getProductsByInternalSubcategories("Gramo");
       
-      // Si hay productos con subcategorías, cargarlos; si no, no mostrar nada
+      // Si hay productos con subcategorías, cargarlos; si no, mostrar todos los productos
+      // (para que el usuario pueda asignarles subcategorías)
       let productsData: ProductListItem[] = [];
       if (productIds.length > 0) {
         // Cargar todos los productos y filtrar por los IDs obtenidos
         const allProducts = await getAllProducts();
         productsData = allProducts.filter(product => productIds.includes(product.id));
       } else {
-        // Si no hay productos con subcategorías de "Gramo", no mostrar nada
-        productsData = [];
+        // Si no hay productos con subcategorías asignadas, mostrar todos los productos
+        // para que el usuario pueda asignarles subcategorías
+        productsData = await getAllProducts();
       }
       
       setProducts(productsData);

@@ -404,16 +404,30 @@ export async function getProductInternalCategoriesAndSubcategories(productId: st
  * Obtener productos por subcategorías internas de una categoría interna
  */
 export async function getProductsByInternalSubcategories(categoryName: string): Promise<string[]> {
-  // Primero, buscar la categoría interna por nombre
-  const { data: categories, error: categoryError } = await supabase
+  // Primero, buscar la categoría interna por nombre (búsqueda exacta primero, luego ilike)
+  let { data: categories, error: categoryError } = await supabase
     .from("internal_categories")
     .select("id")
-    .ilike("name", categoryName)
+    .eq("name", categoryName)
     .eq("is_active", true)
     .limit(1);
 
+  // Si no se encuentra con búsqueda exacta, intentar con ilike
+  if ((!categories || categories.length === 0) && !categoryError) {
+    const result = await supabase
+      .from("internal_categories")
+      .select("id")
+      .ilike("name", `%${categoryName}%`)
+      .eq("is_active", true)
+      .limit(1);
+    
+    categories = result.data;
+    categoryError = result.error;
+  }
+
   if (categoryError || !categories || categories.length === 0) {
     console.error("Error finding internal category:", categoryError);
+    console.error("Category name searched:", categoryName);
     return [];
   }
 
@@ -432,6 +446,7 @@ export async function getProductsByInternalSubcategories(categoryName: string): 
   }
 
   if (!subcategories || subcategories.length === 0) {
+    console.log("No subcategories found for category:", categoryId);
     return [];
   }
 
