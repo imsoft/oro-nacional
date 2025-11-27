@@ -226,7 +226,7 @@ export default function ProductsAdmin() {
                           : "bg-green-100 text-green-800"
                       }`}
                     >
-                      {product.stock} {t('units')}
+                      {product.stock} {product.stock === 1 ? t('unit') : t('units')}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">

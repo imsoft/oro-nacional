@@ -674,6 +674,7 @@
       "productColumn": "Product",
       "actionsColumn": "Actions",
       "units": "units",
+      "unit": "unit",
       "noImage": "No image",
       "noProductsFound": "No products found matching your search",
       "noProducts": "No products registered. Create your first product.",
