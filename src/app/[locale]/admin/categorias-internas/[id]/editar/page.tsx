@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
@@ -22,10 +22,11 @@ import {
 import { Plus, Trash2, ArrowUp, ArrowDown } from "lucide-react";
 
 interface EditInternalCategoryPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default function EditInternalCategoryPage({ params }: EditInternalCategoryPageProps) {
+  const resolvedParams = use(params);
   const router = useRouter();
   const t = useTranslations("admin.internalCategories");
   const [isLoading, setIsLoading] = useState(true);
@@ -39,7 +40,7 @@ export default function EditInternalCategoryPage({ params }: EditInternalCategor
     is_active: true,
   });
 
-  const categoryId = params.id;
+  const categoryId = resolvedParams.id;
 
   useEffect(() => {
     loadCategory();
