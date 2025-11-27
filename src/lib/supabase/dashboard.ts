@@ -119,7 +119,28 @@ export async function getRecentOrders(limit: number = 5): Promise<RecentOrder[]>
   try {
     const { data, error } = await supabase
       .from("orders")
-      .select("id, order_number, customer_name, total, status, created_at")
+      .select(`
+        id,
+        order_number,
+        customer_name,
+        customer_email,
+        customer_phone,
+        total,
+        status,
+        payment_method,
+        payment_status,
+        created_at,
+        items:order_items(
+          id,
+          product_name,
+          product_image,
+          quantity,
+          unit_price,
+          size,
+          material
+        )
+      `)
+      .is("deleted_at", null)
       .order("created_at", { ascending: false })
       .limit(limit);
 
@@ -128,7 +149,13 @@ export async function getRecentOrders(limit: number = 5): Promise<RecentOrder[]>
       return [];
     }
 
-    return data as RecentOrder[];
+    // Transformar los datos para incluir items_count
+    const orders = (data || []).map((order: any) => ({
+      ...order,
+      items_count: order.items?.length || 0,
+    }));
+
+    return orders as RecentOrder[];
   } catch (error) {
     console.error("Error in getRecentOrders:", error);
     return [];

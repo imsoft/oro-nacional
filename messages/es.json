@@ -592,6 +592,7 @@
       "orderId": "ID Pedido",
       "customer": "Cliente",
       "product": "Producto",
+      "products": "Productos",
       "amount": "Monto",
       "status": "Estado",
       "delivered": "Entregado",
@@ -600,7 +601,13 @@
       "noRecentOrders": "No hay pedidos recientes",
       "activeProducts": "Productos Activos",
       "currentMonthSales": "Ventas del Mes",
-      "errorLoading": "Error al cargar los datos del dashboard"
+      "errorLoading": "Error al cargar los datos del dashboard",
+      "paymentMethod": "Método de Pago",
+      "date": "Fecha",
+      "moreItems": "más productos",
+      "noItems": "Sin productos",
+      "paid": "Pagado",
+      "failed": "Fallido"
     },
     "hero": {
       "title": "Imágenes del Hero",

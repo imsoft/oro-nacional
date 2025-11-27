@@ -31,9 +31,23 @@ export interface RecentOrder {
   id: string;
   order_number: string;
   customer_name: string;
+  customer_email: string;
+  customer_phone: string;
   total: number;
   status: string;
+  payment_method: string;
+  payment_status: string;
   created_at: string;
+  items?: Array<{
+    id: string;
+    product_name: string;
+    product_image: string | null;
+    quantity: number;
+    unit_price: number;
+    size: string | null;
+    material: string | null;
+  }>;
+  items_count?: number;
 }
 
 export interface DashboardData {

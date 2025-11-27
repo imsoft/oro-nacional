@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
 import {
   Package,
   ShoppingCart,
@@ -140,7 +141,7 @@ export default function AdminDashboard() {
             {t('recentOrders')}
           </h2>
         </div>
-        <div className="overflow-hidden">
+        <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-border">
             <thead className="bg-muted">
               <tr>
@@ -151,13 +152,19 @@ export default function AdminDashboard() {
                   {t('customer')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  {t('product')}
+                  {t('products')}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  {t('paymentMethod')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   {t('amount')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   {t('status')}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  {t('date')}
                 </th>
               </tr>
             </thead>
@@ -168,14 +175,73 @@ export default function AdminDashboard() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                       {order.order_number}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                      {order.customer_name}
+                    <td className="px-6 py-4 text-sm text-muted-foreground">
+                      <div className="space-y-1">
+                        <div className="font-medium text-foreground">{order.customer_name}</div>
+                        <div className="text-xs">{order.customer_email}</div>
+                        <div className="text-xs">{order.customer_phone}</div>
+                      </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground max-w-xs truncate">
-                      {t('orders')} #{order.order_number}
+                    <td className="px-6 py-4 text-sm text-muted-foreground">
+                      {order.items && order.items.length > 0 ? (
+                        <div className="space-y-2 max-w-xs">
+                          {order.items.slice(0, 2).map((item) => (
+                            <div key={item.id} className="flex items-center gap-2">
+                              {item.product_image ? (
+                                <div className="relative w-8 h-8 rounded overflow-hidden bg-muted flex-shrink-0">
+                                  <Image
+                                    src={item.product_image}
+                                    alt={item.product_name}
+                                    fill
+                                    className="object-cover"
+                                  />
+                                </div>
+                              ) : (
+                                <div className="w-8 h-8 rounded bg-muted flex-shrink-0" />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium text-foreground truncate">
+                                  {item.product_name}
+                                </div>
+                                <div className="text-xs">
+                                  {item.quantity}x ${item.unit_price.toLocaleString("es-MX")}
+                                  {item.size && ` • ${item.size}`}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                          {order.items_count && order.items_count > 2 && (
+                            <div className="text-xs text-muted-foreground">
+                              +{order.items_count - 2} {t('moreItems')}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">{t('noItems')}</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                      <div className="space-y-1">
+                        <div>{order.payment_method}</div>
+                        <span
+                          className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
+                            order.payment_status === "Pagado" || order.payment_status === "Paid"
+                              ? "bg-green-100 text-green-800"
+                              : order.payment_status === "Pendiente" || order.payment_status === "Pending"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : order.payment_status === "Fallido" || order.payment_status === "Failed"
+                              ? "bg-red-100 text-red-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {order.payment_status === "Pagado" ? t('paid') :
+                           order.payment_status === "Pendiente" ? t('pending') :
+                           order.payment_status === "Fallido" ? t('failed') : order.payment_status}
+                        </span>
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
-                      ${order.total.toLocaleString("es-MX")} MXN
+                      ${order.total.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
@@ -194,11 +260,18 @@ export default function AdminDashboard() {
                          order.status === "Procesando" ? t('processing') : order.status}
                       </span>
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                      {new Date(order.created_at).toLocaleDateString("es-MX", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-sm text-muted-foreground">
+                  <td colSpan={7} className="px-6 py-8 text-center text-sm text-muted-foreground">
                     {t('noRecentOrders')}
                   </td>
                 </tr>

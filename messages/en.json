@@ -600,6 +600,7 @@
       "orderId": "Order ID",
       "customer": "Customer",
       "product": "Product",
+      "products": "Products",
       "amount": "Amount",
       "status": "Status",
       "delivered": "Delivered",
@@ -608,7 +609,13 @@
       "noRecentOrders": "No recent orders",
       "activeProducts": "Active Products",
       "currentMonthSales": "Current Month Sales",
-      "errorLoading": "Error loading dashboard data"
+      "errorLoading": "Error loading dashboard data",
+      "paymentMethod": "Payment Method",
+      "date": "Date",
+      "moreItems": "more items",
+      "noItems": "No items",
+      "paid": "Paid",
+      "failed": "Failed"
     },
     "hero": {
       "title": "Hero Images",
