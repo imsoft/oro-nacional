@@ -730,7 +730,9 @@
       "createError": "Error creating category. Please try again.",
       "updateError": "Error updating category. Please try again.",
       "loadError": "Error loading categories",
-      "categoryNotFound": "Category not found"
+      "categoryNotFound": "Category not found",
+      "active": "Active",
+      "inactive": "Inactive"
     },
     "orders": {
       "title": "Orders",

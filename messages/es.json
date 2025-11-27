@@ -722,7 +722,9 @@
       "createError": "Error al crear la categoría. Por favor intenta de nuevo.",
       "updateError": "Error al actualizar la categoría. Por favor intenta de nuevo.",
       "loadError": "Error al cargar las categorías",
-      "categoryNotFound": "Categoría no encontrada"
+      "categoryNotFound": "Categoría no encontrada",
+      "active": "Activo",
+      "inactive": "Inactivo"
     },
     "orders": {
       "title": "Pedidos",
