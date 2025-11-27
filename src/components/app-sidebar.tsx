@@ -22,7 +22,6 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -44,7 +43,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuthStore } from "@/stores/auth-store";
 import { useRouter } from "@/i18n/routing";
-import { LanguageSwitcher } from "@/components/shared/language-switcher";
 
 export function AppSidebar() {
   const t = useTranslations("admin.navigation");
@@ -112,7 +110,6 @@ export function AppSidebar() {
       {/* Navigation Content */}
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navigationItems.map((item) => {
@@ -180,10 +177,8 @@ export function AppSidebar() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton size="lg">
-                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                    <span className="text-sm font-semibold">
-                      {user?.name?.charAt(0).toUpperCase()}
-                    </span>
+                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-[#D4AF37] text-sidebar-primary-foreground">
+                    <span className="text-sm font-bold">ON</span>
                   </div>
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-semibold">{user?.name}</span>
@@ -202,11 +197,6 @@ export function AppSidebar() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <div className="flex items-center justify-center py-2">
-              <LanguageSwitcher />
-            </div>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

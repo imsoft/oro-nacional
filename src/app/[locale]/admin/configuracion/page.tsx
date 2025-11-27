@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { Save, Store, Mail, MapPin, Phone, Globe, RefreshCw, Loader2 } from "lucide-react";
+import { Save, Store, Mail, MapPin, Phone, Globe, RefreshCw, Loader2, Languages } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { LanguageSwitcher } from "@/components/shared/language-switcher";
 import { getStoreSettings, updateStoreSettings } from "@/lib/supabase/settings";
 
 export default function AdminSettings() {
@@ -463,6 +464,33 @@ export default function AdminSettings() {
                   ? (locale === 'es' ? 'Detectando país...' : 'Detecting country...')
                   : `${locale === 'es' ? 'País detectado' : 'Detected country'}: ${countryName}`}
               </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Configuración de Idioma */}
+        <div className="rounded-lg bg-card border border-border p-6 shadow-sm">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="rounded-lg bg-[#D4AF37]/10 p-2">
+              <Languages className="h-5 w-5 text-[#D4AF37]" />
+            </div>
+            <h2 className="text-xl font-semibold text-foreground">
+              {locale === 'es' ? 'Idioma del Panel' : 'Panel Language'}
+            </h2>
+          </div>
+
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              {locale === 'es'
+                ? 'Cambia el idioma del panel de administración. Esta configuración solo afecta la interfaz de administración.'
+                : 'Change the language of the admin panel. This setting only affects the administration interface.'}
+            </p>
+
+            <div className="flex items-center gap-4">
+              <Label htmlFor="languageSwitcher" className="text-sm font-medium">
+                {locale === 'es' ? 'Seleccionar idioma:' : 'Select language:'}
+              </Label>
+              <LanguageSwitcher />
             </div>
           </div>
         </div>
