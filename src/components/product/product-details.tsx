@@ -5,7 +5,6 @@ import { Package, Gem, Shield, Truck, Award, Clock } from "lucide-react";
 interface ProductDetailsProps {
   product: {
     material: string;
-    stock?: number;
     hasEngraving?: boolean;
   };
 }
@@ -38,16 +37,6 @@ const ProductDetails = ({ product }: ProductDetailsProps) => {
               </div>
             </div>
           )}
-          
-          <div className="flex items-center gap-3">
-            <Package className="h-5 w-5 text-[#D4AF37]" />
-            <div>
-              <p className="text-sm font-medium">Stock</p>
-              <p className="text-sm text-muted-foreground">
-                {product.stock && product.stock > 0 ? `${product.stock} disponibles` : 'Consultar disponibilidad'}
-              </p>
-            </div>
-          </div>
         </div>
       </div>
 

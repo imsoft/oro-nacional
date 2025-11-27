@@ -27,7 +27,6 @@ interface ProductInfoProps {
       stock: number;
       weight?: number; // Gramos de oro
     }> | string[];
-    stock?: number;
     weight?: number;
     slug?: string;
     images?: string[];
@@ -188,7 +187,7 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
                   : (product.sizes as string[]).map(s => ({ 
                       size: s, 
                       price: currentPrice, 
-                      stock: product.stock ?? 0 
+                      stock: 1 // Stock por defecto si no hay información de stock por talla
                     }));
 
                 return normalizedSizes.map((sizeObj) => {
@@ -308,27 +307,43 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
             size="lg"
             className="w-full bg-[#D4AF37] hover:bg-[#B8941E] text-white text-base font-semibold py-6 transition-all duration-300 hover:scale-[1.02]"
             onClick={handleAddToCart}
-            disabled={product.stock === 0}
+            disabled={(() => {
+              // Verificar stock de la talla seleccionada
+              if (!isSizesWithPrice || !selectedSize) return false;
+              const selectedSizeObj = (sizesArray as Array<{ size: string; price: number; stock: number }>)
+                .find(s => s.size === selectedSize);
+              return selectedSizeObj ? selectedSizeObj.stock === 0 : false;
+            })()}
           >
             <ShoppingCart className="mr-2 h-5 w-5" />
-            {product.stock === 0 ? 'Agotado' : 'Agregar al Carrito'}
+            {(() => {
+              if (!isSizesWithPrice || !selectedSize) return 'Agregar al Carrito';
+              const selectedSizeObj = (sizesArray as Array<{ size: string; price: number; stock: number }>)
+                .find(s => s.size === selectedSize);
+              return selectedSizeObj && selectedSizeObj.stock === 0 ? 'Agotado' : 'Agregar al Carrito';
+            })()}
           </Button>
         </div>
 
         {/* Información de stock */}
-        {product.stock !== undefined && (
-          <div className="text-center">
-            {product.stock > 0 ? (
-              <p className="text-sm text-green-600 font-medium">
-                ✓ Disponible ({product.stock} en stock)
-              </p>
-            ) : (
-              <p className="text-sm text-red-600 font-medium">
-                ✗ Agotado - Contacta para disponibilidad
-              </p>
-            )}
-          </div>
-        )}
+        {isSizesWithPrice && selectedSize && (() => {
+          const selectedSizeObj = (sizesArray as Array<{ size: string; price: number; stock: number }>)
+            .find(s => s.size === selectedSize);
+          if (!selectedSizeObj) return null;
+          return (
+            <div className="text-center">
+              {selectedSizeObj.stock > 0 ? (
+                <p className="text-sm text-green-600 font-medium">
+                  ✓ Disponible ({selectedSizeObj.stock} en stock)
+                </p>
+              ) : (
+                <p className="text-sm text-red-600 font-medium">
+                  ✗ Agotado - Contacta para disponibilidad
+                </p>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Botones secundarios */}
         <div className="flex gap-3">

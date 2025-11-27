@@ -122,7 +122,7 @@ export default function ProductPage({ params }: ProductPageProps) {
     images: productImages,
     specifications: productSpecs,
     sizes: productSizes,
-    stock: product.stock,
+    stock: undefined, // Stock ya no se usa a nivel de producto
     slug: product.slug,
   };
 

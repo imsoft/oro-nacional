@@ -209,7 +209,7 @@ export interface ProductFormData {
   material: MultilingualFormData;
   category_id: string;
   price: number;
-  stock: number;
+  stock?: number; // Ya no se usa, pero se mantiene para compatibilidad
   weight?: number;
   is_active: boolean;
   available_languages: string[]; // ['es', 'en'] o ['es'] o ['en']

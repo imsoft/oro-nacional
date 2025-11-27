@@ -47,7 +47,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
     material: { es: "", en: "" },
     category_id: "",
     price: 0,
-    stock: 0,
+    stock: 0, // Ya no se usa, pero se mantiene para compatibilidad
     weight: undefined,
     is_active: true,
     available_languages: ['es'],
@@ -97,7 +97,6 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
         updateField("material", { es: product.material_es || "", en: product.material_en || "" });
         updateField("category_id", product.category_id || "");
         updateField("price", 0); // Ya no se usa, pero se mantiene para compatibilidad
-        updateField("stock", product.stock || 0);
         updateField("is_active", product.is_active);
 
         // Cargar imágenes existentes
@@ -212,7 +211,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
         material: formData.material,
         category_id: formData.category_id,
         price: 0, // Ya no se usa, pero se mantiene para compatibilidad
-        stock: formData.stock,
+        stock: 0, // Ya no se usa, pero se mantiene para compatibilidad
         is_active: formData.is_active,
         available_languages: formData.available_languages,
         specifications: formData.specifications.map(spec => ({
@@ -478,19 +477,6 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
               </Select>
             </div>
 
-            <div className="space-y-3">
-              <Label htmlFor="stock">{t('productForm.stock')}</Label>
-              <Input
-                id="stock"
-                type="number"
-                min="0"
-                value={formData.stock}
-                onChange={(e) => {
-                  updateField("stock", parseInt(e.target.value) || 0);
-                }}
-                placeholder="0"
-              />
-            </div>
           </div>
 
           <div className="flex items-center space-x-2 mt-4">

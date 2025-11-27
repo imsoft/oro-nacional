@@ -467,7 +467,7 @@ export async function createProduct(
         material_en: productData.material.en || productData.material.es, // Usar español como fallback
         category_id: productData.category_id && productData.category_id.trim() !== "" ? productData.category_id : null, // Convertir vacío a null
         price: productData.price,
-        stock: productData.stock,
+        stock: 0, // Ya no se usa, pero se mantiene para compatibilidad
         weight: productData.weight,
         is_active: productData.is_active,
         available_languages: productData.available_languages || ['es', 'en'],
@@ -615,7 +615,7 @@ export async function updateProduct(
       dataToUpdate.category_id = updates.category_id && updates.category_id.trim() !== "" ? updates.category_id : null;
     }
     if (updates.price !== undefined) dataToUpdate.price = updates.price;
-    if (updates.stock !== undefined) dataToUpdate.stock = updates.stock;
+    // stock ya no se actualiza, se mantiene a nivel de tallas
     if (updates.weight !== undefined) dataToUpdate.weight = updates.weight;
     if (updates.has_engraving !== undefined) dataToUpdate.has_engraving = updates.has_engraving;
     if (updates.is_active !== undefined) dataToUpdate.is_active = updates.is_active;
