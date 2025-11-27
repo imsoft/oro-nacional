@@ -370,9 +370,14 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
 
     const size = formData.sizes[index];
     
-    // Validar que la talla tenga gramos definidos
+    // Determinar el nombre del campo según la categoría
+    const selectedCategory = internalCategories.find(cat => cat.id === formData.internal_category_id);
+    const isBroquel = selectedCategory?.name?.toLowerCase() === "broquel";
+    const fieldName = isBroquel ? "piezas" : "gramos";
+    
+    // Validar que la talla tenga gramos/piezas definidos
     if (!size.weight || size.weight <= 0) {
-      alert("Por favor ingresa los gramos de oro para esta talla primero.");
+      alert(`Por favor ingresa las ${fieldName} para esta talla primero.`);
       return;
     }
 
@@ -813,24 +818,37 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
                   </div>
                 </div>
                 <div className="flex-1">
-                  <Label htmlFor={`grams-${index}`} className="mb-2 block">{t('productForm.grams')}</Label>
-                  <Input
-                    id={`grams-${index}`}
-                    type="number"
-                    step="0.001"
-                    min="0"
-                    value={size.weight !== undefined ? size.weight : ""}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (value === "" || value === null) {
-                        updateSize(index, "weight", undefined);
-                      } else {
-                        const parsed = parseFloat(value);
-                        updateSize(index, "weight", isNaN(parsed) ? undefined : parsed);
-                      }
-                    }}
-                    placeholder="0.000"
-                  />
+                  {(() => {
+                    // Determinar el label según la categoría interna seleccionada
+                    const selectedCategory = internalCategories.find(cat => cat.id === formData.internal_category_id);
+                    const isBroquel = selectedCategory?.name?.toLowerCase() === "broquel";
+                    const label = isBroquel ? "Piezas" : t('productForm.grams');
+                    const placeholder = isBroquel ? "1.0" : "0.000";
+                    const step = isBroquel ? "0.01" : "0.001";
+                    
+                    return (
+                      <>
+                        <Label htmlFor={`grams-${index}`} className="mb-2 block">{label}</Label>
+                        <Input
+                          id={`grams-${index}`}
+                          type="number"
+                          step={step}
+                          min="0"
+                          value={size.weight !== undefined ? size.weight : ""}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value === "" || value === null) {
+                              updateSize(index, "weight", undefined);
+                            } else {
+                              const parsed = parseFloat(value);
+                              updateSize(index, "weight", isNaN(parsed) ? undefined : parsed);
+                            }
+                          }}
+                          placeholder={placeholder}
+                        />
+                      </>
+                    );
+                  })()}
                 </div>
                 <div className="flex-1">
                   <Label htmlFor={`stock-${index}`} className="mb-2 block">{t('productForm.stock')}</Label>
