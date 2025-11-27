@@ -52,6 +52,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
   const [previewLocale, setPreviewLocale] = useState<Locale>("es");
   const [isLoading, setIsLoading] = useState(false);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [calculatingPriceForIndex, setCalculatingPriceForIndex] = useState<number | null>(null);
 
   const defaultData: ProductFormData = {
     name: { es: "", en: "" },
