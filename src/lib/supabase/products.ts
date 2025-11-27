@@ -136,6 +136,132 @@ export async function getAllProducts() {
 }
 
 /**
+ * Get products by category name (for pricing calculators)
+ * @param categoryName - Name of the category to filter by (in Spanish)
+ */
+export async function getProductsByCategoryName(categoryName: string) {
+  const { data, error } = await supabase
+    .from("products")
+    .select(
+      `
+      id,
+      name_es,
+      name_en,
+      slug_es,
+      slug_en,
+      price,
+      stock,
+      material_es,
+      material_en,
+      is_active,
+      created_at,
+      category:product_categories!inner(id, name_es, name_en)
+    `
+    )
+    .ilike("category.name_es", categoryName)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching products by category:", error);
+    return [];
+  }
+
+  // Transform data for admin list view
+  const products: ProductListItem[] = (data as unknown[]).map((product: unknown) => {
+    const p = product as {
+      id: string;
+      name_es: string;
+      name_en: string;
+      slug_es: string;
+      slug_en: string;
+      price: number;
+      stock: number;
+      material_es: string;
+      material_en: string;
+      is_active: boolean;
+      category?: { name_es: string; name_en: string };
+      images?: Array<{ is_primary: boolean; image_url: string }>;
+    };
+    return {
+      id: p.id,
+      name: p.name_es || p.name_en || 'Sin nombre',
+      slug: p.slug_es || p.slug_en || '',
+      price: p.price,
+      stock: p.stock,
+      material: p.material_es || p.material_en || 'Sin material',
+      is_active: p.is_active,
+      category_name: p.category?.name_es || p.category?.name_en,
+      primary_image: undefined, // Will be loaded separately if needed
+    };
+  });
+
+  return products;
+}
+
+/**
+ * Get products excluding a specific category (for pricing calculators)
+ * @param categoryName - Name of the category to exclude (in Spanish)
+ */
+export async function getProductsExcludingCategory(categoryName: string) {
+  const { data, error } = await supabase
+    .from("products")
+    .select(
+      `
+      id,
+      name_es,
+      name_en,
+      slug_es,
+      slug_en,
+      price,
+      stock,
+      material_es,
+      material_en,
+      is_active,
+      created_at,
+      category:product_categories(id, name_es, name_en)
+    `
+    )
+    .not("category.name_es", "ilike", categoryName)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching products excluding category:", error);
+    return [];
+  }
+
+  // Transform data for admin list view
+  const products: ProductListItem[] = (data as unknown[]).map((product: unknown) => {
+    const p = product as {
+      id: string;
+      name_es: string;
+      name_en: string;
+      slug_es: string;
+      slug_en: string;
+      price: number;
+      stock: number;
+      material_es: string;
+      material_en: string;
+      is_active: boolean;
+      category?: { name_es: string; name_en: string };
+      images?: Array<{ is_primary: boolean; image_url: string }>;
+    };
+    return {
+      id: p.id,
+      name: p.name_es || p.name_en || 'Sin nombre',
+      slug: p.slug_es || p.slug_en || '',
+      price: p.price,
+      stock: p.stock,
+      material: p.material_es || p.material_en || 'Sin material',
+      is_active: p.is_active,
+      category_name: p.category?.name_es || p.category?.name_en,
+      primary_image: undefined, // Will be loaded separately if needed
+    };
+  });
+
+  return products;
+}
+
+/**
  * Get a single product by slug with all related data
  * For product detail page
  */

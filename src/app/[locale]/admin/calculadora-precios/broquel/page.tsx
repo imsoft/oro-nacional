@@ -31,7 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { getAllProducts, updateProductPrice, updateMultipleProductPrices } from "@/lib/supabase/products";
+import { getProductsByCategoryName, updateProductPrice, updateMultipleProductPrices } from "@/lib/supabase/products";
 import type { ProductListItem } from "@/types/product";
 
 // Parámetros globales para Broquel
@@ -112,12 +112,12 @@ export default function BroquelCalculatorPage() {
 
   const loadProducts = async () => {
     setIsLoading(true);
-    const data = await getAllProducts();
+    const data = await getProductsByCategoryName("Broqueles");
     setProducts(data);
 
     // Initialize broquel data with default values
     const broquelMap = new Map<string, Partial<ProductBroquelData>>();
-    data.forEach((product) => {
+    data.forEach((product: ProductListItem) => {
       broquelMap.set(product.id, {
         pz: 1.0,
         goldGrams: 0.185,

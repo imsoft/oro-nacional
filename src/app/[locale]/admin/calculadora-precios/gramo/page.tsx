@@ -30,7 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { getAllProducts, updateProductPrice, updateMultipleProductPrices } from "@/lib/supabase/products";
+import { getProductsExcludingCategory, updateProductPrice, updateMultipleProductPrices } from "@/lib/supabase/products";
 import {
   getPricingParameters,
   updatePricingParameters,
@@ -93,8 +93,8 @@ export default function PriceCalculatorPage() {
       const params = await getPricingParameters();
       setParameters(params);
 
-      // Load products
-      const productsData = await getAllProducts();
+      // Load products (excluding Broqueles category)
+      const productsData = await getProductsExcludingCategory("Broqueles");
       setProducts(productsData);
 
       // Load product pricing data from database
@@ -107,7 +107,7 @@ export default function PriceCalculatorPage() {
       );
 
       // Initialize pricing data for all products
-      productsData.forEach((product) => {
+      productsData.forEach((product: ProductListItem) => {
         const savedData = pricingDataMap.get(product.id);
         if (savedData) {
           // Use saved data from database
