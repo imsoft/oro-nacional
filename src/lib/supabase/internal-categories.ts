@@ -437,6 +437,28 @@ export async function getProductInternalCategoriesAndSubcategories(productId: st
 }
 
 /**
+ * Obtener productos por subcategoría interna específica
+ */
+export async function getProductsByInternalSubcategory(subcategoryId: string): Promise<string[]> {
+  // Obtener IDs de productos que tienen esta subcategoría específica
+  const { data: productRelations, error: relationError } = await supabase
+    .from("product_internal_categories")
+    .select("product_id")
+    .eq("internal_subcategory_id", subcategoryId);
+
+  if (relationError) {
+    console.error("Error fetching product relations:", relationError);
+    return [];
+  }
+
+  if (!productRelations) {
+    return [];
+  }
+
+  return productRelations.map(rel => rel.product_id);
+}
+
+/**
  * Obtener productos por subcategorías internas de una categoría interna
  */
 export async function getProductsByInternalSubcategories(categoryName: string): Promise<string[]> {

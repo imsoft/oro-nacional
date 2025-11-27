@@ -30,7 +30,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { getInternalSubcategoriesByCategoryName, type InternalSubcategory } from "@/lib/supabase/internal-categories";
+import { getInternalSubcategoriesByCategoryName, getProductsByInternalSubcategory, type InternalSubcategory } from "@/lib/supabase/internal-categories";
+import { updateMultipleProductPrices } from "@/lib/supabase/products";
 import {
   getPricingParameters,
   updatePricingParameters,
@@ -254,6 +255,52 @@ export default function PriceCalculatorPage() {
   };
 
   // Removed update functions - subcategories are for calculation only
+
+  const [isApplyingPrices, setIsApplyingPrices] = useState(false);
+  const [applyingToSubcategory, setApplyingToSubcategory] = useState<string | null>(null);
+
+  const handleApplyPriceToProducts = async (subcategoryId: string, finalPrice: number) => {
+    if (!confirm(`¿Estás seguro de aplicar el precio ${formatMXN(finalPrice)} a todos los productos con esta subcategoría?`)) {
+      return;
+    }
+
+    setIsApplyingPrices(true);
+    setApplyingToSubcategory(subcategoryId);
+
+    try {
+      // Obtener todos los productos con esta subcategoría
+      const productIds = await getProductsByInternalSubcategory(subcategoryId);
+      
+      if (productIds.length === 0) {
+        alert("No hay productos con esta subcategoría para actualizar.");
+        return;
+      }
+
+      // Actualizar precios de todos los productos
+      const priceUpdates = productIds.map(id => ({
+        id,
+        price: finalPrice,
+      }));
+
+      const results = await updateMultipleProductPrices(priceUpdates);
+
+      if (results.failed.length > 0) {
+        alert(
+          `Se actualizaron ${results.successful.length} productos correctamente. ${results.failed.length} productos fallaron.`
+        );
+      } else {
+        alert(
+          `¡Éxito! Se actualizaron ${results.successful.length} productos correctamente.`
+        );
+      }
+    } catch (error) {
+      console.error("Error applying prices to products:", error);
+      alert("Error al aplicar los precios. Por favor intenta de nuevo.");
+    } finally {
+      setIsApplyingPrices(false);
+      setApplyingToSubcategory(null);
+    }
+  };
 
   const handleUnlockSubmit = () => {
     if (unlockCode === "2487") {
@@ -701,10 +748,21 @@ export default function PriceCalculatorPage() {
                         <td className="sticky right-0 z-10 bg-card px-2 py-2 whitespace-nowrap border-l">
                           <Button
                             size="sm"
-                            disabled={true}
-                            className="gap-2 bg-gray-400 text-white cursor-not-allowed"
+                            onClick={() => handleApplyPriceToProducts(calc.id, calc.finalPrice)}
+                            disabled={isApplyingPrices || applyingToSubcategory === calc.id}
+                            className="gap-2 bg-green-600 hover:bg-green-700 text-white"
                           >
-                            Solo Cálculo
+                            {isApplyingPrices && applyingToSubcategory === calc.id ? (
+                              <>
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                                Aplicando...
+                              </>
+                            ) : (
+                              <>
+                                <Save className="h-3 w-3" />
+                                Aplicar Precio
+                              </>
+                            )}
                           </Button>
                         </td>
                       </tr>
