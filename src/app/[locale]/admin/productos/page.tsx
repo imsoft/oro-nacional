@@ -165,9 +165,6 @@ export default function ProductsAdmin() {
                   {t('category')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  {t('price')}
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   {t('stock')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -184,7 +181,7 @@ export default function ProductsAdmin() {
             <tbody className="bg-card divide-y divide-border">
               {filteredProducts.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground">
+                  <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
                     {searchTerm
                       ? t('noProductsFound')
                       : t('noProducts')}
@@ -219,11 +216,6 @@ export default function ProductsAdmin() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="text-sm text-muted-foreground">
                       {product.category_name || t('noCategory')}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm font-medium text-foreground">
-                      ${product.price.toLocaleString("es-MX")} MXN
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
