@@ -72,6 +72,7 @@ export interface ProductSize {
   size: string;
   stock: number;
   price?: number; // Individual price for this size
+  weight?: number; // Gramos de oro
   created_at: string;
 }
 
@@ -142,6 +143,7 @@ export interface CreateMultilingualProductData {
     size: string;
     stock: number;
     price?: number;
+    weight?: number; // Gramos de oro
   }>;
   images?: File[]; // Files to upload
 }
@@ -166,6 +168,7 @@ export interface UpdateMultilingualProductData {
     size: string;
     stock: number;
     price?: number;
+    weight?: number; // Gramos de oro
   }>;
 }
 
@@ -219,6 +222,7 @@ export interface ProductFormData {
     size: string;
     stock: number;
     price: number;
+    weight?: number; // Gramos de oro
     display_order?: number;
   }>;
   images?: File[]; // Files to upload

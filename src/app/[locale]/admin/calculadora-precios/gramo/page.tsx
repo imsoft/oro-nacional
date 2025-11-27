@@ -56,6 +56,9 @@ export default function PriceCalculatorPage() {
   const [isUpdatingAll, setIsUpdatingAll] = useState(false);
   const [isSavingParameters, setIsSavingParameters] = useState(false);
   const [isSavingProductData, setIsSavingProductData] = useState(false);
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [unlockDialogOpen, setUnlockDialogOpen] = useState(false);
+  const [unlockCode, setUnlockCode] = useState("");
 
   // Format currency in Mexican Pesos
   const formatMXN = (amount: number): string => {
@@ -264,6 +267,17 @@ export default function PriceCalculatorPage() {
 
   const handleUpdateAllClick = () => {
     setConfirmAllDialogOpen(true);
+  };
+
+  const handleUnlockSubmit = () => {
+    if (unlockCode === "2487") {
+      setIsUnlocked(true);
+      setUnlockDialogOpen(false);
+      setUnlockCode("");
+    } else {
+      alert("Código incorrecto");
+      setUnlockCode("");
+    }
   };
 
   const handleConfirmUpdate = async () => {

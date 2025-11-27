@@ -154,11 +154,13 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
             size: string;
             price?: number;
             stock: number;
+            weight?: number;
             display_order?: number;
           }, index: number) => ({
             size: size.size,
             price: size.price || product.price || 0,
             stock: size.stock,
+            weight: size.weight,
             display_order: size.display_order ?? index
           })));
         }
@@ -224,6 +226,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
           size: size.size,
           stock: size.stock,
           price: size.price,
+          weight: size.weight,
           display_order: size.display_order ?? index
         })),
         images: formData.images
@@ -286,7 +289,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
     updateField("sizes", reorderedSizes);
   };
 
-  const updateSize = (index: number, field: "size" | "stock" | "price", value: string | number) => {
+  const updateSize = (index: number, field: "size" | "stock" | "price" | "weight", value: string | number | undefined) => {
     const newSizes = [...formData.sizes];
     newSizes[index] = { ...newSizes[index], [field]: value };
     updateField("sizes", newSizes);
@@ -657,6 +660,17 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
                     value={size.stock}
                     onChange={(e) => updateSize(index, "stock", parseInt(e.target.value) || 0)}
                     placeholder="0"
+                  />
+                </div>
+                <div className="flex-1">
+                  <Label htmlFor={`weight-${index}`} className="mb-2 block">Gramos</Label>
+                  <Input
+                    id={`weight-${index}`}
+                    type="number"
+                    value={size.weight || ""}
+                    onChange={(e) => updateSize(index, "weight", parseFloat(e.target.value) || undefined)}
+                    placeholder="0.00"
+                    step="0.001"
                   />
                 </div>
                 <Button
