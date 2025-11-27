@@ -260,9 +260,11 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
                   const formatWeight = (weight?: number) => {
                     if (weight === undefined || weight === null) return null;
                     if (isBroquel) {
-                      return weight.toFixed(2); // Piezas con 2 decimales
+                      // Piezas: eliminar ceros finales después de 2 decimales
+                      return parseFloat(weight.toFixed(2)).toString();
                     } else {
-                      return weight.toFixed(3); // Gramos con 3 decimales
+                      // Gramos: eliminar ceros finales después de 3 decimales
+                      return parseFloat(weight.toFixed(3)).toString();
                     }
                   };
                   
