@@ -668,7 +668,6 @@ export default function BroquelCalculatorPage() {
                               handleSubcategoryDataChange(calc.id, "pz", e.target.value)
                             }
                             className="w-14 h-7 text-[11px] px-1"
-                            disabled={!isUnlocked}
                           />
                         </td>
                         <td className="px-2 py-2 whitespace-nowrap">
