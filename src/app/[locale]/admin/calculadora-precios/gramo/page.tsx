@@ -34,6 +34,9 @@ import { getInternalSubcategoriesByCategoryName, type InternalSubcategory } from
 import {
   getPricingParameters,
   updatePricingParameters,
+  getAllSubcategoryPricing,
+  upsertSubcategoryPricing,
+  type SubcategoryPricingData,
 } from "@/lib/supabase/pricing";
 import type {
   PricingParameters,
@@ -95,7 +98,10 @@ export default function PriceCalculatorPage() {
       const subcategoriesData = await getInternalSubcategoriesByCategoryName("Gramo");
       setSubcategories(subcategoriesData);
 
-      // Initialize pricing data for all subcategories with default values
+      // Load saved pricing data from database
+      const savedPricingData = await getAllSubcategoryPricing();
+      
+      // Initialize pricing data for all subcategories with default values or saved data
       const defaults = {
         goldGrams: 5,
         factor: 0.442,
@@ -107,8 +113,9 @@ export default function PriceCalculatorPage() {
       
       const pricingMap = new Map<string, Partial<ProductPricingData>>();
       subcategoriesData.forEach((subcategory) => {
-        // Use default values for all subcategories
-        pricingMap.set(subcategory.id, defaults);
+        // Use saved data if available, otherwise use defaults
+        const saved = savedPricingData.get(subcategory.id);
+        pricingMap.set(subcategory.id, saved || defaults);
       });
       setSubcategoryPricingData(pricingMap);
     } catch (error) {
@@ -199,7 +206,7 @@ export default function PriceCalculatorPage() {
     }
   };
 
-  const handleSubcategoryDataChange = (
+  const handleSubcategoryDataChange = async (
     subcategoryId: string,
     key: keyof ProductPricingData,
     value: string
@@ -210,7 +217,26 @@ export default function PriceCalculatorPage() {
     setSubcategoryPricingData((prev) => {
       const newMap = new Map(prev);
       const currentData = newMap.get(subcategoryId) || {};
-      newMap.set(subcategoryId, { ...currentData, [key]: numValue });
+      const updatedData = { ...currentData, [key]: numValue };
+      newMap.set(subcategoryId, updatedData);
+      
+      // Auto-save to database (debounced by React's state batching)
+      // Save after a short delay to avoid too many database calls
+      setTimeout(async () => {
+        try {
+          await upsertSubcategoryPricing(subcategoryId, {
+            goldGrams: updatedData.goldGrams ?? 5,
+            factor: updatedData.factor ?? 0.442,
+            laborCost: updatedData.laborCost ?? 15,
+            stoneCost: updatedData.stoneCost ?? 0,
+            salesCommission: updatedData.salesCommission ?? 30,
+            shippingCost: updatedData.shippingCost ?? 800,
+          });
+        } catch (error) {
+          console.error("Error saving subcategory pricing:", error);
+        }
+      }, 1000); // 1 second debounce
+      
       return newMap;
     });
   };

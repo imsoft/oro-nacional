@@ -32,6 +32,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { getInternalSubcategoriesByCategoryName, type InternalSubcategory } from "@/lib/supabase/internal-categories";
+import {
+  getAllSubcategoryBroquelPricing,
+  upsertSubcategoryBroquelPricing,
+  type SubcategoryBroquelPricingData,
+} from "@/lib/supabase/pricing";
 
 // Parámetros globales para Broquel
 interface BroquelParameters {
@@ -119,20 +124,27 @@ export default function BroquelCalculatorPage() {
     const subcategoriesData = await getInternalSubcategoriesByCategoryName("Broquel");
     setSubcategories(subcategoriesData);
 
-    // Initialize broquel data with default values
+    // Load saved pricing data from database
+    const savedPricingData = await getAllSubcategoryBroquelPricing();
+    
+    // Initialize broquel data with default values or saved data
+    const defaults = {
+      pz: 1.0,
+      goldGrams: 0.185,
+      carats: 10,
+      factor: 0.000,
+      merma: 8.00, // 8%
+      laborCost: 20.00,
+      stoneCost: 0.00,
+      salesCommission: 30.00,
+      shipping: 800.00,
+    };
+    
     const broquelMap = new Map<string, Partial<ProductBroquelData>>();
     subcategoriesData.forEach((subcategory: InternalSubcategory) => {
-      broquelMap.set(subcategory.id, {
-        pz: 1.0,
-        goldGrams: 0.185,
-        carats: 10,
-        factor: 0.000,
-        merma: 8.00, // 8%
-        laborCost: 20.00,
-        stoneCost: 0.00,
-        salesCommission: 30.00,
-        shipping: 800.00,
-      });
+      // Use saved data if available, otherwise use defaults
+      const saved = savedPricingData.get(subcategory.id);
+      broquelMap.set(subcategory.id, saved || defaults);
     });
     setProductBroquelData(broquelMap);
     setIsLoading(false);
@@ -226,7 +238,7 @@ export default function BroquelCalculatorPage() {
     setParameters((prev) => ({ ...prev, [key]: numValue }));
   };
 
-  const handleSubcategoryDataChange = (
+  const handleSubcategoryDataChange = async (
     subcategoryId: string,
     key: keyof ProductBroquelData,
     value: string
@@ -235,7 +247,29 @@ export default function BroquelCalculatorPage() {
     setProductBroquelData((prev) => {
       const newMap = new Map(prev);
       const currentData = newMap.get(subcategoryId) || {};
-      newMap.set(subcategoryId, { ...currentData, [key]: numValue });
+      const updatedData = { ...currentData, [key]: numValue };
+      newMap.set(subcategoryId, updatedData);
+      
+      // Auto-save to database (debounced by React's state batching)
+      // Save after a short delay to avoid too many database calls
+      setTimeout(async () => {
+        try {
+          await upsertSubcategoryBroquelPricing(subcategoryId, {
+            pz: updatedData.pz ?? 1.0,
+            goldGrams: updatedData.goldGrams ?? 0.185,
+            carats: updatedData.carats ?? 10,
+            factor: updatedData.factor ?? 0.000,
+            merma: updatedData.merma ?? 8.00,
+            laborCost: updatedData.laborCost ?? 20.00,
+            stoneCost: updatedData.stoneCost ?? 0.00,
+            salesCommission: updatedData.salesCommission ?? 30.00,
+            shipping: updatedData.shipping ?? 800.00,
+          });
+        } catch (error) {
+          console.error("Error saving subcategory broquel pricing:", error);
+        }
+      }, 1000); // 1 second debounce
+      
       return newMap;
     });
   };
