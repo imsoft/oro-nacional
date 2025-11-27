@@ -113,14 +113,14 @@ export default function PriceCalculatorPage() {
       productsData.forEach((product: ProductListItem) => {
         const savedData = pricingDataMap.get(product.id);
         if (savedData) {
-          // Use saved data from database
+          // Use saved data from database, but fill missing values with defaults
           pricingMap.set(product.id, {
-            goldGrams: savedData.goldGrams,
-            factor: savedData.factor,
-            laborCost: savedData.laborCost,
-            stoneCost: savedData.stoneCost,
-            salesCommission: savedData.salesCommission,
-            shippingCost: savedData.shippingCost,
+            goldGrams: savedData.goldGrams ?? 5,
+            factor: savedData.factor ?? 0.442,
+            laborCost: savedData.laborCost ?? 15,
+            stoneCost: savedData.stoneCost ?? 0,
+            salesCommission: savedData.salesCommission ?? 30,
+            shippingCost: savedData.shippingCost ?? 800,
           });
         } else {
           // Use default values for new products
@@ -148,13 +148,13 @@ export default function PriceCalculatorPage() {
     product: ProductListItem,
     pricingData: Partial<ProductPricingData>
   ): ProductPricingCalculation | null => {
-    // Default values if not defined
-    const goldGrams = pricingData.goldGrams || 0;
-    const factor = pricingData.factor || 0.442;
-    const laborCost = pricingData.laborCost || 15;
-    const stoneCost = pricingData.stoneCost || 0;
-    const salesCommission = pricingData.salesCommission || 30;
-    const shippingCost = pricingData.shippingCost || 800;
+    // Default values if not defined - use nullish coalescing to preserve 0 values
+    const goldGrams = pricingData.goldGrams ?? 5;
+    const factor = pricingData.factor ?? 0.442;
+    const laborCost = pricingData.laborCost ?? 15;
+    const stoneCost = pricingData.stoneCost ?? 0;
+    const salesCommission = pricingData.salesCommission ?? 30;
+    const shippingCost = pricingData.shippingCost ?? 800;
 
     // Formula: ((($H$2*D5*F5)+(D5*(H5+I5)))*(1+J5)+(D5*K5)+L5)*(1+M5)*(1+N5)+O5
     const goldCost = parameters.goldQuotation * goldGrams * factor;
@@ -240,12 +240,12 @@ export default function PriceCalculatorPage() {
       // Auto-save to database
       setIsSavingProductData(true);
       const pricingData = {
-        goldGrams: updatedData.goldGrams || 5,
-        factor: updatedData.factor || 0.442,
-        laborCost: updatedData.laborCost || 15,
-        stoneCost: updatedData.stoneCost || 0,
-        salesCommission: updatedData.salesCommission || 30,
-        shippingCost: updatedData.shippingCost || 800,
+        goldGrams: updatedData.goldGrams ?? 5,
+        factor: updatedData.factor ?? 0.442,
+        laborCost: updatedData.laborCost ?? 15,
+        stoneCost: updatedData.stoneCost ?? 0,
+        salesCommission: updatedData.salesCommission ?? 30,
+        shippingCost: updatedData.shippingCost ?? 800,
       };
 
       upsertProductPricing(productId, pricingData)
