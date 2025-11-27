@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
+import Image from "next/image";
 import {
   LayoutDashboard,
   Package,
@@ -94,8 +95,14 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href="/admin">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-[#D4AF37] text-sidebar-primary-foreground">
-                  <span className="text-lg font-bold">ON</span>
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden">
+                  <Image
+                    src="/logos/logo-oro-nacional.png"
+                    alt="Oro Nacional"
+                    width={32}
+                    height={32}
+                    className="object-contain"
+                  />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">Oro Nacional</span>
@@ -177,8 +184,14 @@ export function AppSidebar() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton size="lg">
-                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-[#D4AF37] text-sidebar-primary-foreground">
-                    <span className="text-sm font-bold">ON</span>
+                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden">
+                    <Image
+                      src="/logos/logo-oro-nacional.png"
+                      alt="Oro Nacional"
+                      width={32}
+                      height={32}
+                      className="object-contain"
+                    />
                   </div>
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-semibold">{user?.name}</span>
