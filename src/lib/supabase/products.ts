@@ -159,7 +159,7 @@ export async function getProductsByCategoryName(categoryName: string) {
       images:product_images(image_url, is_primary)
     `
     )
-    .eq("category.name_es", categoryName)
+    .ilike("category.name_es", `${categoryName}%`)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -223,7 +223,7 @@ export async function getProductsExcludingCategory(categoryName: string) {
       images:product_images(image_url, is_primary)
     `
     )
-    .not("category.name_es", "eq", categoryName)
+    .not("category.name_es", "ilike", `${categoryName}%`)
     .order("created_at", { ascending: false });
 
   if (error) {
