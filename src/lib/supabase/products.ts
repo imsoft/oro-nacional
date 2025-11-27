@@ -155,10 +155,11 @@ export async function getProductsByCategoryName(categoryName: string) {
       material_en,
       is_active,
       created_at,
-      category:product_categories!inner(id, name_es, name_en)
+      category:product_categories!inner(id, name_es, name_en),
+      images:product_images(image_url, is_primary)
     `
     )
-    .ilike("category.name_es", categoryName)
+    .eq("category.name_es", categoryName)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -179,7 +180,7 @@ export async function getProductsByCategoryName(categoryName: string) {
       material_es: string;
       material_en: string;
       is_active: boolean;
-      category?: { name_es: string; name_en: string };
+      category?: { id: string; name_es: string; name_en: string };
       images?: Array<{ is_primary: boolean; image_url: string }>;
     };
     return {
@@ -191,7 +192,7 @@ export async function getProductsByCategoryName(categoryName: string) {
       material: p.material_es || p.material_en || 'Sin material',
       is_active: p.is_active,
       category_name: p.category?.name_es || p.category?.name_en,
-      primary_image: undefined, // Will be loaded separately if needed
+      primary_image: p.images?.find((img) => img.is_primary)?.image_url,
     };
   });
 
@@ -218,10 +219,11 @@ export async function getProductsExcludingCategory(categoryName: string) {
       material_en,
       is_active,
       created_at,
-      category:product_categories(id, name_es, name_en)
+      category:product_categories(id, name_es, name_en),
+      images:product_images(image_url, is_primary)
     `
     )
-    .not("category.name_es", "ilike", categoryName)
+    .not("category.name_es", "eq", categoryName)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -242,7 +244,7 @@ export async function getProductsExcludingCategory(categoryName: string) {
       material_es: string;
       material_en: string;
       is_active: boolean;
-      category?: { name_es: string; name_en: string };
+      category?: { id: string; name_es: string; name_en: string };
       images?: Array<{ is_primary: boolean; image_url: string }>;
     };
     return {
@@ -254,7 +256,7 @@ export async function getProductsExcludingCategory(categoryName: string) {
       material: p.material_es || p.material_en || 'Sin material',
       is_active: p.is_active,
       category_name: p.category?.name_es || p.category?.name_en,
-      primary_image: undefined, // Will be loaded separately if needed
+      primary_image: p.images?.find((img) => img.is_primary)?.image_url,
     };
   });
 
