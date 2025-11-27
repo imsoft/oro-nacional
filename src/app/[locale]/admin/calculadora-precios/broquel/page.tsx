@@ -521,52 +521,52 @@ export default function BroquelCalculatorPage() {
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-border">
+            <table className="w-full divide-y divide-border text-xs">
               <thead className="bg-muted">
                 <tr>
-                  <th className="sticky left-0 z-10 bg-muted px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider border-r">
+                  <th className="sticky left-0 z-10 bg-muted px-2 py-2 text-left text-[10px] font-medium text-muted-foreground uppercase tracking-tight border-r">
                     Nombre
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="px-2 py-2 text-left text-[10px] font-medium text-muted-foreground uppercase tracking-tight">
                     PZ
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="px-2 py-2 text-left text-[10px] font-medium text-muted-foreground uppercase tracking-tight">
                     Oro (GRS)
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Kilataje
+                  <th className="px-2 py-2 text-left text-[10px] font-medium text-muted-foreground uppercase tracking-tight">
+                    Kilat.
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="px-2 py-2 text-left text-[10px] font-medium text-muted-foreground uppercase tracking-tight">
                     Factor
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="px-2 py-2 text-left text-[10px] font-medium text-muted-foreground uppercase tracking-tight">
                     Merma %
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Mano Obra
+                  <th className="px-2 py-2 text-left text-[10px] font-medium text-muted-foreground uppercase tracking-tight">
+                    M. Obra
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="px-2 py-2 text-left text-[10px] font-medium text-muted-foreground uppercase tracking-tight">
                     Piedra
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Comisión Vta
+                  <th className="px-2 py-2 text-left text-[10px] font-medium text-muted-foreground uppercase tracking-tight">
+                    Com. Vta
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="px-2 py-2 text-left text-[10px] font-medium text-muted-foreground uppercase tracking-tight">
                     Envío
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider bg-blue-50">
-                    + Utilidad
+                  <th className="px-2 py-2 text-left text-[10px] font-medium text-muted-foreground uppercase tracking-tight bg-blue-50">
+                    + Util.
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider bg-green-50">
+                  <th className="px-2 py-2 text-left text-[10px] font-medium text-muted-foreground uppercase tracking-tight bg-green-50">
                     + IVA
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider bg-green-50">
+                  <th className="px-2 py-2 text-left text-[10px] font-medium text-muted-foreground uppercase tracking-tight bg-green-50">
                     + Stripe
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider bg-[#D4AF37]/10 border-l">
+                  <th className="px-2 py-2 text-left text-[10px] font-medium text-foreground uppercase tracking-tight bg-[#D4AF37]/10 border-l">
                     Precio Final
                   </th>
-                  <th className="sticky right-0 z-10 bg-muted px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider border-l">
+                  <th className="sticky right-0 z-10 bg-muted px-2 py-2 text-left text-[10px] font-medium text-muted-foreground uppercase tracking-tight border-l">
                     Acciones
                   </th>
                 </tr>
@@ -590,12 +590,12 @@ export default function BroquelCalculatorPage() {
 
                     return (
                       <tr key={calc.id} className="hover:bg-muted/50">
-                        <td className="sticky left-0 z-10 bg-card px-4 py-3 whitespace-nowrap text-sm font-medium text-foreground border-r">
-                          <div className="max-w-[200px] truncate">
+                        <td className="sticky left-0 z-10 bg-card px-2 py-2 whitespace-nowrap text-xs font-medium text-foreground border-r">
+                          <div className="max-w-[150px] truncate">
                             {calc.name}
                           </div>
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm">
+                        <td className="px-2 py-2 whitespace-nowrap">
                           <Input
                             type="number"
                             step="0.01"
@@ -603,10 +603,10 @@ export default function BroquelCalculatorPage() {
                             onChange={(e) =>
                               handleProductDataChange(calc.id, "pz", e.target.value)
                             }
-                            className="w-16 h-8 text-xs"
+                            className="w-14 h-7 text-[11px] px-1"
                           />
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm">
+                        <td className="px-2 py-2 whitespace-nowrap">
                           <Input
                             type="number"
                             step="0.001"
@@ -614,10 +614,10 @@ export default function BroquelCalculatorPage() {
                             onChange={(e) =>
                               handleProductDataChange(calc.id, "goldGrams", e.target.value)
                             }
-                            className="w-20 h-8 text-xs"
+                            className="w-16 h-7 text-[11px] px-1"
                           />
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm">
+                        <td className="px-2 py-2 whitespace-nowrap">
                           <Input
                             type="number"
                             step="1"
@@ -625,10 +625,10 @@ export default function BroquelCalculatorPage() {
                             onChange={(e) =>
                               handleProductDataChange(calc.id, "carats", e.target.value)
                             }
-                            className="w-16 h-8 text-xs"
+                            className="w-14 h-7 text-[11px] px-1"
                           />
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm">
+                        <td className="px-2 py-2 whitespace-nowrap">
                           <Input
                             type="number"
                             step="0.001"
@@ -636,10 +636,10 @@ export default function BroquelCalculatorPage() {
                             onChange={(e) =>
                               handleProductDataChange(calc.id, "factor", e.target.value)
                             }
-                            className="w-20 h-8 text-xs"
+                            className="w-16 h-7 text-[11px] px-1"
                           />
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm">
+                        <td className="px-2 py-2 whitespace-nowrap">
                           <Input
                             type="number"
                             step="0.01"
@@ -647,10 +647,10 @@ export default function BroquelCalculatorPage() {
                             onChange={(e) =>
                               handleProductDataChange(calc.id, "merma", e.target.value)
                             }
-                            className="w-20 h-8 text-xs"
+                            className="w-16 h-7 text-[11px] px-1"
                           />
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm">
+                        <td className="px-2 py-2 whitespace-nowrap">
                           <Input
                             type="number"
                             step="0.01"
@@ -658,10 +658,10 @@ export default function BroquelCalculatorPage() {
                             onChange={(e) =>
                               handleProductDataChange(calc.id, "laborCost", e.target.value)
                             }
-                            className="w-20 h-8 text-xs"
+                            className="w-16 h-7 text-[11px] px-1"
                           />
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm">
+                        <td className="px-2 py-2 whitespace-nowrap">
                           <Input
                             type="number"
                             step="0.01"
@@ -669,10 +669,10 @@ export default function BroquelCalculatorPage() {
                             onChange={(e) =>
                               handleProductDataChange(calc.id, "stoneCost", e.target.value)
                             }
-                            className="w-20 h-8 text-xs"
+                            className="w-16 h-7 text-[11px] px-1"
                           />
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm">
+                        <td className="px-2 py-2 whitespace-nowrap">
                           <Input
                             type="number"
                             step="0.01"
@@ -680,10 +680,10 @@ export default function BroquelCalculatorPage() {
                             onChange={(e) =>
                               handleProductDataChange(calc.id, "salesCommission", e.target.value)
                             }
-                            className="w-20 h-8 text-xs"
+                            className="w-16 h-7 text-[11px] px-1"
                           />
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm">
+                        <td className="px-2 py-2 whitespace-nowrap">
                           <Input
                             type="number"
                             step="0.01"
@@ -691,29 +691,29 @@ export default function BroquelCalculatorPage() {
                             onChange={(e) =>
                               handleProductDataChange(calc.id, "shipping", e.target.value)
                             }
-                            className="w-24 h-8 text-xs"
+                            className="w-20 h-7 text-[11px] px-1"
                           />
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm bg-blue-50/50">
+                        <td className="px-2 py-2 whitespace-nowrap text-xs bg-blue-50/50">
                           {formatMXN(calc.subtotalWithProfit)}
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm bg-green-50/50">
+                        <td className="px-2 py-2 whitespace-nowrap text-xs bg-green-50/50">
                           {formatMXN(calc.subtotalWithVat)}
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm bg-green-50/50">
+                        <td className="px-2 py-2 whitespace-nowrap text-xs bg-green-50/50">
                           {formatMXN(calc.subtotalWithStripe)}
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm bg-[#D4AF37]/10 border-l">
-                          <div className="space-y-1">
-                            <div className="font-bold text-foreground">
+                        <td className="px-2 py-2 whitespace-nowrap bg-[#D4AF37]/10 border-l">
+                          <div className="space-y-0.5 min-w-[110px]">
+                            <div className="font-bold text-foreground text-xs">
                               {formatMXN(calc.finalPrice)}
                             </div>
-                            <div className="text-xs text-muted-foreground">
+                            <div className="text-[10px] text-muted-foreground">
                               Actual: {formatMXN(currentPrice)}
                             </div>
                             {priceDifference !== 0 && (
                               <div
-                                className={`text-xs font-semibold ${
+                                className={`text-[10px] font-semibold ${
                                   priceDifference > 0
                                     ? "text-green-600"
                                     : "text-red-600"
@@ -725,7 +725,7 @@ export default function BroquelCalculatorPage() {
                             )}
                           </div>
                         </td>
-                        <td className="sticky right-0 z-10 bg-card px-4 py-3 whitespace-nowrap text-sm border-l">
+                        <td className="sticky right-0 z-10 bg-card px-2 py-2 whitespace-nowrap border-l">
                           <Button
                             size="sm"
                             onClick={() => handleUpdatePriceClick(calc.id)}
