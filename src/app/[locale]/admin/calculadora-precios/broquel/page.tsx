@@ -359,6 +359,10 @@ export default function BroquelCalculatorPage() {
   const selectedSubcategory = selectedSubcategoryId
     ? calculatedSubcategories.find((p) => p.id === selectedSubcategoryId)
     : null;
+  
+  const selectedSubcategoryOriginal = selectedSubcategoryId
+    ? subcategories.find((s) => s.id === selectedSubcategoryId)
+    : null;
 
   // Removed currentSelectedSubcategory - subcategories don't have prices
 
@@ -838,10 +842,10 @@ export default function BroquelCalculatorPage() {
                   <p>
                     Precio calculado para{" "}
                     <span className="font-semibold text-foreground">
-                      {selectedSubcategory?.special_code ? (
+                      {selectedSubcategoryOriginal?.special_code ? (
                         <>
-                          <span>{selectedSubcategory.special_code}</span>
-                          <span className="text-muted-foreground"> - {selectedSubcategory.name}</span>
+                          <span>{selectedSubcategoryOriginal.special_code}</span>
+                          <span className="text-muted-foreground"> - {selectedSubcategory?.name || ""}</span>
                         </>
                       ) : (
                         selectedSubcategory?.name || ""
