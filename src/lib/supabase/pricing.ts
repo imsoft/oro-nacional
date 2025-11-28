@@ -385,6 +385,114 @@ export async function batchUpsertSubcategoryPricing(
 }
 
 // ============================================
+// Broquel Pricing Parameters
+// ============================================
+
+interface BroquelPricingParametersRow {
+  id: string;
+  quotation: number;
+  profit_margin: number;
+  vat: number;
+  stripe_percentage: number;
+  stripe_fixed_fee: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BroquelPricingParameters {
+  quotation: number;
+  profitMargin: number;
+  vat: number;
+  stripePercentage: number;
+  stripeFixedFee: number;
+}
+
+// Convert database row to application type
+function convertBroquelPricingParameters(row: BroquelPricingParametersRow): BroquelPricingParameters {
+  return {
+    quotation: row.quotation,
+    profitMargin: row.profit_margin,
+    vat: row.vat,
+    stripePercentage: row.stripe_percentage,
+    stripeFixedFee: row.stripe_fixed_fee,
+  };
+}
+
+// Get global broquel pricing parameters
+export async function getBroquelPricingParameters(): Promise<BroquelPricingParameters> {
+  const { data, error } = await supabase
+    .from("broquel_pricing_parameters")
+    .select("*")
+    .limit(1)
+    .single();
+
+  if (error) {
+    console.error("Error fetching broquel pricing parameters:", error);
+    // Return default values if error
+    return {
+      quotation: 2550,
+      profitMargin: 0.08,
+      vat: 0.16,
+      stripePercentage: 0.036,
+      stripeFixedFee: 3.00,
+    };
+  }
+
+  return convertBroquelPricingParameters(data);
+}
+
+// Update global broquel pricing parameters
+export async function updateBroquelPricingParameters(
+  parameters: BroquelPricingParameters
+): Promise<BroquelPricingParameters> {
+  // Get the current row to update it
+  const { data: current } = await supabase
+    .from("broquel_pricing_parameters")
+    .select("id")
+    .limit(1)
+    .single();
+
+  const updateData = {
+    quotation: parameters.quotation,
+    profit_margin: parameters.profitMargin,
+    vat: parameters.vat,
+    stripe_percentage: parameters.stripePercentage,
+    stripe_fixed_fee: parameters.stripeFixedFee,
+  };
+
+  if (current) {
+    // Update existing row
+    const { data, error } = await supabase
+      .from("broquel_pricing_parameters")
+      .update(updateData)
+      .eq("id", current.id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error updating broquel pricing parameters:", error);
+      throw error;
+    }
+
+    return convertBroquelPricingParameters(data);
+  } else {
+    // Insert new row if none exists
+    const { data, error } = await supabase
+      .from("broquel_pricing_parameters")
+      .insert(updateData)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error inserting broquel pricing parameters:", error);
+      throw error;
+    }
+
+    return convertBroquelPricingParameters(data);
+  }
+}
+
+// ============================================
 // Subcategory Broquel Pricing
 // ============================================
 

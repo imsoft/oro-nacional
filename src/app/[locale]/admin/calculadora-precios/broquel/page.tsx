@@ -36,17 +36,11 @@ import {
   getAllSubcategoryBroquelPricing,
   upsertSubcategoryBroquelPricing,
   type SubcategoryBroquelPricingData,
+  getBroquelPricingParameters,
+  updateBroquelPricingParameters,
+  type BroquelPricingParameters,
 } from "@/lib/supabase/pricing";
 import { updateMultipleProductPrices } from "@/lib/supabase/products";
-
-// Parámetros globales para Broquel
-interface BroquelParameters {
-  quotation: number; // Cotización base
-  profitMargin: number; // Utilidad %
-  vat: number; // IVA %
-  stripePercentage: number; // Stripe %
-  stripeFixedFee: number; // Stripe comisión fija en pesos
-}
 
 // Datos específicos por subcategoría
 interface ProductBroquelData {
@@ -104,7 +98,7 @@ export default function BroquelCalculatorPage() {
   };
 
   // Parámetros globales
-  const [parameters, setParameters] = useState<BroquelParameters>({
+  const [parameters, setParameters] = useState<BroquelPricingParameters>({
     quotation: 2550, // Cotización
     profitMargin: 0.08, // 8% utilidad
     vat: 0.16, // 16% IVA
@@ -123,35 +117,44 @@ export default function BroquelCalculatorPage() {
 
   const loadProducts = async () => {
     setIsLoading(true);
-    
-    // Obtener subcategorías de la categoría interna "Broquel"
-    const subcategoriesData = await getInternalSubcategoriesByCategoryName("Broquel");
-    setSubcategories(subcategoriesData);
+    try {
+      // Load broquel pricing parameters from database
+      const params = await getBroquelPricingParameters();
+      setParameters(params);
 
-    // Load saved pricing data from database
-    const savedPricingData = await getAllSubcategoryBroquelPricing();
-    
-    // Initialize broquel data with default values or saved data
-    const defaults = {
-      pz: 1.0,
-      goldGrams: 0.185,
-      carats: 10,
-      factor: 0.000,
-      merma: 8.00, // 8%
-      laborCost: 20.00,
-      stoneCost: 0.00,
-      salesCommission: 30.00,
-      shipping: 800.00,
-    };
-    
-    const broquelMap = new Map<string, Partial<ProductBroquelData>>();
-    subcategoriesData.forEach((subcategory: InternalSubcategory) => {
-      // Use saved data if available, otherwise use defaults
-      const saved = savedPricingData.get(subcategory.id);
-      broquelMap.set(subcategory.id, saved || defaults);
-    });
-    setProductBroquelData(broquelMap);
-    setIsLoading(false);
+      // Obtener subcategorías de la categoría interna "Broquel"
+      const subcategoriesData = await getInternalSubcategoriesByCategoryName("Broquel");
+      setSubcategories(subcategoriesData);
+
+      // Load saved pricing data from database
+      const savedPricingData = await getAllSubcategoryBroquelPricing();
+
+      // Initialize broquel data with default values or saved data
+      const defaults = {
+        pz: 1.0,
+        goldGrams: 0.185,
+        carats: 10,
+        factor: 0.000,
+        merma: 8.00, // 8%
+        laborCost: 20.00,
+        stoneCost: 0.00,
+        salesCommission: 30.00,
+        shipping: 800.00,
+      };
+
+      const broquelMap = new Map<string, Partial<ProductBroquelData>>();
+      subcategoriesData.forEach((subcategory: InternalSubcategory) => {
+        // Use saved data if available, otherwise use defaults
+        const saved = savedPricingData.get(subcategory.id);
+        broquelMap.set(subcategory.id, saved || defaults);
+      });
+      setProductBroquelData(broquelMap);
+    } catch (error) {
+      console.error("Error loading broquel data:", error);
+      alert("Error al cargar los datos. Por favor recarga la página.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Función para calcular el precio final de un subcategoría broquel
@@ -237,9 +240,17 @@ export default function BroquelCalculatorPage() {
       .filter((calc) => calc !== null) as ProductBroquelCalculation[];
   }, [subcategories, productBroquelData, parameters]);
 
-  const handleParameterChange = (key: keyof BroquelParameters, value: string) => {
+  const handleParameterChange = async (key: keyof BroquelPricingParameters, value: string) => {
     const numValue = parseFloat(value) || 0;
-    setParameters((prev) => ({ ...prev, [key]: numValue }));
+    const newParameters = { ...parameters, [key]: numValue };
+    setParameters(newParameters);
+
+    // Auto-save to database
+    try {
+      await updateBroquelPricingParameters(newParameters);
+    } catch (error) {
+      console.error("Error saving broquel pricing parameters:", error);
+    }
   };
 
   const handleSubcategoryDataChange = async (
