@@ -42,12 +42,29 @@ export default function EditInternalCategoryPage({ params }: EditInternalCategor
 
   const categoryId = resolvedParams.id;
 
+  // Validar que el ID sea un UUID válido
+  const isValidUUID = (id: string): boolean => {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(id);
+  };
+
   useEffect(() => {
-    loadCategory();
-    loadSubcategories();
+    // Solo cargar si el ID es válido
+    if (categoryId && isValidUUID(categoryId)) {
+      loadCategory();
+      loadSubcategories();
+    } else if (categoryId) {
+      // Si hay un ID pero no es válido, redirigir
+      alert(t("categoryNotFound") || "ID de categoría inválido");
+      router.push("/admin/categorias-internas");
+    }
   }, [categoryId]);
 
   const loadCategory = async () => {
+    if (!categoryId || !isValidUUID(categoryId)) {
+      return;
+    }
+
     setIsLoading(true);
     try {
       const category = await getInternalCategoryById(categoryId);
@@ -63,9 +80,14 @@ export default function EditInternalCategoryPage({ params }: EditInternalCategor
         color: category.color || "",
         is_active: category.is_active,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error loading category:", error);
-      alert(t("loadError") || "Error al cargar la categoría");
+      // Solo mostrar error si no es el error de "no encontrado"
+      if (error?.code !== "PGRST116") {
+        alert(t("loadError") || "Error al cargar la categoría");
+      } else {
+        alert(t("categoryNotFound") || "Categoría no encontrada");
+      }
       router.push("/admin/categorias-internas");
     } finally {
       setIsLoading(false);
@@ -73,6 +95,10 @@ export default function EditInternalCategoryPage({ params }: EditInternalCategor
   };
 
   const loadSubcategories = async () => {
+    if (!categoryId || !isValidUUID(categoryId)) {
+      return;
+    }
+
     setIsLoadingSubcategories(true);
     try {
       const subs = await getInternalSubcategories(categoryId);
