@@ -664,11 +664,13 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
                                     />
                                   )}
                                   <span>
-                                    {subcategory.name}
-                                    {subcategory.special_code && (
-                                      <span className="text-muted-foreground ml-2">
-                                        ({subcategory.special_code})
-                                      </span>
+                                    {subcategory.special_code ? (
+                                      <>
+                                        <span className="font-medium">{subcategory.special_code}</span>
+                                        <span className="text-muted-foreground"> - {subcategory.name}</span>
+                                      </>
+                                    ) : (
+                                      subcategory.name
                                     )}
                                   </span>
                                 </Label>
