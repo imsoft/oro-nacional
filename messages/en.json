@@ -740,6 +740,7 @@
       "subcategoryName": "Name",
       "subcategoryNamePrompt": "Subcategory name:",
       "specialCode": "Special Code",
+      "specialCodePrompt": "Special code (optional):",
       "createSubcategoryError": "Error creating subcategory",
       "updateSubcategoryError": "Error updating subcategory",
       "deleteSubcategoryConfirm": "Are you sure you want to delete this subcategory?",

@@ -114,10 +114,14 @@ export default function EditInternalCategoryPage({ params }: EditInternalCategor
     const name = prompt(t("subcategoryNamePrompt") || "Nombre de la subcategoría:");
     if (!name || !name.trim()) return;
 
+    const specialCode = prompt(t("specialCodePrompt") || "Código especial (opcional):");
+    const trimmedCode = specialCode ? specialCode.trim() : undefined;
+
     try {
       const newSubcategory = await createInternalSubcategory({
         internal_category_id: categoryId,
         name: name.trim(),
+        special_code: trimmedCode || undefined,
         display_order: subcategories.length,
       });
       setSubcategories([...subcategories, newSubcategory]);
@@ -358,15 +362,15 @@ export default function EditInternalCategoryPage({ params }: EditInternalCategor
                     </div>
                     <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-3">
                       <Input
-                        value={subcategory.name}
-                        onChange={(e) => handleUpdateSubcategory(subcategory.id, "name", e.target.value)}
-                        placeholder={t("subcategoryName") || "Nombre"}
-                        className="h-9"
-                      />
-                      <Input
                         value={subcategory.special_code || ""}
                         onChange={(e) => handleUpdateSubcategory(subcategory.id, "special_code", e.target.value)}
                         placeholder={t("specialCode") || "Código Especial"}
+                        className="h-9"
+                      />
+                      <Input
+                        value={subcategory.name}
+                        onChange={(e) => handleUpdateSubcategory(subcategory.id, "name", e.target.value)}
+                        placeholder={t("subcategoryName") || "Nombre"}
                         className="h-9"
                       />
                       <div className="flex items-center gap-2">

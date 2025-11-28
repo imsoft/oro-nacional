@@ -732,6 +732,7 @@
       "subcategoryName": "Nombre",
       "subcategoryNamePrompt": "Nombre de la subcategoría:",
       "specialCode": "Código Especial",
+      "specialCodePrompt": "Código especial (opcional):",
       "createSubcategoryError": "Error al crear la subcategoría",
       "updateSubcategoryError": "Error al actualizar la subcategoría",
       "deleteSubcategoryConfirm": "¿Estás seguro de eliminar esta subcategoría?",
