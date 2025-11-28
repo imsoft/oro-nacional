@@ -838,13 +838,13 @@ export default function BroquelCalculatorPage() {
                   <p>
                     Precio calculado para{" "}
                     <span className="font-semibold text-foreground">
-                      {selectedSubcategory.special_code ? (
+                      {selectedSubcategory?.special_code ? (
                         <>
                           <span>{selectedSubcategory.special_code}</span>
                           <span className="text-muted-foreground"> - {selectedSubcategory.name}</span>
                         </>
                       ) : (
-                        selectedSubcategory.name
+                        selectedSubcategory?.name || ""
                       )}
                     </span>
                   </p>
