@@ -326,6 +326,10 @@ export default function PriceCalculatorPage() {
   const selectedSubcategory = selectedSubcategoryId
     ? calculatedSubcategories.find((s) => s.id === selectedSubcategoryId)
     : null;
+  
+  const selectedSubcategoryOriginal = selectedSubcategoryId
+    ? subcategories.find((s) => s.id === selectedSubcategoryId)
+    : null;
 
   return (
     <div className="space-y-6">
