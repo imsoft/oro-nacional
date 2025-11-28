@@ -20,6 +20,15 @@ import {
   type InternalSubcategory,
 } from "@/lib/supabase/internal-categories";
 import { Plus, Trash2, ArrowUp, ArrowDown } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface EditInternalCategoryPageProps {
   params: Promise<{ id: string }>;
@@ -33,6 +42,11 @@ export default function EditInternalCategoryPage({ params }: EditInternalCategor
   const [isSaving, setIsSaving] = useState(false);
   const [subcategories, setSubcategories] = useState<InternalSubcategory[]>([]);
   const [isLoadingSubcategories, setIsLoadingSubcategories] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [newSubcategoryData, setNewSubcategoryData] = useState({
+    name: "",
+    special_code: "",
+  });
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -111,20 +125,22 @@ export default function EditInternalCategoryPage({ params }: EditInternalCategor
   };
 
   const handleAddSubcategory = async () => {
-    const name = prompt(t("subcategoryNamePrompt") || "Nombre de la subcategoría:");
-    if (!name || !name.trim()) return;
-
-    const specialCode = prompt(t("specialCodePrompt") || "Código especial (opcional):");
-    const trimmedCode = specialCode ? specialCode.trim() : undefined;
+    if (!newSubcategoryData.name.trim()) {
+      alert(t("subcategoryNameRequired") || "El nombre es requerido");
+      return;
+    }
 
     try {
       const newSubcategory = await createInternalSubcategory({
         internal_category_id: categoryId,
-        name: name.trim(),
-        special_code: trimmedCode || undefined,
+        name: newSubcategoryData.name.trim(),
+        special_code: newSubcategoryData.special_code.trim() || undefined,
         display_order: subcategories.length,
       });
       setSubcategories([...subcategories, newSubcategory]);
+      // Limpiar el formulario y cerrar el diálogo
+      setNewSubcategoryData({ name: "", special_code: "" });
+      setIsAddDialogOpen(false);
     } catch (error) {
       console.error("Error creating subcategory:", error);
       alert(t("createSubcategoryError") || "Error al crear la subcategoría");
@@ -310,16 +326,71 @@ export default function EditInternalCategoryPage({ params }: EditInternalCategor
                   {t("subcategoriesDescription") || "Gestiona las subcategorías de esta categoría interna"}
                 </CardDescription>
               </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleAddSubcategory}
-                disabled={isLoadingSubcategories}
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                {t("addSubcategory") || "Agregar Subcategoría"}
-              </Button>
+              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={isLoadingSubcategories}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    {t("addSubcategory") || "Agregar Subcategoría"}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>{t("addSubcategory") || "Agregar Subcategoría"}</DialogTitle>
+                    <DialogDescription>
+                      {t("addSubcategoryDescription") || "Ingresa el nombre y código especial de la nueva subcategoría"}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="new-subcategory-code">
+                        {t("specialCode") || "Código Especial"} <span className="text-muted-foreground text-xs">({t("optional") || "opcional"})</span>
+                      </Label>
+                      <Input
+                        id="new-subcategory-code"
+                        value={newSubcategoryData.special_code}
+                        onChange={(e) => setNewSubcategoryData({ ...newSubcategoryData, special_code: e.target.value })}
+                        placeholder={t("specialCodePlaceholder") || "Ej: ABC123"}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="new-subcategory-name">
+                        {t("subcategoryName") || "Nombre"} <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="new-subcategory-name"
+                        value={newSubcategoryData.name}
+                        onChange={(e) => setNewSubcategoryData({ ...newSubcategoryData, name: e.target.value })}
+                        placeholder={t("subcategoryNamePlaceholder") || "Nombre de la subcategoría"}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setIsAddDialogOpen(false);
+                        setNewSubcategoryData({ name: "", special_code: "" });
+                      }}
+                    >
+                      {t("cancel") || "Cancelar"}
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={handleAddSubcategory}
+                      disabled={!newSubcategoryData.name.trim()}
+                    >
+                      {t("add") || "Agregar"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
           </CardHeader>
           <CardContent>
