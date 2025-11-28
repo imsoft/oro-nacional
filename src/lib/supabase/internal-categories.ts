@@ -338,6 +338,7 @@ export async function updateInternalSubcategory(
     name?: string;
     description?: string;
     color?: string;
+    special_code?: string;
     is_active?: boolean;
     display_order?: number;
   }
@@ -347,6 +348,7 @@ export async function updateInternalSubcategory(
   if (updates.name !== undefined) dataToUpdate.name = updates.name;
   if (updates.description !== undefined) dataToUpdate.description = updates.description || null;
   if (updates.color !== undefined) dataToUpdate.color = updates.color || null;
+  if (updates.special_code !== undefined) dataToUpdate.special_code = updates.special_code || null;
   if (updates.is_active !== undefined) dataToUpdate.is_active = updates.is_active;
   if (updates.display_order !== undefined) dataToUpdate.display_order = updates.display_order;
 

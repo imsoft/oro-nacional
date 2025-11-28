@@ -149,7 +149,9 @@ export default function EditInternalCategoryPage({ params }: EditInternalCategor
 
   const handleUpdateSubcategory = async (subcategoryId: string, field: string, value: string | boolean) => {
     try {
-      const updated = await updateInternalSubcategory(subcategoryId, { [field]: value });
+      // Si el campo es special_code y el valor es una cadena vacía, establecerlo como null
+      const updateValue = field === "special_code" && value === "" ? null : value;
+      const updated = await updateInternalSubcategory(subcategoryId, { [field]: updateValue });
       setSubcategories(subcategories.map(sub => sub.id === subcategoryId ? updated : sub));
     } catch (error) {
       console.error("Error updating subcategory:", error);
