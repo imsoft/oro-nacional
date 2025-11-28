@@ -663,7 +663,14 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
                                       style={{ backgroundColor: subcategory.color }}
                                     />
                                   )}
-                                  {subcategory.name}
+                                  <span>
+                                    {subcategory.name}
+                                    {subcategory.special_code && (
+                                      <span className="text-muted-foreground ml-2">
+                                        ({subcategory.special_code})
+                                      </span>
+                                    )}
+                                  </span>
                                 </Label>
                               </div>
                             ))}
