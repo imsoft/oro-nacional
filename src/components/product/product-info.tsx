@@ -184,11 +184,12 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
 
 
   const handleAddToCart = () => {
-    // Usar el precio final que incluye comisiones de Stripe y MSI
+    // Usar el precio base de la talla seleccionada (sin comisiones de Stripe/MSI)
+    // Las comisiones se aplicarán al momento del pago
     addItem({
       id: product.id,
       name: product.name,
-      price: finalPrice,
+      price: currentPrice,
       image: product.images?.[0] || "/placeholder-product.jpg",
       material: product.material,
       size: selectedSize || undefined,
@@ -214,7 +215,7 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
       {/* Precio */}
       <div className="flex items-baseline gap-4">
         <p className="text-4xl font-semibold text-foreground">
-          {isCalculatingPrice ? "Calculando..." : displayPrice}
+          {isCalculatingPrice ? "Calculando..." : `$${currentPrice.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN`}
         </p>
         <p className="text-sm text-muted-foreground">
           {calculatedPrice !== null ? "Precio calculado dinámicamente" : "IVA incluido"}
