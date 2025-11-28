@@ -803,13 +803,13 @@ export default function PriceCalculatorPage() {
                   <p>
                     Precio calculado para{" "}
                     <span className="font-semibold text-foreground">
-                      {selectedSubcategory.special_code ? (
+                      {selectedSubcategoryOriginal?.special_code ? (
                         <>
-                          <span>{selectedSubcategory.special_code}</span>
-                          <span className="text-muted-foreground"> - {selectedSubcategory.name}</span>
+                          <span>{selectedSubcategoryOriginal.special_code}</span>
+                          <span className="text-muted-foreground"> - {selectedSubcategory?.name || ""}</span>
                         </>
                       ) : (
-                        selectedSubcategory.name
+                        selectedSubcategory?.name || ""
                       )}
                     </span>
                   </p>
