@@ -731,6 +731,7 @@
       "noSubcategories": "No hay subcategorías. Haz clic en 'Agregar Subcategoría' para crear una.",
       "subcategoryName": "Nombre",
       "subcategoryNamePrompt": "Nombre de la subcategoría:",
+      "specialCode": "Código Especial",
       "createSubcategoryError": "Error al crear la subcategoría",
       "updateSubcategoryError": "Error al actualizar la subcategoría",
       "deleteSubcategoryConfirm": "¿Estás seguro de eliminar esta subcategoría?",

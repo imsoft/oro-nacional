@@ -17,6 +17,7 @@ export interface InternalSubcategory {
   name: string;
   description?: string;
   color?: string;
+  special_code?: string;
   is_active: boolean;
   display_order: number;
   created_at: string;
@@ -301,6 +302,7 @@ export async function createInternalSubcategory(
     name: string;
     description?: string;
     color?: string;
+    special_code?: string;
     is_active?: boolean;
     display_order?: number;
   }
@@ -312,6 +314,7 @@ export async function createInternalSubcategory(
       name: subcategoryData.name,
       description: subcategoryData.description || null,
       color: subcategoryData.color || null,
+      special_code: subcategoryData.special_code || null,
       is_active: subcategoryData.is_active !== undefined ? subcategoryData.is_active : true,
       display_order: subcategoryData.display_order || 0,
     })

@@ -330,11 +330,17 @@ export default function EditInternalCategoryPage({ params }: EditInternalCategor
                         <ArrowDown className="h-4 w-4" />
                       </Button>
                     </div>
-                    <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-3">
                       <Input
                         value={subcategory.name}
                         onChange={(e) => handleUpdateSubcategory(subcategory.id, "name", e.target.value)}
                         placeholder={t("subcategoryName") || "Nombre"}
+                        className="h-9"
+                      />
+                      <Input
+                        value={subcategory.special_code || ""}
+                        onChange={(e) => handleUpdateSubcategory(subcategory.id, "special_code", e.target.value)}
+                        placeholder={t("specialCode") || "Código Especial"}
                         className="h-9"
                       />
                       <div className="flex items-center gap-2">
