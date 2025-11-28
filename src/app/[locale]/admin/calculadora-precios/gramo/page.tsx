@@ -619,14 +619,17 @@ export default function PriceCalculatorPage() {
                       <tr key={calc.id} className="hover:bg-muted/50">
                         <td className="sticky left-0 z-10 bg-card px-2 py-2 whitespace-nowrap text-xs font-medium text-foreground border-r">
                           <div className="max-w-[150px] truncate">
-                            {calc.special_code ? (
-                              <>
-                                <span className="font-medium">{calc.special_code}</span>
-                                <span className="text-muted-foreground"> - {calc.name}</span>
-                              </>
-                            ) : (
-                              calc.name
-                            )}
+                            {(() => {
+                              const subcategory = subcategories.find(s => s.id === calc.id);
+                              return subcategory?.special_code ? (
+                                <>
+                                  <span className="font-medium">{subcategory.special_code}</span>
+                                  <span className="text-muted-foreground"> - {calc.name}</span>
+                                </>
+                              ) : (
+                                calc.name
+                              );
+                            })()}
                           </div>
                         </td>
                         <td className="px-2 py-2 whitespace-nowrap">
