@@ -111,17 +111,6 @@ export function MarketTicker() {
       {/* Separador */}
       <div className="w-px h-5 bg-white/50 flex-shrink-0" />
 
-      {/* Información adicional: Precio del oro por onza (calculado) */}
-      <div className="flex items-center gap-2 px-4">
-        <span className="text-xs text-white/90">{t('goldPerOunce')}:</span>
-        <span className="text-sm font-bold text-white">
-          ${formatPrice(displayGoldQuotation * 31.1035)} MXN/oz
-        </span>
-      </div>
-
-      {/* Separador */}
-      <div className="w-px h-5 bg-white/50 flex-shrink-0" />
-
       {/* Información adicional: Precio del oro en USD (calculado) */}
       <div className="flex items-center gap-2 px-4">
         <span className="text-xs text-white/90">{t('goldInUSD')}:</span>
