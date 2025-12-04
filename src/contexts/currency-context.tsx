@@ -17,7 +17,7 @@ interface CurrencyContextType {
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
 
 const CURRENCY_STORAGE_KEY = 'oro-nacional-currency';
-const DEFAULT_EXCHANGE_RATE = 0.0588; // 1 USD = 17 MXN (aproximadamente)
+const DEFAULT_EXCHANGE_RATE = 18.00; // 18 MXN = 1 USD (valor por defecto)
 
 export function CurrencyProvider({ children }: { children: React.ReactNode }) {
   const [currency, setCurrencyState] = useState<Currency>('MXN');
@@ -53,10 +53,12 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Convertir precio según la moneda seleccionada
+  // exchangeRate ahora es MXN por USD (ej: 18 significa 18 MXN = 1 USD)
   const convertPrice = (priceMXN: number, priceUSD?: number | null): number => {
     if (currency === 'USD') {
       // Si hay precio USD fijo, usarlo; si no, convertir desde MXN
-      return priceUSD ?? priceMXN * exchangeRate;
+      // Conversión: precio_mxn / tasa_mxn (ej: 180 MXN / 18 = 10 USD)
+      return priceUSD ?? (exchangeRate > 0 ? priceMXN / exchangeRate : priceMXN);
     }
     // Si es MXN, devolver el precio MXN directamente
     return priceMXN;

@@ -28,10 +28,10 @@ COMMENT ON COLUMN public.product_sizes.price_usd IS 'Price in USD for this speci
 -- 3. Agregar exchange_rate a store_settings
 -- ================================================
 ALTER TABLE public.store_settings
-ADD COLUMN IF NOT EXISTS exchange_rate NUMERIC(10, 4) DEFAULT 0.0588;
+ADD COLUMN IF NOT EXISTS exchange_rate NUMERIC(10, 2) DEFAULT 18.00;
 
 -- Agregar comentario
-COMMENT ON COLUMN public.store_settings.exchange_rate IS 'USD to MXN exchange rate (e.g., 0.0588 means 1 USD = 17 MXN). Used to convert prices when USD price is not set.';
+COMMENT ON COLUMN public.store_settings.exchange_rate IS 'MXN per USD exchange rate (e.g., 18.00 means 18 MXN = 1 USD). Used to convert prices when USD price is not set.';
 
 -- ================================================
 -- 4. Crear índices para mejor rendimiento
@@ -57,10 +57,12 @@ RETURNS NUMERIC AS $$
 BEGIN
   IF target_currency = 'USD' THEN
     -- Si hay precio USD fijo, usarlo; si no, convertir desde MXN
-    RETURN COALESCE(price_usd, price_mxn * exchange_rate);
+    -- exchange_rate es MXN por USD (ej: 18 significa 18 MXN = 1 USD)
+    RETURN COALESCE(price_usd, price_mxn / NULLIF(exchange_rate, 0));
   ELSE
     -- Si hay precio MXN, usarlo; si no, convertir desde USD
-    RETURN COALESCE(price_mxn, price_usd / NULLIF(exchange_rate, 0));
+    -- exchange_rate es MXN por USD (ej: 18 significa 18 MXN = 1 USD)
+    RETURN COALESCE(price_mxn, price_usd * NULLIF(exchange_rate, 0));
   END IF;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;

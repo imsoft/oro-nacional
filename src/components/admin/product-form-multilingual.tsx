@@ -57,7 +57,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
   const [productBasePrice, setProductBasePrice] = useState<number | null>(null);
   const [productBasePriceUSD, setProductBasePriceUSD] = useState<number | null>(null);
   const [productBaseGrams, setProductBaseGrams] = useState<number | null>(null);
-  const [exchangeRate, setExchangeRate] = useState<number>(0.0588); // Tasa de cambio por defecto
+  const [exchangeRate, setExchangeRate] = useState<number>(18.00); // Tasa de cambio por defecto (18 MXN = 1 USD)
 
   const defaultData: ProductFormData = {
     name: { es: "", en: "" },
@@ -366,7 +366,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
           weight: size.weight || undefined,
           display_order: size.display_order ?? index
         })),
-        base_price_usd: productBasePriceUSD ?? (productBasePrice ? Math.round(productBasePrice * exchangeRate * 100) / 100 : null),
+        base_price_usd: productBasePriceUSD ?? (productBasePrice && exchangeRate > 0 ? Math.round((productBasePrice / exchangeRate) * 100) / 100 : null),
         images: formData.images
       };
 
@@ -447,8 +447,9 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
     // Si se actualiza el precio MXN y no hay precio USD manual, calcular automáticamente
     if (field === "price" && typeof value === "number" && value > 0) {
       // Solo calcular automáticamente si no hay un precio USD ya establecido manualmente
+      // Conversión: precio_mxn / tasa_mxn (ej: 180 MXN / 18 = 10 USD)
       if (updatedSize.price_usd === null || updatedSize.price_usd === undefined) {
-        updatedSize.price_usd = Math.round(value * exchangeRate * 100) / 100; // Redondear a 2 decimales
+        updatedSize.price_usd = exchangeRate > 0 ? Math.round((value / exchangeRate) * 100) / 100 : null;
       }
     }
     
@@ -498,7 +499,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
         newSizes[index] = {
           ...newSizes[index],
           price: calculatedPrice,
-          price_usd: newSizes[index].price_usd ?? Math.round(calculatedPrice * exchangeRate * 100) / 100
+          price_usd: newSizes[index].price_usd ?? (exchangeRate > 0 ? Math.round((calculatedPrice / exchangeRate) * 100) / 100 : null)
         };
         updateField("sizes", newSizes);
       } else {
@@ -936,7 +937,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
                   <Input
                     id={`price-usd-${index}`}
                     type="number"
-                    value={size.price_usd ?? (size.price > 0 ? Math.round(size.price * exchangeRate * 100) / 100 : '')}
+                    value={size.price_usd ?? (size.price > 0 && exchangeRate > 0 ? Math.round((size.price / exchangeRate) * 100) / 100 : '')}
                     onChange={(e) => {
                       const value = e.target.value === '' ? null : parseFloat(e.target.value);
                       updateSize(index, "price_usd", value);

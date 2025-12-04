@@ -66,7 +66,7 @@ export default function AdminSettings() {
           setStandardShippingCost(settings.standard_shipping_cost.toString());
           setExpressShippingCost(settings.express_shipping_cost.toString());
           setDeliveryTime(settings.delivery_time);
-          setExchangeRate(settings.exchange_rate?.toString() || '0.0588');
+          setExchangeRate(settings.exchange_rate?.toString() || '18.00');
         }
       } catch (error) {
         console.error('Error loading settings:', error);
@@ -336,17 +336,17 @@ export default function AdminSettings() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="exchangeRate">Tasa de Cambio USD/MXN</Label>
+              <Label htmlFor="exchangeRate">Tasa de Cambio (MXN por USD)</Label>
               <Input
                 id="exchangeRate"
                 type="number"
-                step="0.0001"
+                step="0.01"
                 value={exchangeRate}
                 onChange={(e) => setExchangeRate(e.target.value)}
-                placeholder="0.0588"
+                placeholder="18.00"
               />
               <p className="text-xs text-muted-foreground">
-                Tasa de cambio para convertir precios de MXN a USD (ej: 0.0588 significa 1 USD = 17 MXN)
+                Ingresa cuántos pesos mexicanos equivalen a 1 dólar (ej: 18 significa 18 MXN = 1 USD)
               </p>
             </div>
           </div>
