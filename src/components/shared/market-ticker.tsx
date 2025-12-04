@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, Minus, DollarSign, Gem } from 'lucide-react';
+import { DollarSign, Gem } from 'lucide-react';
 
 interface MarketPrice {
   value: number;
@@ -17,6 +17,7 @@ interface MarketData {
 
 export function MarketTicker() {
   const [data, setData] = useState<MarketData | null>(null);
+  const [exchangeRate, setExchangeRate] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,13 +26,26 @@ export function MarketTicker() {
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch('/api/market/prices');
-      if (!response.ok) {
+      // Obtener datos del mercado (oro y USD desde API externa)
+      const [marketResponse, settingsResponse] = await Promise.all([
+        fetch('/api/market/prices'),
+        fetch('/api/settings/exchange-rate'),
+      ]);
+
+      if (!marketResponse.ok) {
         throw new Error('Failed to fetch market data');
       }
 
-      const result = await response.json();
-      setData(result.data);
+      const marketResult = await marketResponse.json();
+      setData(marketResult.data);
+
+      // Obtener tasa de cambio desde store_settings (la que el usuario configura)
+      if (settingsResponse.ok) {
+        const settingsResult = await settingsResponse.json();
+        if (settingsResult.exchange_rate) {
+          setExchangeRate(settingsResult.exchange_rate);
+        }
+      }
     } catch (err) {
       console.error('Error fetching market data:', err);
       setError('Error loading market data');
@@ -50,23 +64,6 @@ export function MarketTicker() {
     return () => clearInterval(interval);
   }, []);
 
-  if (isLoading && !data) {
-    return (
-      <div className="bg-gradient-to-r from-[#D4AF37] via-[#B8941E] to-[#D4AF37] text-white py-2 px-4 overflow-hidden">
-        <div className="max-w-7xl mx-auto flex items-center justify-center gap-8 text-sm">
-          <div className="flex items-center gap-2">
-            <Gem className="h-4 w-4 animate-pulse" />
-            <span className="animate-pulse">Cargando precios...</span>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error && !data) {
-    return null; // Don't show error banner
-  }
-
   const formatPrice = (price: number, decimals: number = 2) => {
     return new Intl.NumberFormat('es-MX', {
       minimumFractionDigits: decimals,
@@ -74,105 +71,89 @@ export function MarketTicker() {
     }).format(price);
   };
 
-  const formatChange = (change: number, changePercent: number) => {
-    const sign = change >= 0 ? '+' : '';
-    return `${sign}${formatPrice(change, 2)} (${sign}${changePercent.toFixed(2)}%)`;
-  };
+  // Si está cargando y no hay datos, mostrar cintilla con mensaje de carga
+  if (isLoading && !data) {
+    return (
+      <div className="relative bg-gradient-to-r from-[#D4AF37] via-[#B8941E] to-[#D4AF37] text-white py-3 overflow-hidden border-b border-[#A0821A]/50 shadow-md">
+        <div className="flex items-center animate-scroll">
+          <div className="flex items-center gap-4 whitespace-nowrap">
+            <Gem className="h-4 w-4 flex-shrink-0" />
+            <span className="text-sm font-medium">Cargando precios del mercado...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-  const getTrendIcon = (change: number) => {
-    if (change > 0) return <TrendingUp className="h-4 w-4" />;
-    if (change < 0) return <TrendingDown className="h-4 w-4" />;
-    return <Minus className="h-4 w-4" />;
-  };
+  // Si hay error y no hay datos, no mostrar nada
+  if (error && !data) {
+    return null;
+  }
 
-  const getChangeColor = (change: number) => {
-    if (change > 0) return 'text-green-200';
-    if (change < 0) return 'text-red-200';
-    return 'text-white/80';
-  };
+  // Preparar contenido para la cintilla animada
+  const goldPrice = data?.gold.value || 0;
+  const usdRate = exchangeRate || data?.usd.value || 0;
+
+  // Contenido de la cintilla
+  const tickerContent = (
+    <>
+      <div className="flex items-center gap-3">
+        <Gem className="h-4 w-4 flex-shrink-0" />
+        <span className="text-sm font-semibold">Oro:</span>
+        <span className="text-sm font-bold">
+          ${formatPrice(goldPrice)} MXN/oz
+        </span>
+      </div>
+
+      <div className="w-px h-4 bg-white/40" />
+
+      <div className="flex items-center gap-3">
+        <DollarSign className="h-4 w-4 flex-shrink-0" />
+        <span className="text-sm font-semibold">Dólar:</span>
+        <span className="text-sm font-bold">
+          ${formatPrice(usdRate, 2)} MXN/USD
+        </span>
+      </div>
+    </>
+  );
 
   return (
-    <div className="bg-gradient-to-r from-[#D4AF37] via-[#B8941E] to-[#D4AF37] text-white py-2.5 px-4 overflow-hidden border-b border-[#A0821A] shadow-lg">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-center gap-8 md:gap-12 text-sm flex-wrap">
-          {/* Oro */}
-          <div className="flex items-center gap-3 animate-[slide-in-left_0.5s_ease-out]">
-            <Gem className="h-5 w-5 text-white flex-shrink-0" />
-            <div className="flex flex-col md:flex-row md:items-center md:gap-2">
-              <span className="font-semibold">Oro:</span>
-              {data ? (
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-base">
-                    ${formatPrice(data.gold.value)} MXN/oz
-                  </span>
-                  <div className={`flex items-center gap-1 ${getChangeColor(data.gold.change)}`}>
-                    {getTrendIcon(data.gold.change)}
-                    <span className="text-xs font-medium">
-                      {formatChange(data.gold.change, data.gold.changePercent)}
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <span className="animate-pulse">---</span>
-              )}
-            </div>
-          </div>
-
-          {/* Separador */}
-          <div className="hidden md:block w-px h-6 bg-white/30" />
-
-          {/* Dólar */}
-          <div className="flex items-center gap-3 animate-[slide-in-right_0.5s_ease-out]">
-            <DollarSign className="h-5 w-5 text-white flex-shrink-0" />
-            <div className="flex flex-col md:flex-row md:items-center md:gap-2">
-              <span className="font-semibold">USD/MXN:</span>
-              {data ? (
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-base">
-                    ${formatPrice(data.usd.value, 4)}
-                  </span>
-                  <div className={`flex items-center gap-1 ${getChangeColor(data.usd.change)}`}>
-                    {getTrendIcon(data.usd.change)}
-                    <span className="text-xs font-medium">
-                      {formatChange(data.usd.change, data.usd.changePercent)}
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <span className="animate-pulse">---</span>
-              )}
-            </div>
-          </div>
-
-          {/* Indicador de actualización en vivo */}
-          <div className="hidden lg:flex items-center gap-2 text-xs text-white/80">
-            <div className="h-2 w-2 bg-green-400 rounded-full animate-pulse" />
-            <span>Actualización en vivo</span>
-          </div>
+    <div className="relative bg-gradient-to-r from-[#D4AF37] via-[#B8941E] to-[#D4AF37] text-white py-3 overflow-hidden border-b border-[#A0821A]/50 shadow-md">
+      {/* Contenedor con animación continua */}
+      <div className="flex items-center ticker-container">
+        {/* Contenido duplicado para efecto continuo infinito */}
+        <div className="flex items-center gap-8 md:gap-12 whitespace-nowrap ticker-content">
+          {tickerContent}
+        </div>
+        <div className="flex items-center gap-8 md:gap-12 whitespace-nowrap ticker-content">
+          {tickerContent}
         </div>
       </div>
 
       <style jsx>{`
-        @keyframes slide-in-left {
-          from {
-            opacity: 0;
-            transform: translateX(-20px);
-          }
-          to {
-            opacity: 1;
+        @keyframes scroll {
+          0% {
             transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-50%);
           }
         }
 
-        @keyframes slide-in-right {
-          from {
-            opacity: 0;
-            transform: translateX(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
+        .ticker-container {
+          display: flex;
+          width: fit-content;
+          animation: scroll 40s linear infinite;
+        }
+
+        .ticker-container:hover {
+          animation-play-state: paused;
+        }
+
+        .ticker-content {
+          display: flex;
+          align-items: center;
+          flex-shrink: 0;
         }
       `}</style>
     </div>
