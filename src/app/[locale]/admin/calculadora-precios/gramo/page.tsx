@@ -258,6 +258,8 @@ export default function PriceCalculatorPage() {
 
   const [isApplyingPrices, setIsApplyingPrices] = useState(false);
   const [applyingToSubcategory, setApplyingToSubcategory] = useState<string | null>(null);
+  const [isApplyingAllPrices, setIsApplyingAllPrices] = useState(false);
+  const [confirmApplyAllDialogOpen, setConfirmApplyAllDialogOpen] = useState(false);
 
   const handleApplyPriceToProducts = async (subcategoryId: string, finalPrice: number) => {
     // Get the calculation data to find baseGrams
@@ -313,6 +315,85 @@ export default function PriceCalculatorPage() {
     } finally {
       setIsApplyingPrices(false);
       setApplyingToSubcategory(null);
+    }
+  };
+
+  const handleApplyAllPrices = async () => {
+    setConfirmApplyAllDialogOpen(true);
+  };
+
+  const confirmApplyAllPrices = async () => {
+    setConfirmApplyAllDialogOpen(false);
+    setIsApplyingAllPrices(true);
+
+    try {
+      let totalSuccessful = 0;
+      let totalFailed = 0;
+      const failedSubcategories: Array<{ name: string; error: string }> = [];
+
+      // Iterar sobre todas las subcategorías calculadas
+      for (const calc of calculatedSubcategories) {
+        const baseGrams = calc.goldGrams;
+        if (!baseGrams || baseGrams <= 0) {
+          failedSubcategories.push({
+            name: calc.name,
+            error: "Gramos base inválidos",
+          });
+          totalFailed++;
+          continue;
+        }
+
+        try {
+          // Obtener todos los productos con esta subcategoría
+          const productIds = await getProductsByInternalSubcategory(calc.id);
+          
+          if (productIds.length === 0) {
+            continue; // No hay productos, continuar con la siguiente
+          }
+
+          // Actualizar precios base y calcular precios de tallas proporcionalmente
+          const priceUpdates = productIds.map(id => ({
+            id,
+            price: calc.finalPrice,
+            baseGrams: baseGrams,
+          }));
+
+          const results = await updateMultipleProductPrices(priceUpdates);
+          totalSuccessful += results.successful.length;
+          totalFailed += results.failed.length;
+
+          // Agregar fallos a la lista
+          results.failed.forEach(failed => {
+            failedSubcategories.push({
+              name: calc.name,
+              error: failed.error,
+            });
+          });
+        } catch (error) {
+          console.error(`Error applying prices for subcategory ${calc.name}:`, error);
+          failedSubcategories.push({
+            name: calc.name,
+            error: error instanceof Error ? error.message : "Error desconocido",
+          });
+          totalFailed++;
+        }
+      }
+
+      // Mostrar resultados
+      if (totalFailed > 0) {
+        alert(
+          `Se actualizaron ${totalSuccessful} productos correctamente. ${totalFailed} productos fallaron.\n\nSubcategorías con errores:\n${failedSubcategories.map(f => `- ${f.name}: ${f.error}`).join('\n')}`
+        );
+      } else {
+        alert(
+          `¡Éxito! Se actualizaron ${totalSuccessful} productos correctamente en todas las subcategorías. Los precios de las tallas se calcularon proporcionalmente.`
+        );
+      }
+    } catch (error) {
+      console.error("Error applying all prices:", error);
+      alert("Error al aplicar los precios. Por favor intenta de nuevo.");
+    } finally {
+      setIsApplyingAllPrices(false);
     }
   };
 
@@ -502,10 +583,21 @@ export default function PriceCalculatorPage() {
             </DialogContent>
           </Dialog>
           <Button
-            disabled={true}
-            className="gap-2 bg-gray-400 text-white cursor-not-allowed"
+            onClick={handleApplyAllPrices}
+            disabled={isApplyingAllPrices || calculatedSubcategories.length === 0}
+            className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
           >
-            Solo Cálculo
+            {isApplyingAllPrices ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Aplicando a todos...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4" />
+                Aplicar a Todos
+              </>
+            )}
           </Button>
         </div>
       </div>
@@ -883,6 +975,51 @@ export default function PriceCalculatorPage() {
               className="bg-green-600 hover:bg-green-700"
             >
               Actualizar Todos los Precios
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Confirm apply all prices dialog */}
+      <AlertDialog open={confirmApplyAllDialogOpen} onOpenChange={setConfirmApplyAllDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-blue-600" />
+              Confirmar Aplicar Precios a Todos
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3 pt-3">
+              <p>
+                ¿Estás seguro de que deseas aplicar los precios finales calculados a todos los productos de{" "}
+                <span className="font-semibold text-foreground">
+                  {calculatedSubcategories.length} subcategoría(s)
+                </span>
+                ?
+              </p>
+              <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 space-y-2">
+                <p className="text-sm text-blue-800 font-medium">
+                  Esta acción:
+                </p>
+                <ul className="text-sm text-blue-700 list-disc list-inside space-y-1">
+                  <li>Actualizará el precio base de todos los productos</li>
+                  <li>Calculará proporcionalmente los precios de todas las tallas</li>
+                  <li>Aplicará los precios según los cálculos actuales de cada subcategoría</li>
+                </ul>
+              </div>
+              <div className="rounded-lg bg-amber-50 border border-amber-200 p-3">
+                <p className="text-sm text-amber-800">
+                  ⚠️ Esta acción no se puede deshacer. Asegúrate de que los cálculos sean correctos antes de continuar.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmApplyAllPrices}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Aplicar a Todos
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
