@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
-import { DollarSign, Gem, TrendingUp, TrendingDown } from 'lucide-react';
 
 export function MarketTicker() {
   const t = useTranslations('marketTicker');
@@ -72,7 +71,6 @@ export function MarketTicker() {
       <div className="relative bg-gradient-to-r from-[#D4AF37] via-[#B8941E] to-[#D4AF37] text-white py-3 overflow-hidden border-b border-[#A0821A]/50 shadow-md">
         <div className="flex items-center justify-center">
           <div className="flex items-center gap-2 whitespace-nowrap">
-            <Gem className="h-4 w-4 animate-pulse" />
             <span className="text-sm font-medium">{t('loading')}</span>
           </div>
         </div>
@@ -89,8 +87,7 @@ export function MarketTicker() {
     <>
       {/* Cotización del Oro */}
       <div className="flex items-center gap-2 px-4">
-        <Gem className="h-4 w-4 flex-shrink-0 text-white" />
-        <span className="text-sm font-semibold text-white">{t('goldQuotation')}:</span>
+        <span className="text-sm text-white">{t('goldQuotation')}:</span>
         <span className="text-sm font-bold text-white">
           ${formatPrice(displayGoldQuotation)} MXN/gr
         </span>
@@ -101,8 +98,7 @@ export function MarketTicker() {
 
       {/* Tasa de Cambio */}
       <div className="flex items-center gap-2 px-4">
-        <DollarSign className="h-4 w-4 flex-shrink-0 text-white" />
-        <span className="text-sm font-semibold text-white">{t('exchangeRate')}:</span>
+        <span className="text-sm text-white">{t('exchangeRate')}:</span>
         <span className="text-sm font-bold text-white">
           ${formatPrice(displayExchangeRate, 2)} MXN/USD
         </span>
@@ -113,7 +109,7 @@ export function MarketTicker() {
 
       {/* Información adicional: Precio del oro en USD (calculado) */}
       <div className="flex items-center gap-2 px-4">
-        <span className="text-xs text-white/90">{t('goldInUSD')}:</span>
+        <span className="text-sm text-white">{t('goldInUSD')}:</span>
         <span className="text-sm font-bold text-white">
           ${formatPrice(displayGoldQuotation / displayExchangeRate, 2)} USD/gr
         </span>
