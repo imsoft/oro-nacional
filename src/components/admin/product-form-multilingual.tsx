@@ -35,6 +35,7 @@ import {
 import type { InternalCategory, InternalSubcategory } from "@/lib/supabase/internal-categories";
 import { calculateDynamicProductPrice } from "@/lib/supabase/pricing";
 import { Calculator, Loader2 } from "lucide-react";
+import { getStoreSettings } from "@/lib/supabase/settings";
 
 interface ProductFormProps {
   productId?: string;
@@ -54,7 +55,9 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [calculatingPriceForIndex, setCalculatingPriceForIndex] = useState<number | null>(null);
   const [productBasePrice, setProductBasePrice] = useState<number | null>(null);
+  const [productBasePriceUSD, setProductBasePriceUSD] = useState<number | null>(null);
   const [productBaseGrams, setProductBaseGrams] = useState<number | null>(null);
+  const [exchangeRate, setExchangeRate] = useState<number>(0.0588); // Tasa de cambio por defecto
 
   const defaultData: ProductFormData = {
     name: { es: "", en: "" },
@@ -80,7 +83,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
     validateForm,
   } = useMultilingualForm<ProductFormData>(defaultData);
 
-  // Cargar categorías
+  // Cargar categorías y tasa de cambio
   useEffect(() => {
     const loadCategories = async () => {
       try {
@@ -91,6 +94,19 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
       }
     };
     loadCategories();
+
+    // Cargar tasa de cambio
+    const loadExchangeRate = async () => {
+      try {
+        const settings = await getStoreSettings();
+        if (settings?.exchange_rate) {
+          setExchangeRate(settings.exchange_rate);
+        }
+      } catch (error) {
+        console.error("Error loading exchange rate:", error);
+      }
+    };
+    loadExchangeRate();
   }, []);
 
   // Cargar categorías internas y sus subcategorías
@@ -143,8 +159,9 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
         updateField("price", 0); // Ya no se usa, pero se mantiene para compatibilidad
         updateField("is_active", product.is_active);
 
-        // Cargar base_price y base_grams del producto
+        // Cargar base_price, base_price_usd y base_grams del producto
         setProductBasePrice(product.base_price ?? null);
+        setProductBasePriceUSD(product.base_price_usd ?? null);
         setProductBaseGrams(product.base_grams ?? null);
 
         // Cargar categoría y subcategoría interna del producto (solo la primera)
@@ -213,12 +230,14 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
           updateField("sizes", sortedSizes.map((size: {
             size: string;
             price?: number;
+            price_usd?: number | null;
             stock: number;
             weight?: number;
             display_order?: number;
           }, index: number) => ({
             size: size.size,
             price: size.price || product.price || 0,
+            price_usd: size.price_usd ?? null, // Cargar precio USD si existe
             stock: size.stock,
             weight: size.weight,
             display_order: size.display_order ?? index
@@ -343,9 +362,11 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
           size: size.size,
           stock: size.stock,
           price: size.price,
+          price_usd: size.price_usd ?? null,
           weight: size.weight || undefined,
           display_order: size.display_order ?? index
         })),
+        base_price_usd: productBasePriceUSD ?? (productBasePrice ? Math.round(productBasePrice * exchangeRate * 100) / 100 : null),
         images: formData.images
       };
 
@@ -419,9 +440,19 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
     updateField("sizes", reorderedSizes);
   };
 
-  const updateSize = (index: number, field: "size" | "stock" | "price" | "weight", value: string | number | undefined) => {
+  const updateSize = (index: number, field: "size" | "stock" | "price" | "price_usd" | "weight", value: string | number | null | undefined) => {
     const newSizes = [...formData.sizes];
-    newSizes[index] = { ...newSizes[index], [field]: value };
+    const updatedSize = { ...newSizes[index], [field]: value };
+    
+    // Si se actualiza el precio MXN y no hay precio USD manual, calcular automáticamente
+    if (field === "price" && typeof value === "number" && value > 0) {
+      // Solo calcular automáticamente si no hay un precio USD ya establecido manualmente
+      if (updatedSize.price_usd === null || updatedSize.price_usd === undefined) {
+        updatedSize.price_usd = Math.round(value * exchangeRate * 100) / 100; // Redondear a 2 decimales
+      }
+    }
+    
+    newSizes[index] = updatedSize;
     updateField("sizes", newSizes);
   };
 
@@ -462,7 +493,14 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
       });
 
       if (calculatedPrice !== null) {
-        updateSize(index, "price", calculatedPrice);
+        // Actualizar precio MXN y calcular automáticamente el USD
+        const newSizes = [...formData.sizes];
+        newSizes[index] = {
+          ...newSizes[index],
+          price: calculatedPrice,
+          price_usd: newSizes[index].price_usd ?? Math.round(calculatedPrice * exchangeRate * 100) / 100
+        };
+        updateField("sizes", newSizes);
       } else {
         alert("No se pudo calcular el precio. Por favor verifica la configuración de la subcategoría.");
       }
@@ -889,6 +927,25 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
                       )}
                     </Button>
                   </div>
+                </div>
+                <div className="flex-1">
+                  <Label htmlFor={`price-usd-${index}`} className="mb-2 block">
+                    Precio (USD) 
+                    <span className="text-xs text-muted-foreground ml-1">(auto)</span>
+                  </Label>
+                  <Input
+                    id={`price-usd-${index}`}
+                    type="number"
+                    value={size.price_usd ?? (size.price > 0 ? Math.round(size.price * exchangeRate * 100) / 100 : '')}
+                    onChange={(e) => {
+                      const value = e.target.value === '' ? null : parseFloat(e.target.value);
+                      updateSize(index, "price_usd", value);
+                    }}
+                    placeholder="0.00"
+                    step="0.01"
+                    className="flex-1"
+                    title="Se calcula automáticamente desde MXN. Puedes editarlo manualmente."
+                  />
                 </div>
                 <div className="flex-1">
                   {(() => {

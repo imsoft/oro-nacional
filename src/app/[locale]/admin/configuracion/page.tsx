@@ -38,6 +38,7 @@ export default function AdminSettings() {
   const [standardShippingCost, setStandardShippingCost] = useState('');
   const [expressShippingCost, setExpressShippingCost] = useState('');
   const [deliveryTime, setDeliveryTime] = useState('');
+  const [exchangeRate, setExchangeRate] = useState('');
 
   // Moneda basada en el idioma: Español -> USD, Inglés -> MXN
   const currency = locale === 'es' ? 'USD' : 'MXN';
@@ -65,6 +66,7 @@ export default function AdminSettings() {
           setStandardShippingCost(settings.standard_shipping_cost.toString());
           setExpressShippingCost(settings.express_shipping_cost.toString());
           setDeliveryTime(settings.delivery_time);
+          setExchangeRate(settings.exchange_rate?.toString() || '0.0588');
         }
       } catch (error) {
         console.error('Error loading settings:', error);
@@ -134,6 +136,7 @@ export default function AdminSettings() {
         standard_shipping_cost: parseFloat(standardShippingCost) || 0,
         express_shipping_cost: parseFloat(expressShippingCost) || 0,
         delivery_time: deliveryTime,
+        exchange_rate: parseFloat(exchangeRate) || 0.0588,
       });
 
       if (result.success) {
@@ -330,6 +333,21 @@ export default function AdminSettings() {
                 onChange={(e) => setDeliveryTime(e.target.value)}
                 placeholder={t('shipping.deliveryTimePlaceholder')}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="exchangeRate">Tasa de Cambio USD/MXN</Label>
+              <Input
+                id="exchangeRate"
+                type="number"
+                step="0.0001"
+                value={exchangeRate}
+                onChange={(e) => setExchangeRate(e.target.value)}
+                placeholder="0.0588"
+              />
+              <p className="text-xs text-muted-foreground">
+                Tasa de cambio para convertir precios de MXN a USD (ej: 0.0588 significa 1 USD = 17 MXN)
+              </p>
             </div>
           </div>
         </div>

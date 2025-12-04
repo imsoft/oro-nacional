@@ -286,6 +286,7 @@ export async function getProductBySlug(slug: string, locale: 'es' | 'en' = 'es')
     material_en,
     weight,
     base_price,
+    base_price_usd,
     base_grams,
     has_engraving,
     is_active,
@@ -294,7 +295,7 @@ export async function getProductBySlug(slug: string, locale: 'es' | 'en' = 'es')
     category:product_categories(id, name_es, name_en, slug_es, slug_en, description_es, description_en),
     images:product_images(id, image_url, alt_text, display_order, is_primary, created_at),
     specifications:product_specifications(id, spec_key_es, spec_key_en, spec_value_es, spec_value_en, display_order),
-    sizes:product_sizes(id, size, stock, price, weight, display_order)
+    sizes:product_sizes(id, size, stock, price, price_usd, weight, display_order)
   `;
 
   let { data, error } = await supabase
@@ -357,6 +358,7 @@ export async function getProductBySlug(slug: string, locale: 'es' | 'en' = 'es')
     material_en: string;
     weight?: number;
     base_price?: number;
+    base_price_usd?: number | null;
     base_grams?: number;
     has_engraving?: boolean;
     is_active: boolean;
@@ -365,7 +367,7 @@ export async function getProductBySlug(slug: string, locale: 'es' | 'en' = 'es')
     category?: { id: string; name_es: string; name_en: string; slug_es: string; slug_en: string; description_es: string; description_en: string } | null;
     images?: Array<{ id: string; image_url: string; alt_text?: { es: string; en: string } | null; display_order: number; is_primary: boolean; created_at: string }>;
     specifications?: Array<{ id: string; spec_key_es: string; spec_key_en: string; spec_value_es: string; spec_value_en: string; display_order: number }>;
-    sizes?: Array<{ id: string; size: string; stock: number; price?: number; weight?: number; display_order?: number }>;
+    sizes?: Array<{ id: string; size: string; stock: number; price?: number; price_usd?: number | null; weight?: number; display_order?: number }>;
   };
 
   const product: ProductDetail = {
@@ -378,6 +380,7 @@ export async function getProductBySlug(slug: string, locale: 'es' | 'en' = 'es')
     material: locale === 'es' ? (p.material_es || p.material_en) : (p.material_en || p.material_es),
     weight: p.weight,
     base_price: p.base_price ?? undefined,
+    base_price_usd: p.base_price_usd ?? undefined,
     base_grams: p.base_grams ?? undefined,
     is_active: p.is_active,
     created_at: p.created_at,
@@ -419,6 +422,7 @@ export async function getProductBySlug(slug: string, locale: 'es' | 'en' = 'es')
         size: size.size,
         stock: size.stock,
         price: size.price,
+        price_usd: size.price_usd ?? undefined,
         weight: size.weight,
         display_order: size.display_order ?? 0,
         created_at: '',
@@ -452,13 +456,14 @@ export async function getProductById(id: string) {
       is_active,
       category_id,
       base_price,
+      base_price_usd,
       base_grams,
       created_at,
       updated_at,
       category:product_categories(id, name_es, name_en, slug_es, slug_en),
       images:product_images(id, image_url, alt_text, display_order, is_primary),
       specifications:product_specifications(id, spec_key_es, spec_key_en, spec_value_es, spec_value_en, display_order),
-      sizes:product_sizes(id, size, price, stock, weight, display_order)
+      sizes:product_sizes(id, size, price, price_usd, stock, weight, display_order)
     `
     )
     .eq("id", id)

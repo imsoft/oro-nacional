@@ -45,7 +45,8 @@ export interface ProductSize {
   product_id: string;
   size: string;
   stock: number;
-  price?: number;
+  price?: number; // Precio en MXN
+  price_usd?: number | null; // Precio en USD (opcional, si es null se calcula desde MXN)
   weight?: number; // Gramos de oro
   display_order?: number;
   created_at: string;
@@ -61,7 +62,8 @@ export interface Product {
   stock: number;
   material: string;
   weight?: number;
-  base_price?: number; // Precio base calculado desde la calculadora
+  base_price?: number; // Precio base calculado desde la calculadora (MXN)
+  base_price_usd?: number | null; // Precio base en USD (opcional, si es null se calcula desde MXN)
   base_grams?: number; // Gramos base usados para calcular el precio base
   is_active: boolean;
   created_at: string;

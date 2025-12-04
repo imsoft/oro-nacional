@@ -196,6 +196,7 @@ export interface StoreSettings {
   standard_shipping_cost: number;
   express_shipping_cost: number;
   delivery_time: string;
+  exchange_rate?: number; // USD to MXN exchange rate (e.g., 0.0588 means 1 USD = 17 MXN)
   created_at: string;
   updated_at: string;
 }
@@ -211,6 +212,7 @@ export interface UpdateStoreSettingsData {
   standard_shipping_cost?: number;
   express_shipping_cost?: number;
   delivery_time?: string;
+  exchange_rate?: number;
 }
 
 /**

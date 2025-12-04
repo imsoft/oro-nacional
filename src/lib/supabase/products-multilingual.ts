@@ -469,6 +469,7 @@ export async function createProduct(
         price: productData.price,
         stock: 0, // Ya no se usa, pero se mantiene para compatibilidad
         weight: productData.weight,
+        base_price_usd: productData.base_price_usd || null,
         is_active: productData.is_active,
         available_languages: productData.available_languages || ['es', 'en'],
       })
@@ -517,8 +518,9 @@ export async function createProduct(
         size: size.size,
         stock: size.stock,
         price: size.price || 0, // Precio por talla (requerido)
+        price_usd: size.price_usd || null, // Precio USD opcional
         weight: size.weight || null, // Gramos de oro para esta talla
-        display_order: (size as { size: string; stock: number; price?: number; weight?: number; display_order?: number }).display_order ?? index,
+        display_order: (size as { size: string; stock: number; price?: number; price_usd?: number | null; weight?: number; display_order?: number }).display_order ?? index,
       }));
 
       const { error: sizesError } = await supabase
@@ -617,6 +619,7 @@ export async function updateProduct(
     if (updates.price !== undefined) dataToUpdate.price = updates.price;
     // stock ya no se actualiza, se mantiene a nivel de tallas
     if (updates.weight !== undefined) dataToUpdate.weight = updates.weight;
+    if (updates.base_price_usd !== undefined) dataToUpdate.base_price_usd = updates.base_price_usd || null;
     if (updates.has_engraving !== undefined) dataToUpdate.has_engraving = updates.has_engraving;
     if (updates.is_active !== undefined) dataToUpdate.is_active = updates.is_active;
     if (updates.available_languages !== undefined) dataToUpdate.available_languages = updates.available_languages;
@@ -695,8 +698,9 @@ export async function updateProduct(
           size: size.size,
           stock: size.stock,
           price: size.price || 0, // Precio por talla (requerido)
+          price_usd: size.price_usd || null, // Precio USD opcional
           weight: size.weight || null, // Gramos de oro para esta talla
-          display_order: (size as { size: string; stock: number; price?: number; weight?: number; display_order?: number }).display_order ?? index,
+          display_order: (size as { size: string; stock: number; price?: number; price_usd?: number | null; weight?: number; display_order?: number }).display_order ?? index,
         }));
 
         const { error: insertSizesError } = await supabase

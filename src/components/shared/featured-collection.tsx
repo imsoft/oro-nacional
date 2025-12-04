@@ -9,6 +9,7 @@ import { Heart, Share2, Loader2 } from "lucide-react";
 import { useFavoritesStore } from "@/stores/favorites-store";
 import { getProducts } from "@/lib/supabase/products";
 import type { Product } from "@/types/product";
+import { useCurrency } from "@/contexts/currency-context";
 
 interface DisplayProduct {
   id: string;
@@ -24,6 +25,7 @@ interface DisplayProduct {
 const FeaturedCollection = () => {
   const t = useTranslations("common");
   const { addFavorite, removeFavorite, isFavorite } = useFavoritesStore();
+  const { convertPrice, formatPrice } = useCurrency();
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -41,11 +43,12 @@ const FeaturedCollection = () => {
 
   const displayProducts: DisplayProduct[] = products.map((product) => {
     const primaryImage = product.images?.find((img) => img.is_primary)?.image_url;
+    const priceInCurrency = convertPrice(product.price, product.base_price_usd);
     return {
       id: product.id,
       name: product.name,
       description: product.description,
-      price: `$${product.price.toLocaleString("es-MX")} MXN`,
+      price: formatPrice(priceInCurrency),
       category: product.category?.name || "Joyería",
       material: product.material || "Oro",
       image: primaryImage || "https://images.unsplash.com/photo-1605100804763-247f67b3557e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",

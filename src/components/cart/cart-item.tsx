@@ -5,6 +5,7 @@ import { Link } from "@/i18n/routing";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCartStore, CartItem as CartItemType } from "@/stores/cart-store";
+import { useCurrency } from "@/contexts/currency-context";
 
 interface CartItemProps {
   item: CartItemType;
@@ -12,6 +13,7 @@ interface CartItemProps {
 
 const CartItem = ({ item }: CartItemProps) => {
   const { updateQuantity, removeItem } = useCartStore();
+  const { formatPrice } = useCurrency();
 
   return (
     <div className="flex gap-4 py-6 border-b border-border last:border-0">
@@ -46,10 +48,10 @@ const CartItem = ({ item }: CartItemProps) => {
           {/* Precio */}
           <div className="text-right">
             <p className="font-semibold text-foreground">
-              ${(item.price * item.quantity).toLocaleString("es-MX")} MXN
+              {formatPrice(item.price * item.quantity)}
             </p>
             <p className="text-xs text-muted-foreground">
-              ${item.price.toLocaleString("es-MX")} c/u
+              {formatPrice(item.price)} c/u
             </p>
           </div>
         </div>

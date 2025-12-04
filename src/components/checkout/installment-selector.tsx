@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { CreditCard, Calendar } from "lucide-react";
+import { useCurrency } from "@/contexts/currency-context";
 
 export type InstallmentOption = 1 | 3 | 6 | 9 | 12;
 
@@ -19,6 +20,7 @@ export function InstallmentSelector({
   onInstallmentChange,
 }: InstallmentSelectorProps) {
   const t = useTranslations("checkout");
+  const { formatPrice } = useCurrency();
 
   const installmentOptions: InstallmentOption[] = [1, 3, 6, 9, 12];
 
@@ -85,10 +87,7 @@ export function InstallmentSelector({
                       {installments === 1 ? (
                         <div className="space-y-1">
                           <p className="text-lg font-bold text-[#D4AF37]">
-                            ${total.toLocaleString("es-MX", {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            })}
+                            {formatPrice(total)}
                           </p>
                           <p className="text-xs text-green-600 font-medium">
                             {t("saveOnProcessing")}
@@ -97,20 +96,13 @@ export function InstallmentSelector({
                       ) : (
                         <div className="space-y-1">
                           <p className="text-lg font-bold">
-                            ${monthlyPayment.toLocaleString("es-MX", {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            })}
+                            {formatPrice(monthlyPayment)}
                           </p>
                           <p className="text-xs text-muted-foreground">
                             {t("perMonth")}
                           </p>
                           <p className="text-xs font-medium text-[#D4AF37]">
-                            {t("total")}:{" "}
-                            ${total.toLocaleString("es-MX", {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            })}
+                            {t("total")}: {formatPrice(total)}
                           </p>
                         </div>
                       )}
@@ -130,10 +122,7 @@ export function InstallmentSelector({
           <div className="flex justify-between">
             <span className="text-muted-foreground">{t("subtotal")}:</span>
             <span className="font-medium">
-              ${total.toLocaleString("es-MX", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
+              {formatPrice(total)}
             </span>
           </div>
           <div className="flex justify-between">
@@ -148,23 +137,14 @@ export function InstallmentSelector({
             <div className="flex justify-between">
               <span className="text-muted-foreground">{t("monthlyPayment")}:</span>
               <span className="font-bold text-[#D4AF37]">
-                ${calculateMonthlyPayment(selectedInstallments).toLocaleString(
-                  "es-MX",
-                  {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  }
-                )}
+                {formatPrice(calculateMonthlyPayment(selectedInstallments))}
               </span>
             </div>
           )}
           <div className="pt-2 border-t border-border flex justify-between">
             <span className="font-semibold">{t("totalToPay")}:</span>
             <span className="font-bold text-lg text-[#D4AF37]">
-              ${total.toLocaleString("es-MX", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
+              {formatPrice(total)}
             </span>
           </div>
           {selectedInstallments > 1 && (

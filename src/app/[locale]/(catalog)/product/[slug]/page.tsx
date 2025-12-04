@@ -109,11 +109,12 @@ export default function ProductPage({ params }: ProductPageProps) {
         }, {} as Record<string, string>)
     : {};
 
-  // Transformar tallas con información completa (size, price, stock, weight)
+  // Transformar tallas con información completa (size, price, price_usd, stock, weight)
   const productSizes = product.sizes && product.sizes.length > 0
     ? product.sizes.map((s) => ({
         size: s.size,
         price: s.price ?? 0, // Precio debe estar definido en la talla
+        price_usd: s.price_usd ?? null, // Precio USD opcional
         stock: s.stock,
         weight: s.weight, // Gramos de oro para esta talla
       }))
@@ -129,6 +130,7 @@ export default function ProductPage({ params }: ProductPageProps) {
     name: product.name,
     price: basePrice > 0 ? `$${basePrice.toLocaleString("es-MX")} MXN` : "Consultar precio",
     basePrice: product.base_price ?? basePrice, // Precio base calculado o de la primera talla
+    basePriceUSD: product.base_price_usd ?? null, // Precio base USD opcional
     baseGrams: product.base_grams, // Gramos base usados para calcular el precio base
     category: product.category?.name || "Sin categoría",
     material: product.material,

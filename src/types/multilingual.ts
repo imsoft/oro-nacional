@@ -132,6 +132,7 @@ export interface CreateMultilingualProductData {
   price: number;
   stock: number;
   weight?: number;
+  base_price_usd?: number | null;
   is_active: boolean;
   available_languages?: string[]; // ['es', 'en'] o ['es'] o ['en']
   specifications?: Array<{
@@ -143,6 +144,7 @@ export interface CreateMultilingualProductData {
     size: string;
     stock: number;
     price?: number;
+    price_usd?: number | null;
     weight?: number; // Gramos de oro
   }>;
   images?: File[]; // Files to upload
@@ -156,6 +158,7 @@ export interface UpdateMultilingualProductData {
   price?: number;
   stock?: number;
   weight?: number;
+  base_price_usd?: number | null;
   has_engraving?: boolean;
   is_active?: boolean;
   available_languages?: string[]; // ['es', 'en'] o ['es'] o ['en']
@@ -168,6 +171,7 @@ export interface UpdateMultilingualProductData {
     size: string;
     stock: number;
     price?: number;
+    price_usd?: number | null;
     weight?: number; // Gramos de oro
   }>;
 }
@@ -224,6 +228,7 @@ export interface ProductFormData {
     size: string;
     stock: number;
     price: number;
+    price_usd?: number | null;
     weight?: number; // Gramos de oro
     display_order?: number;
   }>;

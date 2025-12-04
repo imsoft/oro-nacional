@@ -8,6 +8,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCartStore } from "@/stores/cart-store";
 import { getPricingParameters, calculateDynamicProductPrice } from "@/lib/supabase/pricing";
+import { useCurrency } from "@/contexts/currency-context";
 
 interface ProductInfoProps {
   product: {
@@ -25,9 +26,11 @@ interface ProductInfoProps {
     sizes?: Array<{
       size: string;
       price: number;
+      price_usd?: number | null;
       stock: number;
       weight?: number; // Gramos de oro
     }> | string[];
+    basePriceUSD?: number | null;
     weight?: number;
     slug?: string;
     images?: string[];
@@ -37,6 +40,8 @@ interface ProductInfoProps {
 }
 
 const ProductInfo = ({ product }: ProductInfoProps) => {
+  const { currency, convertPrice, formatPrice } = useCurrency();
+  
   // Determinar si sizes es un array de objetos o strings
   const sizesArray = product.sizes || [];
   const isSizesWithPrice = sizesArray.length > 0 && typeof sizesArray[0] === 'object';
@@ -143,14 +148,16 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
 
     // Si no, usar el precio guardado
     if (!isSizesWithPrice || !selectedSize) {
-      return product.basePrice ?? parseFloat(product.price.replace(/[^0-9.-]+/g, ""));
+      const basePriceMXN = product.basePrice ?? parseFloat(product.price.replace(/[^0-9.-]+/g, ""));
+      return convertPrice(basePriceMXN, product.basePriceUSD);
     }
 
-    const selectedSizeObj = (sizesArray as Array<{ size: string; price: number; stock: number }>)
+    const selectedSizeObj = (sizesArray as Array<{ size: string; price: number; price_usd?: number | null; stock: number }>)
       .find(s => s.size === selectedSize);
 
-    return selectedSizeObj?.price ?? product.basePrice ?? parseFloat(product.price.replace(/[^0-9.-]+/g, ""));
-  }, [calculatedPrice, isSizesWithPrice, selectedSize, sizesArray, product.basePrice, product.price]);
+    const priceMXN = selectedSizeObj?.price ?? product.basePrice ?? parseFloat(product.price.replace(/[^0-9.-]+/g, ""));
+    return convertPrice(priceMXN, selectedSizeObj?.price_usd ?? product.basePriceUSD);
+  }, [calculatedPrice, isSizesWithPrice, selectedSize, sizesArray, product.basePrice, product.basePriceUSD, product.price, convertPrice]);
 
   // Calcular precio final con comisión de Stripe y MSI
   const finalPrice = useMemo(() => {
@@ -168,7 +175,7 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
     const priceWithMSI = basePrice * (1 + msiFee);
     return priceWithMSI * (1 + stripeParams.percentage) + stripeParams.fixedFee;
   }, [currentPrice, selectedMSI, stripeParams]);
-  const displayPrice = `$${finalPrice.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN`;
+  const displayPrice = formatPrice(finalPrice);
   const monthlyPayment = selectedMSI > 0 ? finalPrice / selectedMSI : finalPrice;
 
   const handleShare = async () => {
@@ -224,7 +231,7 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
       {/* Precio */}
       <div className="flex items-baseline gap-4">
         <p className="text-4xl font-semibold text-foreground">
-          {isCalculatingPrice ? "Calculando..." : `$${currentPrice.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN`}
+          {isCalculatingPrice ? "Calculando..." : formatPrice(currentPrice)}
         </p>
         <p className="text-sm text-muted-foreground">
           {calculatedPrice !== null ? "Precio calculado dinámicamente" : "IVA incluido"}
@@ -254,11 +261,12 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
                 const weightLabel = isBroquel ? "Piezas" : "Gramos";
                 
                 // Normalizar las tallas a un formato consistente
-                const normalizedSizes: Array<{ size: string; price: number; stock: number; weight?: number }> = isSizesWithPrice
-                  ? (product.sizes as Array<{ size: string; price: number; stock: number; weight?: number }>)
+                const normalizedSizes: Array<{ size: string; price: number; price_usd?: number | null; stock: number; weight?: number }> = isSizesWithPrice
+                  ? (product.sizes as Array<{ size: string; price: number; price_usd?: number | null; stock: number; weight?: number }>)
                   : (product.sizes as string[]).map(s => ({ 
                       size: s, 
                       price: currentPrice, 
+                      price_usd: product.basePriceUSD,
                       stock: 1, // Stock por defecto si no hay información de stock por talla
                       weight: undefined
                     }));
@@ -297,7 +305,7 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
                         <span>{sizeObj.size}</span>
                         {isSizesWithPrice && (
                           <span className="text-xs text-muted-foreground mt-1">
-                            ${sizeObj.price.toLocaleString("es-MX")}
+                            {formatPrice(convertPrice(sizeObj.price, sizeObj.price_usd))}
                           </span>
                         )}
                         {sizeObj.weight !== undefined && sizeObj.weight !== null && (
@@ -385,7 +393,7 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
                 Pago mensual ({selectedMSI} meses):
               </span>
               <span className="text-base font-semibold text-[#D4AF37]">
-                ${monthlyPayment.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN
+                {formatPrice(monthlyPayment)}
               </span>
             </div>
           </div>

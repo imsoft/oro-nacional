@@ -4,10 +4,12 @@ import { Link } from "@/i18n/routing";
 import { CreditCard, Shield, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/stores/cart-store";
+import { useCurrency } from "@/contexts/currency-context";
 
 const OrderSummary = () => {
   const total = useCartStore((state) => state.getTotal());
   const itemCount = useCartStore((state) => state.getItemCount());
+  const { formatPrice } = useCurrency();
 
   const subtotal = total;
   const finalTotal = subtotal;
@@ -24,14 +26,14 @@ const OrderSummary = () => {
           <span className="text-muted-foreground">
             Subtotal ({itemCount} {itemCount === 1 ? "producto" : "productos"})
           </span>
-          <span className="font-medium">${subtotal.toLocaleString("es-MX")} MXN</span>
+          <span className="font-medium">{formatPrice(subtotal)}</span>
         </div>
 
         <div className="pt-3 border-t border-border">
           <div className="flex justify-between">
             <span className="text-lg font-semibold">Total</span>
             <span className="text-2xl font-semibold text-[#D4AF37]">
-              ${finalTotal.toLocaleString("es-MX")} MXN
+              {formatPrice(finalTotal)}
             </span>
           </div>
         </div>

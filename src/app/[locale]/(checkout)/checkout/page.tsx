@@ -23,6 +23,7 @@ import type { CreateOrderData, PaymentMethod } from "@/types/order";
 import { getStoreSettings } from "@/lib/supabase/settings";
 import type { StoreSettings } from "@/lib/supabase/settings";
 import { Phone, Mail, MapPin } from "lucide-react";
+import { useCurrency } from "@/contexts/currency-context";
 
 const CheckoutPage = () => {
   const router = useRouter();
@@ -31,6 +32,7 @@ const CheckoutPage = () => {
   const { user } = useAuthStore();
   const total = useCartStore((state) => state.getTotal());
   const itemCount = useCartStore((state) => state.getItemCount());
+  const { formatPrice } = useCurrency();
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -317,7 +319,7 @@ const CheckoutPage = () => {
             Finalizar Compra
           </h1>
           <p className="mt-2 text-muted-foreground">
-            {itemCount} {itemCount === 1 ? "producto" : "productos"} - Total: ${finalTotal.toLocaleString("es-MX")} MXN
+            {itemCount} {itemCount === 1 ? "producto" : "productos"} - Total: {formatPrice(finalTotal)}
           </p>
         </div>
 
@@ -744,7 +746,7 @@ const CheckoutPage = () => {
                           Cantidad: {item.quantity}
                         </p>
                         <p className="text-sm font-medium text-[#D4AF37]">
-                          ${(item.price * item.quantity).toLocaleString("es-MX")} MXN
+                          {formatPrice(item.price * item.quantity)}
                         </p>
                       </div>
                     </div>
@@ -755,7 +757,7 @@ const CheckoutPage = () => {
                 <div className="space-y-3 border-t border-border pt-4">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span className="font-medium">${total.toLocaleString("es-MX")} MXN</span>
+                    <span className="font-medium">{formatPrice(total)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Envío</span>
@@ -763,7 +765,7 @@ const CheckoutPage = () => {
                   </div>
                   <div className="flex justify-between text-lg font-semibold border-t border-border pt-3">
                     <span>Total</span>
-                    <span className="text-[#D4AF37]">${finalTotal.toLocaleString("es-MX")} MXN</span>
+                    <span className="text-[#D4AF37]">{formatPrice(finalTotal)}</span>
                   </div>
                 </div>
 
