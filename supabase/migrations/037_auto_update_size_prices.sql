@@ -12,18 +12,14 @@
 CREATE OR REPLACE FUNCTION update_size_prices_on_base_price_change()
 RETURNS TRIGGER AS $$
 BEGIN
-  -- Solo actualizar si base_price y base_grams están definidos y son válidos
+  -- Solo actualizar si base_price ha cambiado y no es NULL
   IF NEW.base_price IS NOT NULL 
-     AND NEW.base_grams IS NOT NULL 
-     AND NEW.base_grams > 0 
-     AND (OLD.base_price IS DISTINCT FROM NEW.base_price OR OLD.base_grams IS DISTINCT FROM NEW.base_grams) THEN
+     AND (OLD.base_price IS DISTINCT FROM NEW.base_price) THEN
     
-    -- Actualizar precios de todas las tallas proporcionalmente
+    -- Actualizar precios de todas las tallas con el precio final directamente (sin cálculo proporcional)
     UPDATE public.product_sizes
-    SET price = ROUND((NEW.base_price * (weight / NEW.base_grams))::numeric, 2)
-    WHERE product_id = NEW.id
-      AND weight IS NOT NULL
-      AND weight > 0;
+    SET price = ROUND(NEW.base_price::numeric, 2)
+    WHERE product_id = NEW.id;
     
   END IF;
   
@@ -37,13 +33,11 @@ $$ LANGUAGE plpgsql;
 DROP TRIGGER IF EXISTS trigger_update_size_prices_on_base_price_change ON public.products;
 
 CREATE TRIGGER trigger_update_size_prices_on_base_price_change
-  AFTER UPDATE OF base_price, base_grams ON public.products
+  AFTER UPDATE OF base_price ON public.products
   FOR EACH ROW
   WHEN (
-    (OLD.base_price IS DISTINCT FROM NEW.base_price OR OLD.base_grams IS DISTINCT FROM NEW.base_grams)
+    OLD.base_price IS DISTINCT FROM NEW.base_price
     AND NEW.base_price IS NOT NULL
-    AND NEW.base_grams IS NOT NULL
-    AND NEW.base_grams > 0
   )
   EXECUTE FUNCTION update_size_prices_on_base_price_change();
 
@@ -51,7 +45,7 @@ CREATE TRIGGER trigger_update_size_prices_on_base_price_change
 -- 3. Agregar comentarios
 -- ================================================
 COMMENT ON FUNCTION update_size_prices_on_base_price_change() IS 
-'Automatically updates product_sizes prices proportionally when base_price or base_grams change in products table. Formula: base_price * (size_weight / base_grams)';
+'Automatically updates product_sizes prices with the final price directly when base_price changes in products table. The final price is applied to all sizes without proportional calculation.';
 
 COMMENT ON TRIGGER trigger_update_size_prices_on_base_price_change ON public.products IS 
 'Trigger that automatically updates size prices when base_price or base_grams are updated';
