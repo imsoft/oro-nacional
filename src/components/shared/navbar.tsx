@@ -6,7 +6,6 @@ import { useTranslations } from "next-intl";
 import { Menu, ShoppingCart, LogOut, Package, Settings, Heart, UserCircle } from "lucide-react";
 import { Link } from '@/i18n/routing';
 import { LanguageSwitcher } from './language-switcher';
-import { CurrencySelector } from './currency-selector';
 import {
   Sheet,
   SheetContent,
@@ -79,7 +78,6 @@ const Navbar = () => {
             <SheetContent side="right" className="w-full sm:max-w-sm p-6">
               <div className="flex flex-col gap-4 mb-8">
                 <div className="flex items-center justify-end gap-2">
-                  <CurrencySelector />
                   <LanguageSwitcher />
                 </div>
                 <Link href="/" className="flex justify-center" onClick={() => setIsOpen(false)}>
@@ -205,9 +203,6 @@ const Navbar = () => {
         </div>
         
         <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-6 lg:items-center">
-          {/* Currency Selector */}
-          <CurrencySelector />
-          
           {/* Language Switcher */}
           <LanguageSwitcher />
 

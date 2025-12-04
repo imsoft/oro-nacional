@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useLocale } from 'next-intl';
 import { getStoreSettings } from '@/lib/supabase/settings';
 
 export type Currency = 'MXN' | 'USD';
@@ -20,7 +21,11 @@ const CURRENCY_STORAGE_KEY = 'oro-nacional-currency';
 const DEFAULT_EXCHANGE_RATE = 18.00; // 18 MXN = 1 USD (valor por defecto)
 
 export function CurrencyProvider({ children }: { children: React.ReactNode }) {
-  const [currency, setCurrencyState] = useState<Currency>('MXN');
+  const locale = useLocale() as 'es' | 'en';
+  // Determinar moneda basada en el idioma: español → MXN, inglés → USD
+  const defaultCurrency: Currency = locale === 'es' ? 'MXN' : 'USD';
+  
+  const [currency, setCurrencyState] = useState<Currency>(defaultCurrency);
   const [exchangeRate, setExchangeRateState] = useState<number>(DEFAULT_EXCHANGE_RATE);
 
   // Cargar tasa de cambio desde store_settings
@@ -38,18 +43,22 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
     loadExchangeRate();
   }, []);
 
-  // Cargar moneda desde localStorage al montar
+  // Sincronizar moneda con el idioma cuando cambia
   useEffect(() => {
-    const savedCurrency = localStorage.getItem(CURRENCY_STORAGE_KEY) as Currency | null;
-    if (savedCurrency && (savedCurrency === 'MXN' || savedCurrency === 'USD')) {
-      setCurrencyState(savedCurrency);
-    }
-  }, []);
+    // Siempre establecer la moneda según el idioma actual
+    // Español → MXN, Inglés → USD
+    const currencyForLocale: Currency = locale === 'es' ? 'MXN' : 'USD';
+    setCurrencyState(currencyForLocale);
+    // No guardar en localStorage ya que es automático según el idioma
+  }, [locale]);
 
-  // Guardar moneda en localStorage cuando cambia
+  // Función para establecer moneda (aunque ahora es automático según idioma)
+  // Se mantiene para compatibilidad pero la moneda se sincroniza con el idioma
   const setCurrency = (newCurrency: Currency) => {
+    // La moneda se establece automáticamente según el idioma
+    // Esta función se mantiene por compatibilidad pero no tiene efecto
+    // ya que el useEffect sincroniza con el locale
     setCurrencyState(newCurrency);
-    localStorage.setItem(CURRENCY_STORAGE_KEY, newCurrency);
   };
 
   // Convertir precio según la moneda seleccionada
