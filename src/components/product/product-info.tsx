@@ -15,6 +15,7 @@ interface ProductInfoProps {
     name: string;
     price: string;
     basePrice?: number;
+    baseGrams?: number; // Gramos base usados para calcular el precio base
     category: string;
     material: string;
     description: string;
@@ -106,13 +107,21 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
 
       setIsCalculatingPrice(true);
       try {
-        const dynamicPrice = await calculateDynamicProductPrice({
-          goldGrams: selectedSizeObj.weight,
-          subcategoryId: product.internalSubcategory.id,
-          categoryName: product.internalCategory.name,
-        });
+        // Si hay precio base y gramos base, calcular proporcionalmente
+        if (product.basePrice && product.baseGrams && product.baseGrams > 0) {
+          // Calcular precio proporcional: basePrice * (sizeWeight / baseGrams)
+          const proportionalPrice = product.basePrice * (selectedSizeObj.weight / product.baseGrams);
+          setCalculatedPrice(Math.round(proportionalPrice * 100) / 100); // Redondear a 2 decimales
+        } else {
+          // Si no hay precio base, calcular dinámicamente desde cero
+          const dynamicPrice = await calculateDynamicProductPrice({
+            goldGrams: selectedSizeObj.weight,
+            subcategoryId: product.internalSubcategory.id,
+            categoryName: product.internalCategory.name,
+          });
 
-        setCalculatedPrice(dynamicPrice);
+          setCalculatedPrice(dynamicPrice);
+        }
       } catch (error) {
         console.error("Error calculating dynamic price:", error);
         setCalculatedPrice(null);
@@ -122,7 +131,7 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
     };
 
     calculatePrice();
-  }, [selectedSize, product.internalCategory, product.internalSubcategory, isSizesWithPrice, sizesArray]);
+  }, [selectedSize, product.internalCategory, product.internalSubcategory, product.basePrice, product.baseGrams, isSizesWithPrice, sizesArray]);
 
   // Calcular precio base según talla seleccionada (ya incluye IVA)
   // Si hay precio calculado dinámicamente, usarlo; si no, usar el precio guardado

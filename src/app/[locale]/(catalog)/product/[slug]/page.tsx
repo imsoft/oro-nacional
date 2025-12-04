@@ -128,7 +128,8 @@ export default function ProductPage({ params }: ProductPageProps) {
     id: product.id,
     name: product.name,
     price: basePrice > 0 ? `$${basePrice.toLocaleString("es-MX")} MXN` : "Consultar precio",
-    basePrice: basePrice, // Precio base para cálculos (de la primera talla)
+    basePrice: product.base_price ?? basePrice, // Precio base calculado o de la primera talla
+    baseGrams: product.base_grams, // Gramos base usados para calcular el precio base
     category: product.category?.name || "Sin categoría",
     material: product.material,
     description: product.description,

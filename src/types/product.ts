@@ -61,6 +61,8 @@ export interface Product {
   stock: number;
   material: string;
   weight?: number;
+  base_price?: number; // Precio base calculado desde la calculadora
+  base_grams?: number; // Gramos base usados para calcular el precio base
   is_active: boolean;
   created_at: string;
   updated_at: string;

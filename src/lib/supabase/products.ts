@@ -285,6 +285,8 @@ export async function getProductBySlug(slug: string, locale: 'es' | 'en' = 'es')
     material_es,
     material_en,
     weight,
+    base_price,
+    base_grams,
     has_engraving,
     is_active,
     created_at,
@@ -354,6 +356,8 @@ export async function getProductBySlug(slug: string, locale: 'es' | 'en' = 'es')
     material_es: string;
     material_en: string;
     weight?: number;
+    base_price?: number;
+    base_grams?: number;
     has_engraving?: boolean;
     is_active: boolean;
     created_at: string;
@@ -373,6 +377,8 @@ export async function getProductBySlug(slug: string, locale: 'es' | 'en' = 'es')
     stock: p.stock,
     material: locale === 'es' ? (p.material_es || p.material_en) : (p.material_en || p.material_es),
     weight: p.weight,
+    base_price: p.base_price ?? undefined,
+    base_grams: p.base_grams ?? undefined,
     is_active: p.is_active,
     created_at: p.created_at,
     updated_at: p.updated_at,
@@ -1082,9 +1088,10 @@ export async function updateProductPrice(productId: string, newPrice: number) {
 /**
  * Update multiple product prices at once
  * Used by price calculator for bulk price updates
+ * Now updates base_price and base_grams, and calculates size prices proportionally
  */
 export async function updateMultipleProductPrices(
-  priceUpdates: Array<{ id: string; price: number }>
+  priceUpdates: Array<{ id: string; price: number; baseGrams: number }>
 ) {
   const results = {
     successful: [] as string[],
@@ -1094,7 +1101,58 @@ export async function updateMultipleProductPrices(
   // Update products one by one to ensure proper error handling
   for (const update of priceUpdates) {
     try {
-      await updateProductPrice(update.id, update.price);
+      // 1. Update base_price and base_grams in the product
+      const { error: productError } = await supabase
+        .from("products")
+        .update({ 
+          base_price: update.price,
+          base_grams: update.baseGrams
+        })
+        .eq("id", update.id);
+
+      if (productError) {
+        throw productError;
+      }
+
+      // 2. Get all sizes for this product with their weights
+      const { data: sizes, error: sizesError } = await supabase
+        .from("product_sizes")
+        .select("id, weight, price")
+        .eq("product_id", update.id);
+
+      if (sizesError) {
+        throw sizesError;
+      }
+
+      // 3. Calculate and update size prices proportionally
+      if (sizes && sizes.length > 0 && update.baseGrams > 0) {
+        const sizeUpdates = sizes
+          .filter(size => size.weight != null && size.weight > 0)
+          .map(size => {
+            // Calculate proportional price: basePrice * (sizeWeight / baseGrams)
+            const proportionalPrice = update.price * (Number(size.weight) / update.baseGrams);
+            return {
+              id: size.id,
+              price: Math.round(proportionalPrice * 100) / 100, // Round to 2 decimal places
+            };
+          });
+
+        // Update all size prices
+        if (sizeUpdates.length > 0) {
+          for (const sizeUpdate of sizeUpdates) {
+            const { error: sizeUpdateError } = await supabase
+              .from("product_sizes")
+              .update({ price: sizeUpdate.price })
+              .eq("id", sizeUpdate.id);
+
+            if (sizeUpdateError) {
+              console.error(`Error updating size ${sizeUpdate.id}:`, sizeUpdateError);
+              // Continue with other sizes even if one fails
+            }
+          }
+        }
+      }
+
       results.successful.push(update.id);
     } catch (error) {
       results.failed.push({

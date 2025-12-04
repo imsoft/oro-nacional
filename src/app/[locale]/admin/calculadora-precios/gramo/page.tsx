@@ -260,7 +260,20 @@ export default function PriceCalculatorPage() {
   const [applyingToSubcategory, setApplyingToSubcategory] = useState<string | null>(null);
 
   const handleApplyPriceToProducts = async (subcategoryId: string, finalPrice: number) => {
-    if (!confirm(`¿Estás seguro de aplicar el precio ${formatMXN(finalPrice)} a todos los productos con esta subcategoría?`)) {
+    // Get the calculation data to find baseGrams
+    const calc = calculatedSubcategories.find(c => c.id === subcategoryId);
+    if (!calc) {
+      alert("Error: No se pudo encontrar la información de cálculo.");
+      return;
+    }
+
+    const baseGrams = calc.goldGrams;
+    if (!baseGrams || baseGrams <= 0) {
+      alert("Error: Los gramos base deben ser mayores a 0.");
+      return;
+    }
+
+    if (!confirm(`¿Estás seguro de aplicar el precio ${formatMXN(finalPrice)} (base: ${baseGrams} gr) a todos los productos con esta subcategoría?`)) {
       return;
     }
 
@@ -276,10 +289,11 @@ export default function PriceCalculatorPage() {
         return;
       }
 
-      // Actualizar precios de todos los productos
+      // Actualizar precios base y calcular precios de tallas proporcionalmente
       const priceUpdates = productIds.map(id => ({
         id,
         price: finalPrice,
+        baseGrams: baseGrams,
       }));
 
       const results = await updateMultipleProductPrices(priceUpdates);
@@ -290,7 +304,7 @@ export default function PriceCalculatorPage() {
         );
       } else {
         alert(
-          `¡Éxito! Se actualizaron ${results.successful.length} productos correctamente.`
+          `¡Éxito! Se actualizaron ${results.successful.length} productos correctamente. Los precios de las tallas se calcularon proporcionalmente.`
         );
       }
     } catch (error) {
