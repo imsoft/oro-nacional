@@ -20,6 +20,9 @@ import { getStripeClient } from "@/lib/stripe/client";
 import { StripePaymentElement } from "@/components/checkout/stripe-payment-element";
 import { InstallmentSelector, type InstallmentOption } from "@/components/checkout/installment-selector";
 import type { CreateOrderData, PaymentMethod } from "@/types/order";
+import { getSiteSettings } from "@/lib/supabase/settings";
+import type { SiteSettings } from "@/types/settings";
+import { Phone, Mail, MapPin } from "lucide-react";
 
 const CheckoutPage = () => {
   const router = useRouter();
@@ -35,6 +38,7 @@ const CheckoutPage = () => {
   const [stripeEnabled, setStripeEnabled] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
+  const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
 
   // Datos de envío
   const [shippingData, setShippingData] = useState({
@@ -68,6 +72,15 @@ const CheckoutPage = () => {
       }
     };
     initStripe();
+  }, []);
+
+  // Cargar datos de configuración del sitio
+  useEffect(() => {
+    const loadSettings = async () => {
+      const settings = await getSiteSettings();
+      setSiteSettings(settings);
+    };
+    loadSettings();
   }, []);
 
   useEffect(() => {
@@ -564,23 +577,142 @@ const CheckoutPage = () => {
                   </TabsContent>
 
                   <TabsContent value="transfer" className="mt-6">
-                    <div className="p-4 rounded-lg bg-muted">
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Recibirás los datos bancarios después de confirmar tu pedido.
-                      </p>
-                      <div className="space-y-2 text-sm">
-                        <p className="font-medium">Banco: BBVA</p>
-                        <p>Los datos completos se enviarán a tu correo</p>
+                    <div className="space-y-4">
+                      <div className="p-4 rounded-lg bg-muted">
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Realiza tu transferencia bancaria y envía el comprobante. Recibirás los datos bancarios completos después de confirmar tu pedido.
+                        </p>
+                        <div className="space-y-2 text-sm">
+                          <p className="font-medium">Banco: BBVA</p>
+                          <p>Los datos completos se enviarán a tu correo</p>
+                        </div>
                       </div>
+
+                      {siteSettings && (
+                        <div className="p-4 rounded-lg border border-[#D4AF37]/20 bg-[#D4AF37]/5">
+                          <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                            <Phone className="h-4 w-4 text-[#D4AF37]" />
+                            Datos de Contacto
+                          </h3>
+                          <div className="space-y-2 text-sm">
+                            {siteSettings.contact_phone && (
+                              <div className="flex items-start gap-2">
+                                <Phone className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                <div>
+                                  <span className="text-muted-foreground">Teléfono: </span>
+                                  <a 
+                                    href={`tel:${siteSettings.contact_phone.replace(/\s/g, '')}`}
+                                    className="text-foreground font-medium hover:text-[#D4AF37] transition-colors"
+                                  >
+                                    {siteSettings.contact_phone}
+                                  </a>
+                                </div>
+                              </div>
+                            )}
+                            {siteSettings.contact_email && (
+                              <div className="flex items-start gap-2">
+                                <Mail className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                <div>
+                                  <span className="text-muted-foreground">Email: </span>
+                                  <a 
+                                    href={`mailto:${siteSettings.contact_email}`}
+                                    className="text-foreground font-medium hover:text-[#D4AF37] transition-colors break-all"
+                                  >
+                                    {siteSettings.contact_email}
+                                  </a>
+                                </div>
+                              </div>
+                            )}
+                            {(siteSettings.address_street || siteSettings.address_city) && (
+                              <div className="flex items-start gap-2">
+                                <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                <div className="text-foreground">
+                                  <div className="font-medium">Dirección:</div>
+                                  <div className="text-muted-foreground">
+                                    {[
+                                      siteSettings.address_street,
+                                      siteSettings.address_colony,
+                                      siteSettings.address_city,
+                                      siteSettings.address_state,
+                                      siteSettings.address_zip
+                                    ].filter(Boolean).join(', ')}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </TabsContent>
 
                   <TabsContent value="cash" className="mt-6">
-                    <div className="p-4 rounded-lg bg-muted">
-                      <p className="text-sm text-muted-foreground">
-                        Podrás pagar en efectivo al recibir tu pedido. Nuestro repartidor
-                        llevará una terminal para pagos con tarjeta también.
-                      </p>
+                    <div className="space-y-4">
+                      <div className="p-4 rounded-lg bg-muted">
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Podrás pagar en efectivo al recibir tu pedido. Nuestro repartidor
+                          llevará una terminal para pagos con tarjeta también.
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Para coordinar la entrega y el pago, contáctanos usando los datos a continuación.
+                        </p>
+                      </div>
+
+                      {siteSettings && (
+                        <div className="p-4 rounded-lg border border-[#D4AF37]/20 bg-[#D4AF37]/5">
+                          <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                            <Phone className="h-4 w-4 text-[#D4AF37]" />
+                            Datos de Contacto
+                          </h3>
+                          <div className="space-y-2 text-sm">
+                            {siteSettings.contact_phone && (
+                              <div className="flex items-start gap-2">
+                                <Phone className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                <div>
+                                  <span className="text-muted-foreground">Teléfono: </span>
+                                  <a 
+                                    href={`tel:${siteSettings.contact_phone.replace(/\s/g, '')}`}
+                                    className="text-foreground font-medium hover:text-[#D4AF37] transition-colors"
+                                  >
+                                    {siteSettings.contact_phone}
+                                  </a>
+                                </div>
+                              </div>
+                            )}
+                            {siteSettings.contact_email && (
+                              <div className="flex items-start gap-2">
+                                <Mail className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                <div>
+                                  <span className="text-muted-foreground">Email: </span>
+                                  <a 
+                                    href={`mailto:${siteSettings.contact_email}`}
+                                    className="text-foreground font-medium hover:text-[#D4AF37] transition-colors break-all"
+                                  >
+                                    {siteSettings.contact_email}
+                                  </a>
+                                </div>
+                              </div>
+                            )}
+                            {(siteSettings.address_street || siteSettings.address_city) && (
+                              <div className="flex items-start gap-2">
+                                <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                <div className="text-foreground">
+                                  <div className="font-medium">Dirección:</div>
+                                  <div className="text-muted-foreground">
+                                    {[
+                                      siteSettings.address_street,
+                                      siteSettings.address_colony,
+                                      siteSettings.address_city,
+                                      siteSettings.address_state,
+                                      siteSettings.address_zip
+                                    ].filter(Boolean).join(', ')}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </TabsContent>
                 </Tabs>
