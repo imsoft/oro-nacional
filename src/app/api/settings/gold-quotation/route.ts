@@ -6,21 +6,21 @@ export async function GET() {
     const parameters = await getPricingParameters();
     
     if (!parameters) {
-      return NextResponse.json(
-        { gold_quotation: null },
-        { status: 200 }
-      );
+      // Valor por defecto si no hay parámetros
+      return NextResponse.json({
+        gold_quotation: 2450.00, // Valor por defecto
+      });
     }
 
     return NextResponse.json({
-      gold_quotation: parameters.goldQuotation || null,
+      gold_quotation: parameters.goldQuotation || 2450.00,
     });
   } catch (error) {
     console.error('Error fetching gold quotation:', error);
-    return NextResponse.json(
-      { gold_quotation: null },
-      { status: 200 }
-    );
+    // En caso de error, devolver valor por defecto
+    return NextResponse.json({
+      gold_quotation: 2450.00, // Valor por defecto
+    });
   }
 }
 

@@ -25,16 +25,20 @@ export function MarketTicker() {
 
       if (goldResponse.ok) {
         const goldResult = await goldResponse.json();
-        if (goldResult.gold_quotation) {
-          setGoldQuotation(goldResult.gold_quotation);
-        }
+        // Siempre establecer el valor, incluso si es null (la API ahora siempre devuelve un valor por defecto)
+        setGoldQuotation(goldResult.gold_quotation ?? 2450.00);
+      } else {
+        // Si la respuesta no es OK, usar valor por defecto
+        setGoldQuotation(2450.00);
       }
 
       if (exchangeResponse.ok) {
         const exchangeResult = await exchangeResponse.json();
-        if (exchangeResult.exchange_rate) {
-          setExchangeRate(exchangeResult.exchange_rate);
-        }
+        // Siempre establecer el valor, incluso si es null (la API ahora siempre devuelve un valor por defecto)
+        setExchangeRate(exchangeResult.exchange_rate ?? 18.00);
+      } else {
+        // Si la respuesta no es OK, usar valor por defecto
+        setExchangeRate(18.00);
       }
     } catch (err) {
       console.error('Error fetching market data:', err);
@@ -62,8 +66,8 @@ export function MarketTicker() {
     }).format(price);
   };
 
-  // Si está cargando y no hay datos, mostrar cintilla con mensaje de carga
-  if (isLoading && (!goldQuotation || !exchangeRate)) {
+  // Si está cargando, mostrar cintilla con mensaje de carga
+  if (isLoading) {
     return (
       <div className="relative bg-gradient-to-r from-[#D4AF37] via-[#B8941E] to-[#D4AF37] text-white py-3 overflow-hidden border-b border-[#A0821A]/50 shadow-md">
         <div className="flex items-center justify-center">
@@ -76,15 +80,9 @@ export function MarketTicker() {
     );
   }
 
-  // Si hay error y no hay datos, no mostrar nada
-  if (error && (!goldQuotation || !exchangeRate)) {
-    return null;
-  }
-
-  // Si no hay datos, no mostrar nada
-  if (!goldQuotation || !exchangeRate) {
-    return null;
-  }
+  // Usar valores por defecto si no hay datos (nunca debería pasar ahora, pero por seguridad)
+  const displayGoldQuotation = goldQuotation ?? 2450.00;
+  const displayExchangeRate = exchangeRate ?? 18.00;
 
   // Contenido de la cintilla con mejor separación
   const tickerContent = (
@@ -94,7 +92,7 @@ export function MarketTicker() {
         <Gem className="h-4 w-4 flex-shrink-0 text-white" />
         <span className="text-sm font-semibold text-white">{t('goldQuotation')}:</span>
         <span className="text-sm font-bold text-white">
-          ${formatPrice(goldQuotation)} MXN/gr
+          ${formatPrice(displayGoldQuotation)} MXN/gr
         </span>
       </div>
 
@@ -106,7 +104,7 @@ export function MarketTicker() {
         <DollarSign className="h-4 w-4 flex-shrink-0 text-white" />
         <span className="text-sm font-semibold text-white">{t('exchangeRate')}:</span>
         <span className="text-sm font-bold text-white">
-          ${formatPrice(exchangeRate, 2)} MXN/USD
+          ${formatPrice(displayExchangeRate, 2)} MXN/USD
         </span>
       </div>
 
@@ -117,7 +115,7 @@ export function MarketTicker() {
       <div className="flex items-center gap-2 px-4">
         <span className="text-xs text-white/90">{t('goldPerOunce')}:</span>
         <span className="text-sm font-bold text-white">
-          ${formatPrice(goldQuotation * 31.1035)} MXN/oz
+          ${formatPrice(displayGoldQuotation * 31.1035)} MXN/oz
         </span>
       </div>
 
@@ -128,7 +126,7 @@ export function MarketTicker() {
       <div className="flex items-center gap-2 px-4">
         <span className="text-xs text-white/90">{t('goldInUSD')}:</span>
         <span className="text-sm font-bold text-white">
-          ${formatPrice(goldQuotation / exchangeRate, 2)} USD/gr
+          ${formatPrice(displayGoldQuotation / displayExchangeRate, 2)} USD/gr
         </span>
       </div>
     </>

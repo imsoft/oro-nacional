@@ -6,21 +6,21 @@ export async function GET() {
     const settings = await getStoreSettings();
     
     if (!settings) {
-      return NextResponse.json(
-        { exchange_rate: null },
-        { status: 200 }
-      );
+      // Valor por defecto si no hay configuración
+      return NextResponse.json({
+        exchange_rate: 18.00, // Valor por defecto
+      });
     }
 
     return NextResponse.json({
-      exchange_rate: settings.exchange_rate || null,
+      exchange_rate: settings.exchange_rate || 18.00,
     });
   } catch (error) {
     console.error('Error fetching exchange rate:', error);
-    return NextResponse.json(
-      { exchange_rate: null },
-      { status: 200 }
-    );
+    // En caso de error, devolver valor por defecto
+    return NextResponse.json({
+      exchange_rate: 18.00, // Valor por defecto
+    });
   }
 }
 
