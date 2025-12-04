@@ -571,6 +571,13 @@
       "description": "Discover bracelets and bangles in 10k gold. From elegant tennis bracelets to personalized bangles. Artisan jewelry from Jalisco with the highest quality and authenticity certificate."
     }
   },
+  "marketTicker": {
+    "loading": "Loading market information...",
+    "goldQuotation": "Gold Quotation",
+    "exchangeRate": "Exchange Rate",
+    "goldPerOunce": "Gold per ounce",
+    "goldInUSD": "Gold in USD"
+  },
   "admin": {
     "title": "Admin Panel",
     "back": "Back",

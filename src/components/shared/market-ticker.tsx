@@ -1,9 +1,12 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { DollarSign, Gem, TrendingUp, TrendingDown } from 'lucide-react';
 
 export function MarketTicker() {
+  const t = useTranslations('marketTicker');
+  const locale = useLocale();
   const [goldQuotation, setGoldQuotation] = useState<number | null>(null);
   const [exchangeRate, setExchangeRate] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -52,7 +55,8 @@ export function MarketTicker() {
   }, []);
 
   const formatPrice = (price: number, decimals: number = 2) => {
-    return new Intl.NumberFormat('es-MX', {
+    const localeCode = locale === 'es' ? 'es-MX' : 'en-US';
+    return new Intl.NumberFormat(localeCode, {
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals,
     }).format(price);
@@ -65,7 +69,7 @@ export function MarketTicker() {
         <div className="flex items-center justify-center">
           <div className="flex items-center gap-2 whitespace-nowrap">
             <Gem className="h-4 w-4 animate-pulse" />
-            <span className="text-sm font-medium">Cargando información del mercado...</span>
+            <span className="text-sm font-medium">{t('loading')}</span>
           </div>
         </div>
       </div>
@@ -88,7 +92,7 @@ export function MarketTicker() {
       {/* Cotización del Oro */}
       <div className="flex items-center gap-2 px-4">
         <Gem className="h-4 w-4 flex-shrink-0 text-white" />
-        <span className="text-sm font-semibold text-white">Cotización del Oro:</span>
+        <span className="text-sm font-semibold text-white">{t('goldQuotation')}:</span>
         <span className="text-sm font-bold text-white">
           ${formatPrice(goldQuotation)} MXN/gr
         </span>
@@ -100,7 +104,7 @@ export function MarketTicker() {
       {/* Tasa de Cambio */}
       <div className="flex items-center gap-2 px-4">
         <DollarSign className="h-4 w-4 flex-shrink-0 text-white" />
-        <span className="text-sm font-semibold text-white">Tasa de Cambio:</span>
+        <span className="text-sm font-semibold text-white">{t('exchangeRate')}:</span>
         <span className="text-sm font-bold text-white">
           ${formatPrice(exchangeRate, 2)} MXN/USD
         </span>
@@ -111,7 +115,7 @@ export function MarketTicker() {
 
       {/* Información adicional: Precio del oro por onza (calculado) */}
       <div className="flex items-center gap-2 px-4">
-        <span className="text-xs text-white/90">Oro por onza:</span>
+        <span className="text-xs text-white/90">{t('goldPerOunce')}:</span>
         <span className="text-sm font-bold text-white">
           ${formatPrice(goldQuotation * 31.1035)} MXN/oz
         </span>
@@ -122,7 +126,7 @@ export function MarketTicker() {
 
       {/* Información adicional: Precio del oro en USD (calculado) */}
       <div className="flex items-center gap-2 px-4">
-        <span className="text-xs text-white/90">Oro en USD:</span>
+        <span className="text-xs text-white/90">{t('goldInUSD')}:</span>
         <span className="text-sm font-bold text-white">
           ${formatPrice(goldQuotation / exchangeRate, 2)} USD/gr
         </span>

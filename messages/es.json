@@ -563,6 +563,13 @@
       "description": "Descubre pulseras y brazaletes de oro 10k. Desde elegantes pulseras tenis hasta brazaletes personalizados. Joyería artesanal jalisciense con la más alta calidad y certificado de autenticidad."
     }
   },
+  "marketTicker": {
+    "loading": "Cargando información del mercado...",
+    "goldQuotation": "Cotización del Oro",
+    "exchangeRate": "Tasa de Cambio",
+    "goldPerOunce": "Oro por onza",
+    "goldInUSD": "Oro en USD"
+  },
   "admin": {
     "title": "Panel de Administración",
     "back": "Volver",
