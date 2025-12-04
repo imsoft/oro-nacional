@@ -451,6 +451,8 @@ export async function getProductById(id: string) {
       has_engraving,
       is_active,
       category_id,
+      base_price,
+      base_grams,
       created_at,
       updated_at,
       category:product_categories(id, name_es, name_en, slug_es, slug_en),
