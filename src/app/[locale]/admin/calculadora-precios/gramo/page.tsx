@@ -1017,7 +1017,7 @@ export default function PriceCalculatorPage() {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmApplyAllPrices}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium"
             >
               Aplicar a Todos
             </AlertDialogAction>
