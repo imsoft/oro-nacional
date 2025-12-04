@@ -136,13 +136,25 @@ export default function AdminSettings() {
         standard_shipping_cost: parseFloat(standardShippingCost) || 0,
         express_shipping_cost: parseFloat(expressShippingCost) || 0,
         delivery_time: deliveryTime,
-        exchange_rate: parseFloat(exchangeRate) || 0.0588,
+        exchange_rate: parseFloat(exchangeRate) || 18.00,
       });
 
       if (result.success) {
-        alert(locale === 'es'
+        let message = locale === 'es'
           ? 'Configuración guardada exitosamente'
-          : 'Settings saved successfully');
+          : 'Settings saved successfully';
+        
+        // Si se actualizaron precios, agregar información
+        if (result.pricesUpdated) {
+          const { products, sizes } = result.pricesUpdated;
+          if (products > 0 || sizes > 0) {
+            message += `\n\n${locale === 'es' 
+              ? `✅ Se actualizaron automáticamente los precios USD:\n- ${products} producto(s)\n- ${sizes} talla(s)`
+              : `✅ USD prices automatically updated:\n- ${products} product(s)\n- ${sizes} size(s)`}`;
+          }
+        }
+        
+        alert(message);
       } else {
         alert(result.error || (locale === 'es'
           ? 'Error al guardar la configuración'

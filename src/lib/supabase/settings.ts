@@ -242,15 +242,16 @@ export async function getStoreSettings(): Promise<StoreSettings | null> {
 /**
  * Update store settings
  * Updates the first row in store_settings table
+ * If exchange_rate is updated, automatically updates all USD prices
  */
 export async function updateStoreSettings(
   settings: UpdateStoreSettingsData
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; pricesUpdated?: { products: number; sizes: number } }> {
   try {
-    // First, get the ID of the settings row
+    // First, get the ID and current exchange_rate of the settings row
     const { data: existingSettings, error: fetchError } = await supabase
       .from("store_settings")
-      .select("id")
+      .select("id, exchange_rate")
       .limit(1)
       .single();
 
@@ -261,6 +262,12 @@ export async function updateStoreSettings(
         error: "No se pudieron cargar las configuraciones existentes",
       };
     }
+
+    // Check if exchange_rate is being updated
+    const exchangeRateChanged = 
+      settings.exchange_rate !== undefined && 
+      settings.exchange_rate !== null &&
+      existingSettings.exchange_rate !== settings.exchange_rate;
 
     // Update the settings
     const { error: updateError } = await supabase
@@ -276,7 +283,33 @@ export async function updateStoreSettings(
       };
     }
 
-    return { success: true };
+    // If exchange_rate changed, update all USD prices
+    let pricesUpdated: { products: number; sizes: number } | undefined;
+    if (exchangeRateChanged && settings.exchange_rate) {
+      try {
+        const { data, error: rpcError } = await supabase.rpc('update_all_usd_prices', {
+          new_exchange_rate: settings.exchange_rate,
+          update_all: true, // Actualizar todos los precios, no solo los NULL
+        });
+
+        if (rpcError) {
+          console.error("Error updating USD prices:", rpcError);
+          // No fallar la actualización de settings si falla la actualización de precios
+          // pero loguear el error
+        } else if (data && data.length > 0) {
+          pricesUpdated = {
+            products: data[0].products_updated || 0,
+            sizes: data[0].sizes_updated || 0,
+          };
+          console.log(`✅ Updated ${pricesUpdated.products} products and ${pricesUpdated.sizes} sizes with new exchange rate`);
+        }
+      } catch (rpcError) {
+        console.error("Error calling update_all_usd_prices:", rpcError);
+        // No fallar la actualización de settings si falla la actualización de precios
+      }
+    }
+
+    return { success: true, pricesUpdated };
   } catch (error) {
     console.error("Unexpected error updating settings:", error);
     return {
