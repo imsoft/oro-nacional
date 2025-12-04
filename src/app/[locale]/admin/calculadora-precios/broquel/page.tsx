@@ -633,7 +633,7 @@ export default function BroquelCalculatorPage() {
           <Button
             onClick={handleApplyAllPrices}
             disabled={isApplyingAllPrices || calculatedSubcategories.length === 0}
-            className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+            className="gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium disabled:text-white disabled:opacity-50"
           >
             {isApplyingAllPrices ? (
               <>
