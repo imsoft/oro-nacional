@@ -235,41 +235,63 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
     loadProduct();
   }, [productId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Calcular automáticamente los precios cuando cambien los gramos o el precio base
+  // Calcular automáticamente los precios cuando cambien los gramos usando la fórmula completa
   useEffect(() => {
-    // Solo calcular si hay precio base y gramos base definidos
-    if (!productBasePrice || !productBaseGrams || productBaseGrams <= 0) {
+    // Solo calcular si hay categoría y subcategoría interna seleccionadas
+    if (!formData.internal_category_id || !formData.internal_subcategory_id) {
       return;
     }
 
-    // Calcular precio para cada talla que tenga gramos definidos
-    const newSizes = formData.sizes.map((size) => {
-      // Si la talla tiene gramos definidos, calcular precio proporcional
-      if (size.weight && size.weight > 0) {
-        const calculatedPrice = productBasePrice * (size.weight / productBaseGrams);
-        const roundedPrice = Math.round(calculatedPrice * 100) / 100; // Redondear a 2 decimales
-        
-        // Solo actualizar si el precio calculado es diferente al actual
-        if (Math.abs(roundedPrice - (size.price || 0)) > 0.01) {
-          return {
-            ...size,
-            price: roundedPrice,
-          };
-        }
-      }
-      return size;
-    });
-
-    // Actualizar solo si hay cambios
-    const hasChanges = newSizes.some((newSize, index) => {
-      const oldSize = formData.sizes[index];
-      return oldSize && newSize.price !== oldSize.price;
-    });
-
-    if (hasChanges) {
-      updateField("sizes", newSizes);
+    // Obtener el nombre de la categoría interna
+    const selectedCategory = internalCategories.find(cat => cat.id === formData.internal_category_id);
+    if (!selectedCategory) {
+      return;
     }
-  }, [productBasePrice, productBaseGrams, formData.sizes]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Calcular precio para cada talla que tenga gramos definidos usando la fórmula completa
+    const calculatePrices = async () => {
+      const newSizes = await Promise.all(
+        formData.sizes.map(async (size) => {
+          // Si la talla tiene gramos definidos, calcular precio usando la fórmula completa
+          if (size.weight && size.weight > 0) {
+            try {
+              const calculatedPrice = await calculateDynamicProductPrice({
+                goldGrams: size.weight,
+                subcategoryId: formData.internal_subcategory_id!,
+                categoryName: selectedCategory.name!,
+              });
+
+              if (calculatedPrice !== null) {
+                return {
+                  ...size,
+                  price: calculatedPrice,
+                };
+              }
+            } catch (error) {
+              console.error("Error calculating price for size:", error);
+            }
+          }
+          return size;
+        })
+      );
+
+      // Actualizar solo si hay cambios
+      const hasChanges = newSizes.some((newSize, index) => {
+        const oldSize = formData.sizes[index];
+        return oldSize && newSize.price !== oldSize.price;
+      });
+
+      if (hasChanges) {
+        updateField("sizes", newSizes);
+      }
+    };
+
+    // Solo calcular si hay tallas con gramos definidos
+    const hasSizesWithWeight = formData.sizes.some(size => size.weight && size.weight > 0);
+    if (hasSizesWithWeight) {
+      calculatePrices();
+    }
+  }, [formData.internal_category_id, formData.internal_subcategory_id, formData.sizes.map(s => `${s.weight || ''}`).join(',')]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleDeleteImage = async (imageId: string, index: number) => {
     if (!window.confirm(t('productForm.confirmDeleteImage') || '¿Estás seguro de que deseas eliminar esta imagen?')) {
@@ -432,20 +454,12 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
     setCalculatingPriceForIndex(index);
 
     try {
-      let calculatedPrice: number | null = null;
-
-      // Si hay precio base y gramos base, calcular proporcionalmente
-      if (productBasePrice && productBaseGrams && productBaseGrams > 0) {
-        calculatedPrice = productBasePrice * (size.weight / productBaseGrams);
-        calculatedPrice = Math.round(calculatedPrice * 100) / 100; // Redondear a 2 decimales
-      } else {
-        // Si no hay precio base, calcular dinámicamente desde cero
-        calculatedPrice = await calculateDynamicProductPrice({
-          goldGrams: size.weight,
-          subcategoryId: formData.internal_subcategory_id,
-          categoryName: selectedCategory.name,
-        });
-      }
+      // Siempre calcular usando la fórmula completa
+      const calculatedPrice = await calculateDynamicProductPrice({
+        goldGrams: size.weight,
+        subcategoryId: formData.internal_subcategory_id,
+        categoryName: selectedCategory.name,
+      });
 
       if (calculatedPrice !== null) {
         updateSize(index, "price", calculatedPrice);

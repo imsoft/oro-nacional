@@ -1116,7 +1116,7 @@ export async function updateMultipleProductPrices(
         throw productError;
       }
 
-      // 2. Get all sizes for this product with their weights
+      // 2. Get all sizes for this product
       const { data: sizes, error: sizesError } = await supabase
         .from("product_sizes")
         .select("id, weight, price")
@@ -1126,31 +1126,23 @@ export async function updateMultipleProductPrices(
         throw sizesError;
       }
 
-      // 3. Calculate and update size prices proportionally
-      if (sizes && sizes.length > 0 && update.baseGrams > 0) {
-        const sizeUpdates = sizes
-          .filter(size => size.weight != null && size.weight > 0)
-          .map(size => {
-            // Calculate proportional price: basePrice * (sizeWeight / baseGrams)
-            const proportionalPrice = update.price * (Number(size.weight) / update.baseGrams);
-            return {
-              id: size.id,
-              price: Math.round(proportionalPrice * 100) / 100, // Round to 2 decimal places
-            };
-          });
+      // 3. Update all size prices with the final price directly (no proportional calculation)
+      if (sizes && sizes.length > 0) {
+        const sizeUpdates = sizes.map(size => ({
+          id: size.id,
+          price: Math.round(update.price * 100) / 100, // Round to 2 decimal places
+        }));
 
-        // Update all size prices
-        if (sizeUpdates.length > 0) {
-          for (const sizeUpdate of sizeUpdates) {
-            const { error: sizeUpdateError } = await supabase
-              .from("product_sizes")
-              .update({ price: sizeUpdate.price })
-              .eq("id", sizeUpdate.id);
+        // Update all size prices with the same final price
+        for (const sizeUpdate of sizeUpdates) {
+          const { error: sizeUpdateError } = await supabase
+            .from("product_sizes")
+            .update({ price: sizeUpdate.price })
+            .eq("id", sizeUpdate.id);
 
-            if (sizeUpdateError) {
-              console.error(`Error updating size ${sizeUpdate.id}:`, sizeUpdateError);
-              // Continue with other sizes even if one fails
-            }
+          if (sizeUpdateError) {
+            console.error(`Error updating size ${sizeUpdate.id}:`, sizeUpdateError);
+            // Continue with other sizes even if one fails
           }
         }
       }
