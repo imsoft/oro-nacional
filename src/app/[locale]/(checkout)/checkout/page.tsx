@@ -20,8 +20,8 @@ import { getStripeClient } from "@/lib/stripe/client";
 import { StripePaymentElement } from "@/components/checkout/stripe-payment-element";
 import { InstallmentSelector, type InstallmentOption } from "@/components/checkout/installment-selector";
 import type { CreateOrderData, PaymentMethod } from "@/types/order";
-import { getSiteSettings } from "@/lib/supabase/settings";
-import type { SiteSettings } from "@/types/settings";
+import { getStoreSettings } from "@/lib/supabase/settings";
+import type { StoreSettings } from "@/lib/supabase/settings";
 import { Phone, Mail, MapPin } from "lucide-react";
 
 const CheckoutPage = () => {
@@ -38,7 +38,7 @@ const CheckoutPage = () => {
   const [stripeEnabled, setStripeEnabled] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
-  const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
+  const [storeSettings, setStoreSettings] = useState<StoreSettings | null>(null);
 
   // Datos de envío
   const [shippingData, setShippingData] = useState({
@@ -74,11 +74,11 @@ const CheckoutPage = () => {
     initStripe();
   }, []);
 
-  // Cargar datos de configuración del sitio
+  // Cargar datos de configuración de la tienda
   useEffect(() => {
     const loadSettings = async () => {
-      const settings = await getSiteSettings();
-      setSiteSettings(settings);
+      const settings = await getStoreSettings();
+      setStoreSettings(settings);
     };
     loadSettings();
   }, []);
@@ -588,54 +588,48 @@ const CheckoutPage = () => {
                         </div>
                       </div>
 
-                      {siteSettings && (
+                      {storeSettings && (
                         <div className="p-4 rounded-lg border border-[#D4AF37]/20 bg-[#D4AF37]/5">
                           <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                             <Phone className="h-4 w-4 text-[#D4AF37]" />
                             Datos de Contacto
                           </h3>
                           <div className="space-y-2 text-sm">
-                            {siteSettings.contact_phone && (
+                            {storeSettings.phone && (
                               <div className="flex items-start gap-2">
                                 <Phone className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                                 <div>
                                   <span className="text-muted-foreground">Teléfono: </span>
                                   <a 
-                                    href={`tel:${siteSettings.contact_phone.replace(/\s/g, '')}`}
+                                    href={`tel:${storeSettings.phone.replace(/\s/g, '')}`}
                                     className="text-foreground font-medium hover:text-[#D4AF37] transition-colors"
                                   >
-                                    {siteSettings.contact_phone}
+                                    {storeSettings.phone}
                                   </a>
                                 </div>
                               </div>
                             )}
-                            {siteSettings.contact_email && (
+                            {storeSettings.contact_email && (
                               <div className="flex items-start gap-2">
                                 <Mail className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                                 <div>
                                   <span className="text-muted-foreground">Email: </span>
                                   <a 
-                                    href={`mailto:${siteSettings.contact_email}`}
+                                    href={`mailto:${storeSettings.contact_email}`}
                                     className="text-foreground font-medium hover:text-[#D4AF37] transition-colors break-all"
                                   >
-                                    {siteSettings.contact_email}
+                                    {storeSettings.contact_email}
                                   </a>
                                 </div>
                               </div>
                             )}
-                            {(siteSettings.address_street || siteSettings.address_city) && (
+                            {storeSettings.address && (
                               <div className="flex items-start gap-2">
                                 <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                                 <div className="text-foreground">
                                   <div className="font-medium">Dirección:</div>
                                   <div className="text-muted-foreground">
-                                    {[
-                                      siteSettings.address_street,
-                                      siteSettings.address_colony,
-                                      siteSettings.address_city,
-                                      siteSettings.address_state,
-                                      siteSettings.address_zip
-                                    ].filter(Boolean).join(', ')}
+                                    {storeSettings.address}
                                   </div>
                                 </div>
                               </div>
@@ -658,54 +652,48 @@ const CheckoutPage = () => {
                         </p>
                       </div>
 
-                      {siteSettings && (
+                      {storeSettings && (
                         <div className="p-4 rounded-lg border border-[#D4AF37]/20 bg-[#D4AF37]/5">
                           <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                             <Phone className="h-4 w-4 text-[#D4AF37]" />
                             Datos de Contacto
                           </h3>
                           <div className="space-y-2 text-sm">
-                            {siteSettings.contact_phone && (
+                            {storeSettings.phone && (
                               <div className="flex items-start gap-2">
                                 <Phone className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                                 <div>
                                   <span className="text-muted-foreground">Teléfono: </span>
                                   <a 
-                                    href={`tel:${siteSettings.contact_phone.replace(/\s/g, '')}`}
+                                    href={`tel:${storeSettings.phone.replace(/\s/g, '')}`}
                                     className="text-foreground font-medium hover:text-[#D4AF37] transition-colors"
                                   >
-                                    {siteSettings.contact_phone}
+                                    {storeSettings.phone}
                                   </a>
                                 </div>
                               </div>
                             )}
-                            {siteSettings.contact_email && (
+                            {storeSettings.contact_email && (
                               <div className="flex items-start gap-2">
                                 <Mail className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                                 <div>
                                   <span className="text-muted-foreground">Email: </span>
                                   <a 
-                                    href={`mailto:${siteSettings.contact_email}`}
+                                    href={`mailto:${storeSettings.contact_email}`}
                                     className="text-foreground font-medium hover:text-[#D4AF37] transition-colors break-all"
                                   >
-                                    {siteSettings.contact_email}
+                                    {storeSettings.contact_email}
                                   </a>
                                 </div>
                               </div>
                             )}
-                            {(siteSettings.address_street || siteSettings.address_city) && (
+                            {storeSettings.address && (
                               <div className="flex items-start gap-2">
                                 <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                                 <div className="text-foreground">
                                   <div className="font-medium">Dirección:</div>
                                   <div className="text-muted-foreground">
-                                    {[
-                                      siteSettings.address_street,
-                                      siteSettings.address_colony,
-                                      siteSettings.address_city,
-                                      siteSettings.address_state,
-                                      siteSettings.address_zip
-                                    ].filter(Boolean).join(', ')}
+                                    {storeSettings.address}
                                   </div>
                                 </div>
                               </div>
