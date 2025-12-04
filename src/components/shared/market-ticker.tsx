@@ -1,22 +1,10 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { DollarSign, Gem } from 'lucide-react';
-
-interface MarketPrice {
-  value: number;
-  change: number;
-  changePercent: number;
-  lastUpdate: Date;
-}
-
-interface MarketData {
-  gold: MarketPrice;
-  usd: MarketPrice;
-}
+import { DollarSign, Gem, TrendingUp, TrendingDown } from 'lucide-react';
 
 export function MarketTicker() {
-  const [data, setData] = useState<MarketData | null>(null);
+  const [goldQuotation, setGoldQuotation] = useState<number | null>(null);
   const [exchangeRate, setExchangeRate] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,24 +14,23 @@ export function MarketTicker() {
       setIsLoading(true);
       setError(null);
 
-      // Obtener datos del mercado (oro y USD desde API externa)
-      const [marketResponse, settingsResponse] = await Promise.all([
-        fetch('/api/market/prices'),
+      // Obtener cotización del oro y tasa de cambio desde configuración
+      const [goldResponse, exchangeResponse] = await Promise.all([
+        fetch('/api/settings/gold-quotation'),
         fetch('/api/settings/exchange-rate'),
       ]);
 
-      if (!marketResponse.ok) {
-        throw new Error('Failed to fetch market data');
+      if (goldResponse.ok) {
+        const goldResult = await goldResponse.json();
+        if (goldResult.gold_quotation) {
+          setGoldQuotation(goldResult.gold_quotation);
+        }
       }
 
-      const marketResult = await marketResponse.json();
-      setData(marketResult.data);
-
-      // Obtener tasa de cambio desde store_settings (la que el usuario configura)
-      if (settingsResponse.ok) {
-        const settingsResult = await settingsResponse.json();
-        if (settingsResult.exchange_rate) {
-          setExchangeRate(settingsResult.exchange_rate);
+      if (exchangeResponse.ok) {
+        const exchangeResult = await exchangeResponse.json();
+        if (exchangeResult.exchange_rate) {
+          setExchangeRate(exchangeResult.exchange_rate);
         }
       }
     } catch (err) {
@@ -72,13 +59,13 @@ export function MarketTicker() {
   };
 
   // Si está cargando y no hay datos, mostrar cintilla con mensaje de carga
-  if (isLoading && !data) {
+  if (isLoading && (!goldQuotation || !exchangeRate)) {
     return (
       <div className="relative bg-gradient-to-r from-[#D4AF37] via-[#B8941E] to-[#D4AF37] text-white py-3 overflow-hidden border-b border-[#A0821A]/50 shadow-md">
-        <div className="flex items-center animate-scroll">
-          <div className="flex items-center gap-4 whitespace-nowrap">
-            <Gem className="h-4 w-4 flex-shrink-0" />
-            <span className="text-sm font-medium">Cargando precios del mercado...</span>
+        <div className="flex items-center justify-center">
+          <div className="flex items-center gap-2 whitespace-nowrap">
+            <Gem className="h-4 w-4 animate-pulse" />
+            <span className="text-sm font-medium">Cargando información del mercado...</span>
           </div>
         </div>
       </div>
@@ -86,32 +73,58 @@ export function MarketTicker() {
   }
 
   // Si hay error y no hay datos, no mostrar nada
-  if (error && !data) {
+  if (error && (!goldQuotation || !exchangeRate)) {
     return null;
   }
 
-  // Preparar contenido para la cintilla animada
-  const goldPrice = data?.gold.value || 0;
-  const usdRate = exchangeRate || data?.usd.value || 0;
+  // Si no hay datos, no mostrar nada
+  if (!goldQuotation || !exchangeRate) {
+    return null;
+  }
 
-  // Contenido de la cintilla
+  // Contenido de la cintilla con mejor separación
   const tickerContent = (
     <>
-      <div className="flex items-center gap-3">
-        <Gem className="h-4 w-4 flex-shrink-0" />
-        <span className="text-sm font-semibold">Oro:</span>
-        <span className="text-sm font-bold">
-          ${formatPrice(goldPrice)} MXN/oz
+      {/* Cotización del Oro */}
+      <div className="flex items-center gap-2 px-4">
+        <Gem className="h-4 w-4 flex-shrink-0 text-white" />
+        <span className="text-sm font-semibold text-white">Cotización del Oro:</span>
+        <span className="text-sm font-bold text-white">
+          ${formatPrice(goldQuotation)} MXN/gr
         </span>
       </div>
 
-      <div className="w-px h-4 bg-white/40" />
+      {/* Separador */}
+      <div className="w-px h-5 bg-white/50 flex-shrink-0" />
 
-      <div className="flex items-center gap-3">
-        <DollarSign className="h-4 w-4 flex-shrink-0" />
-        <span className="text-sm font-semibold">Dólar:</span>
-        <span className="text-sm font-bold">
-          ${formatPrice(usdRate, 2)} MXN/USD
+      {/* Tasa de Cambio */}
+      <div className="flex items-center gap-2 px-4">
+        <DollarSign className="h-4 w-4 flex-shrink-0 text-white" />
+        <span className="text-sm font-semibold text-white">Tasa de Cambio:</span>
+        <span className="text-sm font-bold text-white">
+          ${formatPrice(exchangeRate, 2)} MXN/USD
+        </span>
+      </div>
+
+      {/* Separador */}
+      <div className="w-px h-5 bg-white/50 flex-shrink-0" />
+
+      {/* Información adicional: Precio del oro por onza (calculado) */}
+      <div className="flex items-center gap-2 px-4">
+        <span className="text-xs text-white/90">Oro por onza:</span>
+        <span className="text-sm font-bold text-white">
+          ${formatPrice(goldQuotation * 31.1035)} MXN/oz
+        </span>
+      </div>
+
+      {/* Separador */}
+      <div className="w-px h-5 bg-white/50 flex-shrink-0" />
+
+      {/* Información adicional: Precio del oro en USD (calculado) */}
+      <div className="flex items-center gap-2 px-4">
+        <span className="text-xs text-white/90">Oro en USD:</span>
+        <span className="text-sm font-bold text-white">
+          ${formatPrice(goldQuotation / exchangeRate, 2)} USD/gr
         </span>
       </div>
     </>
@@ -119,13 +132,16 @@ export function MarketTicker() {
 
   return (
     <div className="relative bg-gradient-to-r from-[#D4AF37] via-[#B8941E] to-[#D4AF37] text-white py-3 overflow-hidden border-b border-[#A0821A]/50 shadow-md">
-      {/* Contenedor con animación continua */}
+      {/* Contenedor con animación continua - sin espacios vacíos */}
       <div className="flex items-center ticker-container">
-        {/* Contenido duplicado para efecto continuo infinito */}
-        <div className="flex items-center gap-8 md:gap-12 whitespace-nowrap ticker-content">
+        {/* Múltiples copias para efecto continuo infinito sin espacios */}
+        <div className="flex items-center whitespace-nowrap ticker-content">
           {tickerContent}
         </div>
-        <div className="flex items-center gap-8 md:gap-12 whitespace-nowrap ticker-content">
+        <div className="flex items-center whitespace-nowrap ticker-content">
+          {tickerContent}
+        </div>
+        <div className="flex items-center whitespace-nowrap ticker-content">
           {tickerContent}
         </div>
       </div>
@@ -136,14 +152,14 @@ export function MarketTicker() {
             transform: translateX(0);
           }
           100% {
-            transform: translateX(-50%);
+            transform: translateX(calc(-100% / 3));
           }
         }
 
         .ticker-container {
           display: flex;
           width: fit-content;
-          animation: scroll 40s linear infinite;
+          animation: scroll 60s linear infinite;
         }
 
         .ticker-container:hover {
