@@ -32,7 +32,7 @@ const CheckoutPage = () => {
   const { user } = useAuthStore();
   const total = useCartStore((state) => state.getTotal());
   const itemCount = useCartStore((state) => state.getItemCount());
-  const { formatPrice } = useCurrency();
+  const { formatPrice, currency, convertPrice, exchangeRate } = useCurrency();
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -62,7 +62,12 @@ const CheckoutPage = () => {
   const [selectedInstallments, setSelectedInstallments] = useState<InstallmentOption>(1);
 
   const shippingCost = 0; // Envío gratis
-  const finalTotal = total + shippingCost;
+  // El total del carrito está en MXN, convertirlo a la moneda del contexto
+  const finalTotalMXN = total + shippingCost;
+  // Convertir a la moneda seleccionada para mostrar y para Stripe
+  const finalTotal = currency === 'USD' 
+    ? (exchangeRate > 0 ? finalTotalMXN / exchangeRate : finalTotalMXN)
+    : finalTotalMXN;
 
   // Inicializar Stripe
   useEffect(() => {
@@ -490,7 +495,7 @@ const CheckoutPage = () => {
 
                   <TabsContent value="card" className="space-y-4 mt-6">
                     {/* Selector de Meses Sin Intereses */}
-                    {stripeEnabled && (
+                    {stripeEnabled && currency === 'MXN' && (
                       <InstallmentSelector
                         total={finalTotal}
                         selectedInstallments={selectedInstallments}
@@ -501,6 +506,14 @@ const CheckoutPage = () => {
                           setOrderId(null);
                         }}
                       />
+                    )}
+                    {stripeEnabled && currency === 'USD' && (
+                      <div className="rounded-lg bg-muted/50 p-4 border border-border">
+                        <p className="text-sm text-muted-foreground">
+                          Los meses sin intereses (MSI) están disponibles solo para pagos en MXN. 
+                          Para usar MSI, cambia el idioma a Español.
+                        </p>
+                      </div>
                     )}
 
                     {stripeEnabled && clientSecret && stripeClient ? (
@@ -533,12 +546,19 @@ const CheckoutPage = () => {
 
                             // Crear Payment Intent
                             console.log('Creating Payment Intent...');
+                            // Determinar la moneda según el contexto (español → MXN, inglés → USD)
+                            const stripeCurrency = currency.toLowerCase();
+                            // El amount debe estar en unidades (el API lo convertirá a centavos)
+                            const stripeAmount = currency === 'USD' 
+                              ? finalTotal // Ya está en USD
+                              : finalTotalMXN; // En MXN
+                            
                             const response = await fetch('/api/stripe/create-payment-intent', {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({
-                                amount: finalTotal,
-                                currency: 'mxn',
+                                amount: stripeAmount,
+                                currency: stripeCurrency,
                                 orderId: createdOrderId,
                                 customerEmail: shippingData.email,
                                 installments: selectedInstallments,

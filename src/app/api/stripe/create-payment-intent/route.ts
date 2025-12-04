@@ -53,8 +53,9 @@ export async function POST(request: NextRequest) {
       },
     };
 
-    // Agregar configuración de MSI solo si se solicitan meses sin intereses
-    if (installments && installments > 1) {
+    // Agregar configuración de MSI solo si se solicitan meses sin intereses Y la moneda es MXN
+    // Nota: Los MSI en México solo están disponibles para pagos en MXN
+    if (installments && installments > 1 && currency.toLowerCase() === 'mxn') {
       paymentIntentParams.payment_method_options = {
         card: {
           installments: {
