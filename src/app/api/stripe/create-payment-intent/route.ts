@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { amount, currency = 'mxn', orderId, customerEmail, installments, metadata = {} } = body;
+    const { amount, currency = 'mxn', orderId, customerEmail, installments, metadata: customMetadata = {} } = body;
     console.log('[Stripe API] Request data:', { amount, currency, orderId, customerEmail, installments });
 
     // Validar que el monto sea válido
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
         orderId: orderId || '',
         customerEmail: customerEmail || '',
         installments: installments?.toString() || '1',
-        ...metadata,
+        ...customMetadata, // Incluir locale y otros metadatos personalizados
       },
     };
 

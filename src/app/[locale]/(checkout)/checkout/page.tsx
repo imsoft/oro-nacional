@@ -562,6 +562,9 @@ const CheckoutPage = () => {
                                 orderId: createdOrderId,
                                 customerEmail: shippingData.email,
                                 installments: selectedInstallments,
+                                metadata: {
+                                  locale: locale, // Agregar locale para los correos
+                                },
                               }),
                             });
 
