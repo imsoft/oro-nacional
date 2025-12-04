@@ -15,10 +15,11 @@ const Home = () => {
       <JsonLd data={getWebsiteSchema()} />
       <JsonLd data={getLocalBusinessSchema()} />
 
-      {/* Cintilla de precios del mercado */}
+      <HeroSection />
+      
+      {/* Cintilla de precios del mercado - Justo debajo del hero */}
       <MarketTicker />
 
-      <HeroSection />
       <FeaturedCategories />
       <FeaturedCollection />
       <Benefits />
