@@ -214,7 +214,9 @@ const CheckoutPage = () => {
     }
 
     // Si es pago con tarjeta y Stripe está habilitado, el pago se maneja con Stripe Payment Element
-    if (paymentMethod === 'card' && stripeEnabled && clientSecret) {
+    // No crear el pedido directamente, debe pasar por el flujo de Stripe
+    if (paymentMethod === 'card' && stripeEnabled) {
+      setError("Por favor, primero crea el Payment Intent haciendo clic en 'Continuar al pago con tarjeta'");
       return;
     }
 
@@ -766,7 +768,7 @@ const CheckoutPage = () => {
                 </div>
 
                 {/* Botón - Solo mostrar si no es pago con tarjeta usando Stripe */}
-                {!(paymentMethod === 'card' && stripeEnabled && clientSecret) && (
+                {!(paymentMethod === 'card' && stripeEnabled) && (
                   <Button
                     type="submit"
                     size="lg"
