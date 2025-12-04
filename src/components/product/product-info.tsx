@@ -230,9 +230,16 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
 
       {/* Precio */}
       <div className="flex items-baseline gap-4">
-        <p className="text-4xl font-semibold text-foreground">
-          {isCalculatingPrice ? "Calculando..." : formatPrice(currentPrice)}
-        </p>
+        <div className="flex items-baseline gap-2">
+          <p className="text-4xl font-semibold text-foreground">
+            {isCalculatingPrice ? "Calculando..." : formatPrice(currentPrice)}
+          </p>
+          {!isCalculatingPrice && (
+            <span className="text-lg font-medium text-muted-foreground">
+              {currency}
+            </span>
+          )}
+        </div>
         <p className="text-sm text-muted-foreground">
           {calculatedPrice !== null ? "Precio calculado dinámicamente" : "IVA incluido"}
         </p>
@@ -305,7 +312,7 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
                         <span>{sizeObj.size}</span>
                         {isSizesWithPrice && (
                           <span className="text-xs text-muted-foreground mt-1">
-                            {formatPrice(convertPrice(sizeObj.price, sizeObj.price_usd))}
+                            {formatPrice(convertPrice(sizeObj.price, sizeObj.price_usd))} {currency}
                           </span>
                         )}
                         {sizeObj.weight !== undefined && sizeObj.weight !== null && (
@@ -393,7 +400,7 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
                 Pago mensual ({selectedMSI} meses):
               </span>
               <span className="text-base font-semibold text-[#D4AF37]">
-                {formatPrice(monthlyPayment)}
+                {formatPrice(monthlyPayment)} {currency}
               </span>
             </div>
           </div>
