@@ -199,11 +199,12 @@ export default function BroquelCalculatorPage() {
     // 8. * (1 + IVA)
     const subtotalWithVat = subtotalWithShipping * (1 + parameters.vat);
 
+    // NO incluir comisiones de Stripe en el precio base - se aplicarán al momento del pago
     // 9. * (1 + STRIPE%)
-    const subtotalWithStripe = subtotalWithVat * (1 + parameters.stripePercentage);
-
+    // const subtotalWithStripe = subtotalWithVat * (1 + parameters.stripePercentage);
     // 10. + STRIPE FIJO
-    const finalPrice = subtotalWithStripe + parameters.stripeFixedFee;
+    // const finalPrice = subtotalWithStripe + parameters.stripeFixedFee;
+    const finalPrice = subtotalWithVat; // Precio base sin comisiones de Stripe
 
     return {
       id: subcategoryItem.id,
@@ -225,7 +226,7 @@ export default function BroquelCalculatorPage() {
       subtotalBeforeProfit: subtotalByPieces,
       subtotalWithProfit,
       subtotalWithVat,
-      subtotalWithStripe,
+      subtotalWithStripe: subtotalWithVat * (1 + parameters.stripePercentage), // Solo para mostrar en la tabla
       finalPrice,
     };
   };

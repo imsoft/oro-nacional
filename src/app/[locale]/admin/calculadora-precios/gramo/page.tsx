@@ -153,10 +153,12 @@ export default function PriceCalculatorPage() {
     const subtotalWithCommissions =
       subtotalWithProfit + commissionCost + shippingCost;
     const subtotalWithVat = subtotalWithCommissions * (1 + parameters.vat);
-    const subtotalWithStripePercentage =
-      subtotalWithVat * (1 + parameters.stripePercentage);
-    const finalPrice =
-      subtotalWithStripePercentage + parameters.stripeFixedFee;
+    // NO incluir comisiones de Stripe en el precio base - se aplicarán al momento del pago
+    // const subtotalWithStripePercentage =
+    //   subtotalWithVat * (1 + parameters.stripePercentage);
+    // const finalPrice =
+    //   subtotalWithStripePercentage + parameters.stripeFixedFee;
+    const finalPrice = subtotalWithVat; // Precio base sin comisiones de Stripe
 
     return {
       id: subcategory.id,
@@ -179,7 +181,7 @@ export default function PriceCalculatorPage() {
       commissionCost,
       subtotalWithCommissions,
       subtotalWithVat,
-      subtotalWithStripePercentage,
+      subtotalWithStripePercentage: subtotalWithVat * (1 + parameters.stripePercentage), // Solo para mostrar en la tabla
       finalPrice,
     };
   };
