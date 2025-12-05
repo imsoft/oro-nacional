@@ -94,7 +94,7 @@ export function MarketTicker() {
       </div>
 
       {/* Separador */}
-      <div className="w-px h-5 bg-white/50 flex-shrink-0" />
+      <span className="text-sm text-white/70 px-2">|</span>
 
       {/* Tasa de Cambio */}
       <div className="flex items-center gap-2 px-4">
@@ -105,7 +105,7 @@ export function MarketTicker() {
       </div>
 
       {/* Separador */}
-      <div className="w-px h-5 bg-white/50 flex-shrink-0" />
+      <span className="text-sm text-white/70 px-2">|</span>
 
       {/* Información adicional: Precio del oro en USD (calculado) */}
       <div className="flex items-center gap-2 px-4">
