@@ -8,6 +8,7 @@ interface ProductLayoutProps {
   children: React.ReactNode;
   params: Promise<{
     slug: string;
+    locale: string;
   }>;
 }
 
@@ -22,27 +23,75 @@ export async function generateMetadata({
 
   try {
     // Obtener metadata del producto desde Supabase
-    const { slug } = await params;
-    const product = await getProductBySlug(slug);
+    const { slug, locale } = await params;
+    const product = await getProductBySlug(slug, locale as 'es' | 'en');
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.oronacional.com';
 
     // Metadata por defecto si no existe el producto
     if (!product) {
       return defaultMetadata;
     }
 
-    const categoryName = product.category?.name || "Joyería";
+    const categoryName = product.category?.name || (locale === 'es' ? "Joyería" : "Jewelry");
     const primaryImage = product.images?.find((img) => img.is_primary)?.image_url;
+    const allImages = product.images?.map(img => img.image_url) || [];
+    
+    // Obtener precio base
+    const basePrice = product.base_price ?? (product.sizes && product.sizes.length > 0 ? (product.sizes[0].price ?? 0) : 0);
+    
+    const productUrl = `${baseUrl}/${locale}/product/${product.slug}`;
+    const description = product.description?.substring(0, 160) || (locale === 'es' 
+      ? `Joyería fina de oro ${product.material} en Guadalajara, Jalisco.`
+      : `Fine ${product.material} gold jewelry in Guadalajara, Jalisco.`);
 
     return {
-      title: `${product.name} - ${product.material} | Oro Nacional Guadalajara`,
-      description: product.description.substring(0, 160),
-      keywords: `${product.name}, ${product.material}, ${categoryName}, joyería Guadalajara, joyería Jalisco, oro artesanal`,
+      title: `${product.name} - ${product.material} | Oro Nacional`,
+      description,
+      keywords: `${product.name}, ${product.material}, ${categoryName}, ${locale === 'es' 
+        ? 'joyería Guadalajara, joyería Jalisco, oro artesanal, anillos de oro, collares de oro'
+        : 'jewelry Guadalajara, jewelry Jalisco, artisan gold, gold rings, gold necklaces'}`,
       openGraph: {
         title: `${product.name} | Oro Nacional`,
-        description: product.description.substring(0, 160),
+        description,
         type: "website",
-        locale: "es_MX",
-        images: primaryImage ? [{ url: primaryImage, alt: product.name }] : [],
+        locale: (locale as string) === 'es' ? 'es_MX' : 'en_US',
+        url: productUrl,
+        siteName: 'Oro Nacional',
+        images: primaryImage ? [
+          {
+            url: primaryImage,
+            width: 1200,
+            height: 630,
+            alt: product.name,
+          },
+          ...allImages.slice(1, 4).map(img => ({
+            url: img,
+            alt: product.name,
+          })),
+        ] : [],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: `${product.name} | Oro Nacional`,
+        description,
+        images: primaryImage ? [primaryImage] : [],
+        creator: '@OroNacional',
+        site: '@OroNacional',
+      },
+      alternates: {
+        canonical: productUrl,
+        languages: {
+          'es-MX': `${baseUrl}/es/product/${product.slug}`,
+          'en-US': `${baseUrl}/en/product/${product.slug}`,
+        },
+      },
+      other: {
+        'product:price:amount': (basePrice ?? 0) > 0 ? (basePrice ?? 0).toString() : '',
+        'product:price:currency': (locale as string) === 'es' ? 'MXN' : 'USD',
+        'product:availability': product.sizes && product.sizes.some(s => s.stock > 0) ? 'in stock' : 'out of stock',
+        'product:condition': 'new',
+        'product:brand': 'Oro Nacional',
+        'product:category': categoryName,
       },
     };
   } catch (error) {

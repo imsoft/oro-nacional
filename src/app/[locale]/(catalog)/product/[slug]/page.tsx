@@ -13,6 +13,7 @@ import { Loader2 } from "lucide-react";
 import { getProductBySlug, getProductsByCategory } from "@/lib/supabase/products";
 import { getProductInternalCategoriesAndSubcategories } from "@/lib/supabase/internal-categories";
 import type { ProductDetail, Product } from "@/types/product";
+import { JsonLd, getProductSchema, getBreadcrumbSchema } from "@/components/seo/json-ld";
 
 interface ProductPageProps {
   params: Promise<{
@@ -161,24 +162,62 @@ export default function ProductPage({ params }: ProductPageProps) {
     };
   });
 
-  return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
+  // Preparar datos para structured data
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://www.oronacional.com';
+  const primaryImageForSchema = productImages[0] || '';
+  const basePriceForSchema = transformedProduct.basePrice || 0;
+  const isInStock = product.sizes && product.sizes.some(s => s.stock > 0);
+  
+  // Breadcrumbs para structured data
+  const breadcrumbItems = [
+    { name: locale === 'es' ? 'Inicio' : 'Home', url: `${baseUrl}/${locale}` },
+    { name: locale === 'es' ? 'Catálogo' : 'Catalog', url: `${baseUrl}/${locale}/catalog` },
+    {
+      name: product.category?.name || (locale === 'es' ? 'Productos' : 'Products'),
+      url: product.category?.slug
+        ? `${baseUrl}/${locale}/catalog?category=${product.category.slug}`
+        : `${baseUrl}/${locale}/catalog`,
+    },
+    { name: product.name, url: `${baseUrl}/${locale}/product/${product.slug}` },
+  ];
 
-      <main className="mx-auto max-w-7xl px-6 lg:px-8 pt-32">
-        {/* Breadcrumbs */}
-        <Breadcrumbs
-          items={[
-            { label: "Catálogo", href: "/catalog" },
-            {
-              label: product.category?.name || "Productos",
-              href: product.category?.slug
-                ? `/catalog?category=${product.category.slug}`
-                : "/catalog",
-            },
-            { label: product.name, href: `/product/${product.slug}` },
-          ]}
-        />
+  return (
+    <>
+      {/* Structured Data - JSON-LD */}
+      {primaryImageForSchema && basePriceForSchema > 0 && (
+        <>
+          <JsonLd
+            data={getProductSchema({
+              name: product.name,
+              description: product.description || '',
+              image: primaryImageForSchema,
+              price: basePriceForSchema,
+              currency: locale === 'es' ? 'MXN' : 'USD',
+              sku: product.id,
+              brand: 'Oro Nacional',
+              availability: isInStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+            })}
+          />
+          <JsonLd data={getBreadcrumbSchema(breadcrumbItems)} />
+        </>
+      )}
+      <div className="min-h-screen bg-background">
+        <Navbar />
+
+        <main className="mx-auto max-w-7xl px-6 lg:px-8 pt-32">
+          {/* Breadcrumbs */}
+          <Breadcrumbs
+            items={[
+              { label: locale === 'es' ? "Catálogo" : "Catalog", href: "/catalog" },
+              {
+                label: product.category?.name || (locale === 'es' ? "Productos" : "Products"),
+                href: product.category?.slug
+                  ? `/catalog?category=${product.category.slug}`
+                  : "/catalog",
+              },
+              { label: product.name, href: `/product/${product.slug}` },
+            ]}
+          />
 
         {/* Contenido del producto */}
         <div className="py-8 lg:py-12">
@@ -205,7 +244,8 @@ export default function ProductPage({ params }: ProductPageProps) {
         <RelatedProducts products={transformedRelated} />
       )}
 
-      <Footer />
-    </div>
+        <Footer />
+      </div>
+    </>
   );
 }
