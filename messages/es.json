@@ -324,7 +324,141 @@
     "notFoundTitle": "¿No Encontraste tu Respuesta?",
     "notFoundDesc": "Nuestro equipo está listo para ayudarte. Contáctanos por teléfono o correo y te responderemos a la brevedad.",
     "contactForm": "Formulario de Contacto",
-    "callUs": "Llamar"
+    "callUs": "Llamar",
+    "categories": {
+      "products": "Sobre Nuestros Productos",
+      "purchase": "Compra y Pago",
+      "shipping": "Envíos y Entregas",
+      "returns": "Devoluciones y Cambios",
+      "warranty": "Garantía y Mantenimiento",
+      "about": "Sobre Oro Nacional"
+    },
+    "questions": {
+      "products": {
+        "karat": {
+          "q": "¿Qué quilataje de oro manejan?",
+          "a": "Trabajamos principalmente con oro de 10k, 14k y 18k. El oro de 10k es más duradero y accesible, ideal para uso diario. El 14k ofrece un excelente equilibrio entre durabilidad y pureza. El 18k tiene mayor contenido de oro puro y un color más intenso, perfecto para piezas especiales."
+        },
+        "solid": {
+          "q": "¿Todas sus piezas son de oro macizo?",
+          "a": "Sí, todas nuestras piezas son de oro macizo (sólido), nunca oro laminado, enchapado o vermeil. Cada pieza está marcada con su quilataje correspondiente y viene con certificado de autenticidad."
+        },
+        "customize": {
+          "q": "¿Puedo personalizar una joya?",
+          "a": "¡Por supuesto! Ofrecemos servicio de grabado personalizado y también diseños completamente a medida. Nuestros maestros joyeros pueden crear la pieza de tus sueños. Agenda una cita para discutir tu proyecto."
+        },
+        "stones": {
+          "q": "¿Las piedras son naturales?",
+          "a": "Sí, trabajamos exclusivamente con piedras naturales y diamantes auténticos. Cada pieza con diamantes mayores a 0.30ct incluye certificado gemológico de laboratorio independiente (GIA, IGI o equivalente)."
+        },
+        "resize": {
+          "q": "¿Hacen ajustes de talla?",
+          "a": "Sí, realizamos ajustes de talla en anillos. El primer ajuste dentro de los 30 días posteriores a la compra es gratuito. Ajustes posteriores tienen un costo desde $300 MXN dependiendo de la pieza."
+        }
+      },
+      "purchase": {
+        "payment": {
+          "q": "¿Qué métodos de pago aceptan?",
+          "a": "Aceptamos todas las tarjetas de crédito y débito (Visa, Mastercard, American Express), transferencia bancaria, depósito bancario y efectivo en tienda. También ofrecemos meses sin intereses en compras mayores a $3,000 MXN con tarjetas participantes."
+        },
+        "installments": {
+          "q": "¿Puedo pagar a meses sin intereses?",
+          "a": "Sí, ofrecemos planes de 3, 6, 9 y 12 meses sin intereses en compras mayores a $3,000 MXN con tarjetas Visa, Mastercard y American Express participantes. Las opciones disponibles se muestran al momento del pago."
+        },
+        "secure": {
+          "q": "¿Es seguro comprar en línea?",
+          "a": "Absolutamente. Todas las transacciones están protegidas con encriptación SSL de 256 bits. No almacenamos información de tarjetas. Procesamos pagos a través de plataformas certificadas y seguras."
+        },
+        "layaway": {
+          "q": "¿Puedo apartar una joya?",
+          "a": "Sí, manejamos sistema de apartado. Con un anticipo del 30% puedes apartar tu joya hasta por 60 días. El saldo restante puede liquidarse en pagos quincenales o mensuales. Contáctanos por teléfono o visítanos en tienda."
+        },
+        "invoice": {
+          "q": "¿Dan factura?",
+          "a": "Sí, emitimos facturas electrónicas (CFDI) para todas las compras. Solo proporciona tus datos fiscales al momento de la compra o solicítala dentro de los 5 días posteriores enviando tu información por correo."
+        }
+      },
+      "shipping": {
+        "cost": {
+          "q": "¿Los envíos tienen costo?",
+          "a": "No, todos nuestros envíos dentro de la República Mexicana son completamente GRATIS, sin mínimo de compra. También ofrecemos envío express (1-2 días) por $200 MXN adicionales para entregas urgentes."
+        },
+        "time": {
+          "q": "¿Cuánto tarda en llegar mi pedido?",
+          "a": "El envío estándar gratuito tarda de 3 a 5 días hábiles. Guadalajara y zona metropolitana: 2-3 días. Estados vecinos: 3-4 días. Resto del país: 4-5 días. El envío express llega en 1-2 días hábiles."
+        },
+        "tracking": {
+          "q": "¿Puedo rastrear mi pedido?",
+          "a": "Sí, una vez que tu pedido sea enviado, recibirás un correo electrónico con tu número de rastreo (guía) para que puedas seguir tu paquete en tiempo real hasta tu puerta."
+        },
+        "insured": {
+          "q": "¿Los envíos están asegurados?",
+          "a": "Sí, todos nuestros envíos están completamente asegurados contra pérdida, robo o daño durante el transporte. En el remoto caso de algún incidente, reponemos tu joya sin costo adicional para ti."
+        },
+        "pickup": {
+          "q": "¿Puedo recoger en tienda?",
+          "a": "Sí, ofrecemos la opción de recoger en nuestra tienda en Guadalajara sin costo. Selecciona esta opción al finalizar tu compra y te notificaremos cuando tu pedido esté listo (generalmente el mismo día o al siguiente)."
+        }
+      },
+      "returns": {
+        "return": {
+          "q": "¿Puedo devolver una joya?",
+          "a": "Sí, aceptamos devoluciones dentro de los 30 días posteriores a la compra si la joya no ha sido usada, modificada o grabada. Debe estar en su empaque original con todas las etiquetas. El reembolso se procesa en 5-10 días hábiles."
+        },
+        "exchange": {
+          "q": "¿Puedo cambiar mi joya por otra?",
+          "a": "Sí, aceptamos cambios por otra pieza de igual o mayor valor dentro de los 30 días. Si la nueva pieza tiene menor valor, emitimos una nota de crédito válida por 6 meses. Los cambios son ilimitados durante este período."
+        },
+        "size": {
+          "q": "¿Qué pasa si la talla no me queda?",
+          "a": "El primer ajuste de talla es gratuito si lo solicitas dentro de los 30 días posteriores a la compra. Puedes traer el anillo a nuestra tienda o enviarlo de forma segura. El ajuste toma 5-7 días hábiles."
+        },
+        "engraved": {
+          "q": "¿Las piezas con grabado se pueden devolver?",
+          "a": "Las piezas personalizadas con grabado son consideradas pedidos especiales y NO pueden devolverse, solo pueden cambiarse por defectos de manufactura. Verifica bien la ortografía antes de confirmar el grabado."
+        }
+      },
+      "warranty": {
+        "duration": {
+          "q": "¿Cuánto tiempo dura la garantía?",
+          "a": "Ofrecemos garantía de manufactura en todas nuestras piezas. Esto cubre defectos de fabricación, soldaduras, engarces y autenticidad del oro. La garantía no cubre desgaste natural, daños accidentales o modificaciones por terceros."
+        },
+        "maintenance": {
+          "q": "¿Qué incluye el mantenimiento gratuito?",
+          "a": "Durante el primer año, incluimos limpieza profesional gratuita ilimitada. Puedes venir a la tienda cuando quieras para que limpiemos tu joya con ultrasonido. También revisamos que todas las piedras estén seguras."
+        },
+        "claim": {
+          "q": "¿Cómo hago válida la garantía?",
+          "a": "Trae tu joya con el certificado de autenticidad y comprobante de compra a nuestra tienda o envíala de forma segura. Nuestros maestros la evalúan en 24-48 horas. Si aplica garantía, la reparamos sin costo en 5-10 días."
+        },
+        "cleaning": {
+          "q": "¿Cada cuánto debo limpiar mi joyería?",
+          "a": "Recomendamos limpieza básica en casa cada 2-4 semanas con agua tibia y jabón suave. Una limpieza profesional anual con ultrasonido mantiene tus joyas radiantes. La primera limpieza profesional es GRATIS en Oro Nacional."
+        }
+      },
+      "about": {
+        "location": {
+          "q": "¿Dónde está ubicada su tienda física?",
+          "a": "Nuestra tienda está ubicada en Guadalajara, Jalisco. Puedes visitarnos de lunes a sábado de 10:00 AM a 7:00 PM. Encuentra nuestra dirección exacta y mapa en la sección de Contacto."
+        },
+        "experience": {
+          "q": "¿Tienen experiencia en joyería?",
+          "a": "Oro Nacional es una joyería familiar con más de 25 años de experiencia. Nuestros maestros joyeros cuentan con certificaciones internacionales y dominan técnicas tradicionales y modernas de la joyería fina."
+        },
+        "manufacturer": {
+          "q": "¿Son fabricantes o solo venden?",
+          "a": "Somos fabricantes. Diseñamos y fabricamos nuestras propias piezas en nuestro taller en Guadalajara. Esto nos permite ofrecer precios competitivos, calidad excepcional y personalización completa."
+        },
+        "buyGold": {
+          "q": "¿Compran oro usado?",
+          "a": "Sí, compramos oro de cualquier quilataje (10k, 14k, 18k, 24k) en cualquier condición. Lo tasamos en el momento según el precio internacional del oro. También aceptamos oro usado como parte de pago para una pieza nueva."
+        },
+        "contact": {
+          "q": "¿Cómo puedo contactarlos?",
+          "a": "Puedes contactarnos por teléfono, correo electrónico o visitarnos en tienda. Encuentra todos nuestros datos de contacto en la sección de Contacto. Respondemos mensajes de lunes a sábado de 9 AM a 8 PM."
+        }
+      }
+    }
   },
   "blog": {
     "title": "Blog de Oro Nacional",

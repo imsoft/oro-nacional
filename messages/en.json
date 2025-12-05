@@ -324,7 +324,141 @@
     "notFoundTitle": "Didn't Find Your Answer?",
     "notFoundDesc": "Our team is ready to help you. Contact us by phone or email and we'll respond shortly.",
     "contactForm": "Contact Form",
-    "callUs": "Call Us"
+    "callUs": "Call Us",
+    "categories": {
+      "products": "About Our Products",
+      "purchase": "Purchase and Payment",
+      "shipping": "Shipping and Delivery",
+      "returns": "Returns and Exchanges",
+      "warranty": "Warranty and Maintenance",
+      "about": "About Oro Nacional"
+    },
+    "questions": {
+      "products": {
+        "karat": {
+          "q": "What karat gold do you work with?",
+          "a": "We primarily work with 10k, 14k, and 18k gold. 10k gold is more durable and affordable, ideal for daily wear. 14k offers an excellent balance between durability and purity. 18k has higher pure gold content and a more intense color, perfect for special pieces."
+        },
+        "solid": {
+          "q": "Are all your pieces solid gold?",
+          "a": "Yes, all our pieces are solid gold, never gold-filled, plated, or vermeil. Each piece is marked with its corresponding karat and comes with an authenticity certificate."
+        },
+        "customize": {
+          "q": "Can I customize a piece of jewelry?",
+          "a": "Absolutely! We offer personalized engraving services and also completely custom designs. Our master jewelers can create the piece of your dreams. Schedule an appointment to discuss your project."
+        },
+        "stones": {
+          "q": "Are the stones natural?",
+          "a": "Yes, we work exclusively with natural stones and authentic diamonds. Each piece with diamonds larger than 0.30ct includes a gemological certificate from an independent laboratory (GIA, IGI, or equivalent)."
+        },
+        "resize": {
+          "q": "Do you do ring resizing?",
+          "a": "Yes, we perform ring resizing. The first resize within 30 days of purchase is free. Subsequent resizes cost from $300 MXN depending on the piece."
+        }
+      },
+      "purchase": {
+        "payment": {
+          "q": "What payment methods do you accept?",
+          "a": "We accept all credit and debit cards (Visa, Mastercard, American Express), bank transfer, bank deposit, and cash in store. We also offer interest-free installments on purchases over $3,000 MXN with participating cards."
+        },
+        "installments": {
+          "q": "Can I pay in interest-free installments?",
+          "a": "Yes, we offer 3, 6, 9, and 12-month interest-free plans on purchases over $3,000 MXN with participating Visa, Mastercard, and American Express cards. Available options are shown at checkout."
+        },
+        "secure": {
+          "q": "Is it safe to shop online?",
+          "a": "Absolutely. All transactions are protected with 256-bit SSL encryption. We do not store card information. We process payments through certified and secure platforms."
+        },
+        "layaway": {
+          "q": "Can I put a piece on layaway?",
+          "a": "Yes, we offer a layaway system. With a 30% down payment, you can reserve your piece for up to 60 days. The remaining balance can be paid in bi-weekly or monthly installments. Contact us by phone or visit us in store."
+        },
+        "invoice": {
+          "q": "Do you provide invoices?",
+          "a": "Yes, we issue electronic invoices (CFDI) for all purchases. Just provide your tax information at the time of purchase or request it within 5 days by sending your information via email."
+        }
+      },
+      "shipping": {
+        "cost": {
+          "q": "Do shipments have a cost?",
+          "a": "No, all our shipments within Mexico are completely FREE, with no minimum purchase. We also offer express shipping (1-2 days) for an additional $200 MXN for urgent deliveries."
+        },
+        "time": {
+          "q": "How long does it take for my order to arrive?",
+          "a": "Free standard shipping takes 3 to 5 business days. Guadalajara and metropolitan area: 2-3 days. Neighboring states: 3-4 days. Rest of the country: 4-5 days. Express shipping arrives in 1-2 business days."
+        },
+        "tracking": {
+          "q": "Can I track my order?",
+          "a": "Yes, once your order is shipped, you will receive an email with your tracking number (guide) so you can follow your package in real time to your door."
+        },
+        "insured": {
+          "q": "Are shipments insured?",
+          "a": "Yes, all our shipments are fully insured against loss, theft, or damage during transport. In the unlikely event of an incident, we will replace your jewelry at no additional cost to you."
+        },
+        "pickup": {
+          "q": "Can I pick up in store?",
+          "a": "Yes, we offer the option to pick up at our store in Guadalajara at no cost. Select this option when completing your purchase and we will notify you when your order is ready (usually the same day or the next)."
+        }
+      },
+      "returns": {
+        "return": {
+          "q": "Can I return a piece of jewelry?",
+          "a": "Yes, we accept returns within 30 days of purchase if the jewelry has not been used, modified, or engraved. It must be in its original packaging with all tags. Refunds are processed within 5-10 business days."
+        },
+        "exchange": {
+          "q": "Can I exchange my jewelry for another piece?",
+          "a": "Yes, we accept exchanges for another piece of equal or greater value within 30 days. If the new piece has a lower value, we issue a credit note valid for 6 months. Exchanges are unlimited during this period."
+        },
+        "size": {
+          "q": "What if the size doesn't fit?",
+          "a": "The first size adjustment is free if requested within 30 days of purchase. You can bring the ring to our store or send it securely. The adjustment takes 5-7 business days."
+        },
+        "engraved": {
+          "q": "Can engraved pieces be returned?",
+          "a": "Personalized pieces with engraving are considered special orders and CANNOT be returned, they can only be exchanged for manufacturing defects. Please verify the spelling before confirming the engraving."
+        }
+      },
+      "warranty": {
+        "duration": {
+          "q": "How long does the warranty last?",
+          "a": "We offer a manufacturing warranty on all our pieces. This covers manufacturing defects, soldering, settings, and gold authenticity. The warranty does not cover natural wear, accidental damage, or modifications by third parties."
+        },
+        "maintenance": {
+          "q": "What does free maintenance include?",
+          "a": "During the first year, we include unlimited free professional cleaning. You can come to the store whenever you want for us to clean your jewelry with ultrasound. We also check that all stones are secure."
+        },
+        "claim": {
+          "q": "How do I claim the warranty?",
+          "a": "Bring your jewelry with the authenticity certificate and proof of purchase to our store or send it securely. Our masters evaluate it within 24-48 hours. If the warranty applies, we repair it at no cost within 5-10 days."
+        },
+        "cleaning": {
+          "q": "How often should I clean my jewelry?",
+          "a": "We recommend basic cleaning at home every 2-4 weeks with warm water and mild soap. An annual professional cleaning with ultrasound keeps your jewelry radiant. The first professional cleaning is FREE at Oro Nacional."
+        }
+      },
+      "about": {
+        "location": {
+          "q": "Where is your physical store located?",
+          "a": "Our store is located in Guadalajara, Jalisco. You can visit us Monday through Saturday from 10:00 AM to 7:00 PM. Find our exact address and map in the Contact section."
+        },
+        "experience": {
+          "q": "Do you have experience in jewelry?",
+          "a": "Oro Nacional is a family jewelry business with over 25 years of experience. Our master jewelers have international certifications and master both traditional and modern fine jewelry techniques."
+        },
+        "manufacturer": {
+          "q": "Are you manufacturers or just sellers?",
+          "a": "We are manufacturers. We design and manufacture our own pieces in our workshop in Guadalajara. This allows us to offer competitive prices, exceptional quality, and complete personalization."
+        },
+        "buyGold": {
+          "q": "Do you buy used gold?",
+          "a": "Yes, we buy gold of any karat (10k, 14k, 18k, 24k) in any condition. We appraise it on the spot according to the international gold price. We also accept used gold as partial payment for a new piece."
+        },
+        "contact": {
+          "q": "How can I contact you?",
+          "a": "You can contact us by phone, email, or visit us in store. Find all our contact information in the Contact section. We respond to messages Monday through Saturday from 9 AM to 8 PM."
+        }
+      }
+    }
   },
   "blog": {
     "title": "Oro Nacional Blog",
