@@ -3,7 +3,7 @@
 import { Link } from "@/i18n/routing";
 import Image from "next/image";
 import { useTranslations, useLocale } from "next-intl";
-import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from "lucide-react";
+import { Facebook, Instagram, Mail, Phone, MapPin } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getStoreSettings, type StoreSettings } from "@/lib/supabase/settings";
 import { getCategories } from "@/lib/supabase/products-multilingual";
@@ -108,25 +108,24 @@ const Footer = () => {
             </div>
             <div className="flex space-x-6">
               <Link
-                href="#"
+                href="https://www.facebook.com/profile.php?id=61579417826319"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-muted-foreground transition-colors hover:text-foreground"
+                aria-label={t("social.facebook")}
               >
                 <span className="sr-only">{t("social.facebook")}</span>
                 <Facebook className="h-6 w-6" />
               </Link>
               <Link
-                href="#"
+                href="https://www.instagram.com/nacionaloro/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-muted-foreground transition-colors hover:text-foreground"
+                aria-label={t("social.instagram")}
               >
                 <span className="sr-only">{t("social.instagram")}</span>
                 <Instagram className="h-6 w-6" />
-              </Link>
-              <Link
-                href="#"
-                className="text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <span className="sr-only">{t("social.twitter")}</span>
-                <Twitter className="h-6 w-6" />
               </Link>
             </div>
             <div className="space-y-2">

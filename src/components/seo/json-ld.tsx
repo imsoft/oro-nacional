@@ -36,9 +36,8 @@ export function getOrganizationSchema() {
       availableLanguage: ['Spanish', 'English'],
     },
     sameAs: [
-      'https://facebook.com/oronacional',
-      'https://instagram.com/oronacional',
-      'https://twitter.com/oronacional',
+      'https://www.facebook.com/profile.php?id=61579417826319',
+      'https://www.instagram.com/nacionaloro/',
     ],
   };
 }
@@ -166,9 +165,8 @@ export function getLocalBusinessSchema() {
       },
     ],
     sameAs: [
-      'https://facebook.com/oronacional',
-      'https://instagram.com/oronacional',
-      'https://twitter.com/oronacional',
+      'https://www.facebook.com/profile.php?id=61579417826319',
+      'https://www.instagram.com/nacionaloro/',
     ],
   };
 }
