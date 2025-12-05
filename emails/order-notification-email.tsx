@@ -195,14 +195,7 @@ export const OrderNotificationEmail = ({
                 <Text style={summaryValue}>{formatCurrency(shippingCost)}</Text>
               </Column>
             </Row>
-            <Row>
-              <Column style={summaryColumn}>
-                <Text style={summaryLabel}>{t.tax}:</Text>
-              </Column>
-              <Column style={summaryColumn}>
-                <Text style={summaryValue}>{formatCurrency(tax)}</Text>
-              </Column>
-            </Row>
+            {/* IVA ya está incluido en los precios, no se muestra por separado */}
             <Hr style={summaryHr} />
             <Row>
               <Column style={summaryColumn}>

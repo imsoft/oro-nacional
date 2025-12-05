@@ -25,13 +25,15 @@ export async function createOrder(
     } = await supabase.auth.getUser();
 
     // 2. Calcular totales
+    // Los precios de los productos ya incluyen IVA, por lo que no debemos sumarlo nuevamente
     const subtotal = orderData.items.reduce(
       (sum, item) => sum + item.unit_price * item.quantity,
       0
     );
     const shipping_cost = 0; // TODO: Calcular costo de envío basado en ubicación
-    const tax = subtotal * 0.16; // IVA 16%
-    const total = subtotal + shipping_cost + tax;
+    // IVA ya está incluido en los precios, por lo que tax = 0
+    const tax = 0;
+    const total = subtotal + shipping_cost; // Total ya incluye IVA en el subtotal
 
     // 3. Generar número de pedido
     const { data: orderNumberData, error: orderNumberError } =

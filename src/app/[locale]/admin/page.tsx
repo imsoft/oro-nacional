@@ -424,12 +424,7 @@ export default function AdminDashboard() {
                       <span className="text-foreground">${selectedOrder.shipping_cost.toLocaleString("es-MX")} MXN</span>
                     </div>
                   )}
-                  {selectedOrder.tax > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">IVA</span>
-                      <span className="text-foreground">${selectedOrder.tax.toLocaleString("es-MX")} MXN</span>
-                    </div>
-                  )}
+                  {/* IVA ya está incluido en los precios, no se muestra por separado */}
                   <div className="flex justify-between text-lg font-semibold border-t border-border pt-2">
                     <span className="text-foreground">{t('amount')}</span>
                     <span className="text-[#D4AF37]">${selectedOrder.total.toLocaleString("es-MX")} MXN</span>
