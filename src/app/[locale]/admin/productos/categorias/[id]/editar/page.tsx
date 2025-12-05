@@ -19,7 +19,7 @@ interface CategoryFormData {
 }
 
 interface EditCategoryPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default function EditProductCategoryPage({ params }: EditCategoryPageProps) {
@@ -27,6 +27,7 @@ export default function EditProductCategoryPage({ params }: EditCategoryPageProp
   const t = useTranslations("admin.productCategories");
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
+  const [categoryId, setCategoryId] = useState<string>("");
 
   const defaultData: CategoryFormData = {
     name: { es: "", en: "" },
@@ -41,14 +42,24 @@ export default function EditProductCategoryPage({ params }: EditCategoryPageProp
   } = useMultilingualForm<CategoryFormData>(defaultData);
 
   useEffect(() => {
-    loadCategory();
+    const loadParams = async () => {
+      const resolvedParams = await params;
+      setCategoryId(resolvedParams.id);
+    };
+    loadParams();
+  }, [params]);
+
+  useEffect(() => {
+    if (categoryId) {
+      loadCategory();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.id]);
+  }, [categoryId]);
 
   const loadCategory = async () => {
     setIsLoadingData(true);
     try {
-      const category = await getProductCategoryById(params.id);
+      const category = await getProductCategoryById(categoryId);
       if (category) {
         setFormData({
           name: category.name,
@@ -78,12 +89,12 @@ export default function EditProductCategoryPage({ params }: EditCategoryPageProp
 
       const categoryData = {
         name: formData.name,
-        description: formData.description.es || formData.description.en 
-          ? formData.description 
+        description: formData.description.es || formData.description.en
+          ? formData.description
           : undefined,
       };
 
-      await updateCategory(params.id, categoryData);
+      await updateCategory(categoryId, categoryData);
       router.push("/admin/productos/categorias");
     } catch (error) {
       console.error("Error updating category:", error);
