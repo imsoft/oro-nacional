@@ -50,11 +50,12 @@ const CatalogHeader = ({
             onClick={() => onViewModeChange("grid")}
             className={
               viewMode === "grid"
-                ? "bg-[#D4AF37] text-white hover:bg-[#B8941E] hover:text-white"
-                : ""
+                ? "bg-[#D4AF37] text-white hover:bg-[#B8941E] hover:text-white border-[#D4AF37]"
+                : "border-border hover:bg-muted"
             }
+            aria-label="Vista de cuadrícula"
           >
-            <Grid3x3 className="h-5 w-5" />
+            <Grid3x3 className={`h-5 w-5 ${viewMode === "grid" ? "text-white" : "text-foreground"}`} />
           </Button>
           <Button
             variant="outline"
@@ -62,11 +63,12 @@ const CatalogHeader = ({
             onClick={() => onViewModeChange("list")}
             className={
               viewMode === "list"
-                ? "bg-[#D4AF37] text-white hover:bg-[#B8941E] hover:text-white"
-                : ""
+                ? "bg-[#D4AF37] text-white hover:bg-[#B8941E] hover:text-white border-[#D4AF37]"
+                : "border-border hover:bg-muted"
             }
+            aria-label="Vista de lista"
           >
-            <List className="h-5 w-5" />
+            <List className={`h-5 w-5 ${viewMode === "list" ? "text-white" : "text-foreground"}`} />
           </Button>
         </div>
       </div>

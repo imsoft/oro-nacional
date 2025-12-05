@@ -2,31 +2,72 @@
 
 import { Link } from "@/i18n/routing";
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getStoreSettings, type StoreSettings } from "@/lib/supabase/settings";
+import { getCategories } from "@/lib/supabase/products-multilingual";
+
+interface Category {
+  id: string | unknown;
+  name: string;
+  slug: string;
+  description?: string;
+  image_url?: string | unknown;
+  created_at?: unknown;
+  updated_at?: unknown;
+}
 
 const Footer = () => {
   const t = useTranslations("footer");
+  const locale = useLocale() as 'es' | 'en';
   const [settings, setSettings] = useState<StoreSettings | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
 
-  // Load store settings on mount
+  // Load store settings and categories on mount
   useEffect(() => {
-    const loadSettings = async () => {
-      const data = await getStoreSettings();
-      setSettings(data);
+    const loadData = async () => {
+      const [settingsData, categoriesData] = await Promise.all([
+        getStoreSettings(),
+        getCategories(locale),
+      ]);
+      setSettings(settingsData);
+      setCategories(categoriesData);
     };
-    loadSettings();
-  }, []);
+    loadData();
+  }, [locale]);
+
+  // Mapear slugs de categorías a rutas
+  // Las rutas conocidas tienen páginas dedicadas, otras van al catálogo con filtro
+  const getCategoryRoute = (slug: string): string => {
+    const slugLower = slug.toLowerCase();
+    
+    // Rutas conocidas con páginas dedicadas
+    const knownRoutes: Record<string, string> = {
+      'rings': '/rings',
+      'anillos': '/rings',
+      'necklaces': '/necklaces',
+      'collares': '/necklaces',
+      'earrings': '/earrings',
+      'aretes': '/earrings',
+      'bracelets': '/bracelets',
+      'pulseras': '/bracelets',
+    };
+    
+    // Buscar en ambos idiomas
+    const route = knownRoutes[slugLower];
+    if (route) return route;
+    
+    // Para nuevas categorías, ir al catálogo con el slug como parámetro
+    // Esto permitirá filtrar por categoría en el catálogo
+    return `/catalog?category=${slug}`;
+  };
 
   const navigation = {
-    tienda: [
-      { name: t("shop.rings"), href: "/rings" },
-      { name: t("shop.necklaces"), href: "/necklaces" },
-      { name: t("shop.earrings"), href: "/earrings" },
-      { name: t("shop.bracelets"), href: "/bracelets" },
-    ],
+    tienda: categories.map((category) => ({
+      name: category.name,
+      href: getCategoryRoute(category.slug),
+    })).filter((item) => item.name && item.href), // Filtrar categorías vacías
     empresa: [
       { name: t("company.about"), href: "/about" },
       { name: t("company.contact"), href: "/contact" },

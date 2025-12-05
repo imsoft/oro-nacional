@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useTranslations } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
 import CatalogHeader from "@/components/catalog/catalog-header";
@@ -20,8 +21,17 @@ const categorySlugMap: Record<string, string> = {
   pulseras: "bracelets",
 };
 
+// Mapeo inverso: de slug de BD a nombre de filtro
+const reverseCategoryMap: Record<string, string> = {
+  rings: "anillos",
+  necklaces: "collares",
+  earrings: "aretes",
+  bracelets: "pulseras",
+};
+
 const CatalogPage = ({ params }: { params: { locale: 'es' | 'en' } }) => {
   const t = useTranslations('catalog');
+  const searchParams = useSearchParams();
   const locale = params.locale || 'es';
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -29,14 +39,32 @@ const CatalogPage = ({ params }: { params: { locale: 'es' | 'en' } }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<string>("featured");
+  
+  // Obtener categoría de la URL si existe
+  const categoryFromUrl = searchParams?.get('category') || null;
+  const initialCategoryFilter = categoryFromUrl 
+    ? (reverseCategoryMap[categoryFromUrl] || categoryFromUrl)
+    : null;
+
   const [filters, setFilters] = useState<CatalogFiltersState>({
-    categories: [],
+    categories: initialCategoryFilter ? [initialCategoryFilter] : [],
     priceRange: [0, 50000],
   });
 
   useEffect(() => {
     loadProducts();
   }, [locale]);
+
+  // Actualizar filtros cuando cambia la categoría en la URL
+  useEffect(() => {
+    if (categoryFromUrl) {
+      const filterCategory = reverseCategoryMap[categoryFromUrl] || categoryFromUrl;
+      setFilters(prev => ({
+        ...prev,
+        categories: [filterCategory],
+      }));
+    }
+  }, [categoryFromUrl]);
 
   const loadProducts = async () => {
     setIsLoading(true);
