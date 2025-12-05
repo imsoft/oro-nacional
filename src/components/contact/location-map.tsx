@@ -43,9 +43,14 @@ const LocationMap = () => {
                 <h3 className="text-lg font-semibold text-foreground">
                   {t('storeName')}
                 </h3>
-                <p className="mt-2 text-sm text-muted-foreground">
+                <a
+                  href="https://maps.app.goo.gl/GBnsUNi5fe9QNEDj8"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 text-sm text-muted-foreground hover:text-[#D4AF37] transition-colors block"
+                >
                   {t('storeAddress')}
-                </p>
+                </a>
                 <div className="mt-4 flex flex-wrap gap-3">
                   <a
                     href="https://maps.app.goo.gl/GBnsUNi5fe9QNEDj8"
