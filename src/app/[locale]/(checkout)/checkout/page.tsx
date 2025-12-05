@@ -655,9 +655,14 @@ const CheckoutPage = () => {
                                 <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                                 <div className="text-foreground">
                                   <div className="font-medium">Dirección:</div>
-                                  <div className="text-muted-foreground">
+                                  <a
+                                    href="https://maps.app.goo.gl/GBnsUNi5fe9QNEDj8"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-muted-foreground hover:text-[#D4AF37] transition-colors"
+                                  >
                                     {storeSettings.address}
-                                  </div>
+                                  </a>
                                 </div>
                               </div>
                             )}
@@ -719,9 +724,14 @@ const CheckoutPage = () => {
                                 <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                                 <div className="text-foreground">
                                   <div className="font-medium">Dirección:</div>
-                                  <div className="text-muted-foreground">
+                                  <a
+                                    href="https://maps.app.goo.gl/GBnsUNi5fe9QNEDj8"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-muted-foreground hover:text-[#D4AF37] transition-colors"
+                                  >
                                     {storeSettings.address}
-                                  </div>
+                                  </a>
                                 </div>
                               </div>
                             )}

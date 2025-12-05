@@ -35,9 +35,14 @@ const ContactInfo = () => {
             </div>
             <div>
               <p className="font-semibold text-foreground">{t('address')}</p>
-              <p className="mt-1 text-sm text-muted-foreground whitespace-pre-line">
+              <a
+                href="https://maps.app.goo.gl/GBnsUNi5fe9QNEDj8"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-1 text-sm text-muted-foreground hover:text-[#D4AF37] transition-colors whitespace-pre-line block"
+              >
                 {settings?.address || t('addressFull')}
-              </p>
+              </a>
             </div>
           </div>
 

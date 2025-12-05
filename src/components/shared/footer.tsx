@@ -131,7 +131,14 @@ const Footer = () => {
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <MapPin className="h-4 w-4" />
-                <span>{settings?.address || t("location")}</span>
+                <Link
+                  href="https://maps.app.goo.gl/GBnsUNi5fe9QNEDj8"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-foreground transition-colors"
+                >
+                  {settings?.address || t("location")}
+                </Link>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Phone className="h-4 w-4" />
