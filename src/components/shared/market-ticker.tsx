@@ -82,6 +82,17 @@ export function MarketTicker() {
   const displayGoldQuotation = goldQuotation ?? 2450.00;
   const displayExchangeRate = exchangeRate ?? 18.00;
 
+  // Calcular valores según el idioma
+  const goldPrice = locale === 'es' 
+    ? displayGoldQuotation 
+    : displayGoldQuotation / displayExchangeRate;
+  const goldUnit = locale === 'es' ? 'MXN/gr' : 'USD/gr';
+  
+  const exchangeRateValue = locale === 'es'
+    ? displayExchangeRate
+    : 1 / displayExchangeRate;
+  const exchangeRateUnit = locale === 'es' ? 'MXN/USD' : 'USD/MXN';
+
   // Contenido de la cintilla con mejor separación
   const tickerContent = (
     <>
@@ -89,7 +100,7 @@ export function MarketTicker() {
       <div className="flex items-center gap-2 px-4">
         <span className="text-sm text-white">{t('goldQuotation')}:</span>
         <span className="text-sm font-bold text-white">
-          ${formatPrice(displayGoldQuotation)} MXN/gr
+          ${formatPrice(goldPrice)} {goldUnit}
         </span>
       </div>
 
@@ -100,18 +111,7 @@ export function MarketTicker() {
       <div className="flex items-center gap-2 px-4">
         <span className="text-sm text-white">{t('exchangeRate')}:</span>
         <span className="text-sm font-bold text-white">
-          ${formatPrice(displayExchangeRate, 2)} MXN/USD
-        </span>
-      </div>
-
-      {/* Separador */}
-      <span className="text-sm text-white/70 px-2">|</span>
-
-      {/* Información adicional: Precio del oro en USD (calculado) */}
-      <div className="flex items-center gap-2 px-4">
-        <span className="text-sm text-white">{t('goldInUSD')}:</span>
-        <span className="text-sm font-bold text-white">
-          ${formatPrice(displayGoldQuotation / displayExchangeRate, 2)} USD/gr
+          ${formatPrice(exchangeRateValue, 2)} {exchangeRateUnit}
         </span>
       </div>
     </>
