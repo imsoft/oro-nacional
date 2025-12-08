@@ -698,6 +698,76 @@ export default function BroquelCalculatorPage() {
         </CardContent>
       </Card>
 
+      {/* Calculation Formula */}
+      <Card className="border-purple-200 bg-purple-50/30">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-purple-900">
+            <Gem className="h-5 w-5" />
+            Fórmula de Cálculo - Broquel
+          </CardTitle>
+          <CardDescription className="text-purple-700">
+            Así se calcula el precio final para cada subcategoría tipo broquel
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="bg-white rounded-lg p-4 border border-purple-200">
+            <p className="text-sm font-mono text-gray-800 mb-3 break-words">
+              <span className="font-semibold text-purple-900">Precio Final = </span>
+              (((Costo Oro × (1 + Merma%) + M. Obra + Piedra) × PZ) × (1 + Utilidad) + (PZ × Com. Venta) + Envío) × (1 + IVA)
+            </p>
+            <div className="space-y-2 text-xs text-gray-600 border-t pt-3">
+              <p><span className="font-semibold">Costo Oro:</span> Cotización × (Kilataje / 24) × Oro(grs)</p>
+              <p><span className="font-semibold">Merma%:</span> Porcentaje de merma aplicado al costo del oro</p>
+              <p><span className="font-semibold">PZ:</span> Número de piezas del producto</p>
+            </div>
+          </div>
+
+          <div className="bg-amber-50 rounded-lg p-3 border border-amber-200">
+            <p className="text-xs text-amber-800">
+              <span className="font-semibold">Nota importante:</span> Las comisiones de Stripe (
+              {(parameters.stripePercentage * 100).toFixed(2)}% + {formatMXN(parameters.stripeFixedFee)}
+              ) NO se incluyen en el precio base. Estas se aplicarán automáticamente al momento del pago en el checkout.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-3 border border-purple-200">
+              <p className="text-xs font-semibold text-purple-900 mb-2">Variables por Subcategoría:</p>
+              <ul className="text-xs text-purple-800 space-y-1">
+                <li>• PZ (Piezas)</li>
+                <li>• Oro (grs)</li>
+                <li>• Kilataje</li>
+                <li>• Merma %</li>
+                <li>• Mano de Obra</li>
+                <li>• Piedra</li>
+                <li>• Comisión de Venta</li>
+                <li>• Envío</li>
+              </ul>
+            </div>
+
+            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-3 border border-green-200">
+              <p className="text-xs font-semibold text-green-900 mb-2">Parámetros Globales:</p>
+              <ul className="text-xs text-green-800 space-y-1">
+                <li>• Cotización</li>
+                <li>• Utilidad (%)</li>
+                <li>• IVA (%)</li>
+                <li>• Stripe (%) - Solo para referencia</li>
+                <li>• Stripe Fijo - Solo para referencia</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+            <p className="text-xs font-semibold text-blue-900 mb-2">Diferencia con Gramo:</p>
+            <p className="text-xs text-blue-800">
+              La fórmula de Broquel considera el <span className="font-semibold">kilataje</span> (pureza del oro)
+              y aplica una <span className="font-semibold">merma</span> al costo del oro. Además, los cálculos
+              se multiplican por el número de <span className="font-semibold">piezas (PZ)</span> del producto.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Products table with calculations */}
       <Card>
         <CardHeader>
