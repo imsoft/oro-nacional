@@ -549,10 +549,14 @@ const CheckoutPage = () => {
                             // Determinar la moneda según el contexto (español → MXN, inglés → USD)
                             const stripeCurrency = currency.toLowerCase();
                             // El amount debe estar en unidades (el API lo convertirá a centavos)
-                            const stripeAmount = currency === 'USD' 
+                            const stripeAmount = currency === 'USD'
                               ? finalTotal // Ya está en USD
                               : finalTotalMXN; // En MXN
-                            
+
+                            // Crear un timeout para la solicitud
+                            const controller = new AbortController();
+                            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos
+
                             const response = await fetch('/api/stripe/create-payment-intent', {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
@@ -561,12 +565,15 @@ const CheckoutPage = () => {
                                 currency: stripeCurrency,
                                 orderId: createdOrderId,
                                 customerEmail: shippingData.email,
-                                installments: selectedInstallments,
+                                installments: currency === 'MXN' ? selectedInstallments : 1, // Solo enviar installments si es MXN
                                 metadata: {
                                   locale: locale, // Agregar locale para los correos
                                 },
                               }),
+                              signal: controller.signal,
                             });
+
+                            clearTimeout(timeoutId);
 
                             if (!response.ok) {
                               const errorText = await response.text();
@@ -581,7 +588,15 @@ const CheckoutPage = () => {
                             setClientSecret(data.clientSecret);
                           } catch (err) {
                             console.error('Error:', err);
-                            setError(err instanceof Error ? err.message : 'Error desconocido');
+                            if (err instanceof Error) {
+                              if (err.name === 'AbortError') {
+                                setError('La solicitud tardó demasiado. Por favor intenta de nuevo.');
+                              } else {
+                                setError(err.message);
+                              }
+                            } else {
+                              setError('Error desconocido al crear el pago');
+                            }
                           } finally {
                             setIsLoading(false);
                           }

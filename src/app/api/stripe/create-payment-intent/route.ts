@@ -56,18 +56,27 @@ export async function POST(request: NextRequest) {
     // Agregar configuración de MSI solo si se solicitan meses sin intereses Y la moneda es MXN
     // Nota: Los MSI en México solo están disponibles para pagos en MXN
     if (installments && installments > 1 && currency.toLowerCase() === 'mxn') {
-      paymentIntentParams.payment_method_options = {
-        card: {
-          installments: {
-            enabled: true,
-            plan: {
-              count: installments,
-              interval: 'month',
-              type: 'fixed_count',
+      // Validar que installments sea un valor permitido (3, 6, 9, 12)
+      const validInstallments = [3, 6, 9, 12];
+      if (!validInstallments.includes(installments)) {
+        console.warn('[Stripe API] Invalid installment count:', installments, 'Using 1 instead');
+      } else {
+        paymentIntentParams.payment_method_options = {
+          card: {
+            installments: {
+              enabled: true,
+              plan: {
+                count: installments,
+                interval: 'month' as const,
+                type: 'fixed_count' as const,
+              },
             },
           },
-        },
-      };
+        };
+        console.log('[Stripe API] Configured installments:', installments, 'months');
+      }
+    } else if (installments && installments > 1 && currency.toLowerCase() !== 'mxn') {
+      console.warn('[Stripe API] Installments requested for non-MXN currency. MSI only available for MXN.');
     }
 
     // Crear el Payment Intent
