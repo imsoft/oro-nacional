@@ -666,17 +666,24 @@ export async function calculateDynamicProductPrice(
   params: DynamicPriceCalculationParams
 ): Promise<number | null> {
   try {
+    console.log('[calculateDynamicProductPrice] Calculating price with params:', params);
+
     // Determinar qué calculadora usar basándose en el nombre de la categoría
     const isBroquel = params.categoryName.toLowerCase() === "broquel";
+    console.log('[calculateDynamicProductPrice] Category:', params.categoryName, 'isBroquel:', isBroquel);
 
     if (isBroquel) {
+      console.log('[calculateDynamicProductPrice] Using Broquel formula');
       // Obtener parámetros específicos de Broquel
       const broquelParams = await getBroquelPricingParameters();
+      console.log('[calculateDynamicProductPrice] Broquel params:', broquelParams);
       
       // Calcular precio usando fórmula de Broquel
       const broquelData = await getSubcategoryBroquelPricing(params.subcategoryId);
-      
+      console.log('[calculateDynamicProductPrice] Broquel subcategory data:', broquelData);
+
       if (!broquelData) {
+        console.log('[calculateDynamicProductPrice] No saved data, using defaults');
         // Si no hay datos guardados, usar valores por defecto
         const defaultData: SubcategoryBroquelPricingData = {
           pz: 1.0,
@@ -689,7 +696,9 @@ export async function calculateDynamicProductPrice(
           salesCommission: 30.00,
           shipping: 800.00,
         };
-        return calculateBroquelPrice(defaultData, broquelParams);
+        const price = calculateBroquelPrice(defaultData, broquelParams);
+        console.log('[calculateDynamicProductPrice] Calculated price (default):', price);
+        return price;
       }
 
       // Usar los gramos de la talla en lugar de los guardados
@@ -697,16 +706,23 @@ export async function calculateDynamicProductPrice(
         ...broquelData,
         goldGrams: params.goldGrams,
       };
+      console.log('[calculateDynamicProductPrice] Calculation data:', calculationData);
 
-      return calculateBroquelPrice(calculationData, broquelParams);
+      const price = calculateBroquelPrice(calculationData, broquelParams);
+      console.log('[calculateDynamicProductPrice] Calculated price (Broquel):', price);
+      return price;
     } else {
+      console.log('[calculateDynamicProductPrice] Using Gramo formula');
       // Obtener parámetros globales de Gramo
       const globalParams = await getPricingParameters();
-      
+      console.log('[calculateDynamicProductPrice] Gramo params:', globalParams);
+
       // Calcular precio usando fórmula de Gramo
       const gramoData = await getSubcategoryPricing(params.subcategoryId);
+      console.log('[calculateDynamicProductPrice] Gramo subcategory data:', gramoData);
       
       if (!gramoData) {
+        console.log('[calculateDynamicProductPrice] No saved data, using defaults');
         // Si no hay datos guardados, usar valores por defecto
         const defaultData: SubcategoryPricingData = {
           goldGrams: params.goldGrams, // Usar los gramos de la talla
@@ -716,7 +732,9 @@ export async function calculateDynamicProductPrice(
           salesCommission: 30,
           shippingCost: 800,
         };
-        return calculateGramoPrice(defaultData, globalParams);
+        const price = calculateGramoPrice(defaultData, globalParams);
+        console.log('[calculateDynamicProductPrice] Calculated price (default):', price);
+        return price;
       }
 
       // Usar los gramos de la talla en lugar de los guardados
@@ -724,8 +742,11 @@ export async function calculateDynamicProductPrice(
         ...gramoData,
         goldGrams: params.goldGrams,
       };
+      console.log('[calculateDynamicProductPrice] Calculation data:', calculationData);
 
-      return calculateGramoPrice(calculationData, globalParams);
+      const price = calculateGramoPrice(calculationData, globalParams);
+      console.log('[calculateDynamicProductPrice] Calculated price (Gramo):', price);
+      return price;
     }
   } catch (error) {
     console.error("Error calculating dynamic product price:", error);
