@@ -105,8 +105,18 @@ export default function ProductsAdmin() {
     const activeProducts = products.filter((p) => p.is_active !== false);
     return {
       totalProducts: activeProducts.length,
-      inventoryValue: activeProducts.reduce((sum, p) => sum + p.price * p.stock, 0),
-      lowStock: activeProducts.filter((p) => p.stock < 10).length,
+      inventoryValue: activeProducts.reduce((sum, p) => {
+        const totalStock = p.sizes && p.sizes.length > 0
+          ? p.sizes.reduce((stockSum, size) => stockSum + size.stock, 0)
+          : p.stock;
+        return sum + p.price * totalStock;
+      }, 0),
+      lowStock: activeProducts.filter((p) => {
+        const totalStock = p.sizes && p.sizes.length > 0
+          ? p.sizes.reduce((stockSum, size) => stockSum + size.stock, 0)
+          : p.stock;
+        return totalStock < 10;
+      }).length,
     };
   }, [products]);
 
@@ -219,15 +229,24 @@ export default function ProductsAdmin() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                        product.stock < 10
-                          ? "bg-red-100 text-red-800"
-                          : "bg-green-100 text-green-800"
-                      }`}
-                    >
-                      {product.stock} {product.stock === 1 ? t('unit') : t('units')}
-                    </span>
+                    {(() => {
+                      // Calculate total stock from all sizes if sizes exist, otherwise use product.stock
+                      const totalStock = product.sizes && product.sizes.length > 0
+                        ? product.sizes.reduce((sum, size) => sum + size.stock, 0)
+                        : product.stock;
+
+                      return (
+                        <span
+                          className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                            totalStock < 10
+                              ? "bg-red-100 text-red-800"
+                              : "bg-green-100 text-green-800"
+                          }`}
+                        >
+                          {totalStock} {totalStock === 1 ? t('unit') : t('units')}
+                        </span>
+                      );
+                    })()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                     {product.material}

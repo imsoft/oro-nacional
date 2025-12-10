@@ -93,7 +93,8 @@ export async function getAllProducts() {
       is_active,
       created_at,
       category:product_categories(id, name_es, name_en),
-      images:product_images(image_url, is_primary)
+      images:product_images(image_url, is_primary),
+      sizes:product_sizes(id, size, stock, price, price_usd, weight, display_order)
     `
     )
     .order("created_at", { ascending: false });
@@ -118,6 +119,7 @@ export async function getAllProducts() {
       is_active: boolean;
       category?: { name_es: string; name_en: string };
       images?: Array<{ is_primary: boolean; image_url: string }>;
+      sizes?: Array<{ id: string; size: string; stock: number; price?: number; price_usd?: number; weight?: number; display_order?: number }>;
     };
     return {
       id: p.id,
@@ -129,6 +131,17 @@ export async function getAllProducts() {
       is_active: p.is_active,
       category_name: p.category?.name_es || p.category?.name_en,
       primary_image: p.images?.find((img) => img.is_primary)?.image_url,
+      sizes: p.sizes?.map(size => ({
+        id: size.id,
+        product_id: p.id,
+        size: size.size,
+        stock: size.stock,
+        price: size.price,
+        price_usd: size.price_usd ?? null,
+        weight: size.weight,
+        display_order: size.display_order,
+        created_at: '', // Not needed for display
+      })),
     };
   });
 

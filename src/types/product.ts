@@ -87,6 +87,7 @@ export interface ProductListItem {
   is_active: boolean;
   category_name?: string;
   primary_image?: string;
+  sizes?: ProductSize[];
 }
 
 // Helper type for product card display
