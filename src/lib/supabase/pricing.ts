@@ -666,13 +666,13 @@ export async function calculateDynamicProductPrice(
   params: DynamicPriceCalculationParams
 ): Promise<number | null> {
   try {
-    // Obtener parámetros globales
-    const globalParams = await getPricingParameters();
-
     // Determinar qué calculadora usar basándose en el nombre de la categoría
     const isBroquel = params.categoryName.toLowerCase() === "broquel";
 
     if (isBroquel) {
+      // Obtener parámetros específicos de Broquel
+      const broquelParams = await getBroquelPricingParameters();
+      
       // Calcular precio usando fórmula de Broquel
       const broquelData = await getSubcategoryBroquelPricing(params.subcategoryId);
       
@@ -689,7 +689,7 @@ export async function calculateDynamicProductPrice(
           salesCommission: 30.00,
           shipping: 800.00,
         };
-        return calculateBroquelPrice(defaultData, globalParams);
+        return calculateBroquelPrice(defaultData, broquelParams);
       }
 
       // Usar los gramos de la talla en lugar de los guardados
@@ -698,8 +698,11 @@ export async function calculateDynamicProductPrice(
         goldGrams: params.goldGrams,
       };
 
-      return calculateBroquelPrice(calculationData, globalParams);
+      return calculateBroquelPrice(calculationData, broquelParams);
     } else {
+      // Obtener parámetros globales de Gramo
+      const globalParams = await getPricingParameters();
+      
       // Calcular precio usando fórmula de Gramo
       const gramoData = await getSubcategoryPricing(params.subcategoryId);
       
@@ -732,6 +735,7 @@ export async function calculateDynamicProductPrice(
 
 /**
  * Calcular precio usando fórmula de Gramo
+ * NO incluye comisiones de Stripe - estas se aplican al momento del pago
  */
 function calculateGramoPrice(
   pricingData: SubcategoryPricingData,
@@ -739,7 +743,8 @@ function calculateGramoPrice(
 ): number {
   const { goldGrams, factor, laborCost, stoneCost, salesCommission, shippingCost } = pricingData;
 
-  // Formula: ((($H$2*D5*F5)+(D5*(H5+I5)))*(1+J5)+(D5*K5)+L5)*(1+M5)*(1+N5)+O5
+  // Formula: ((($H$2*D5*F5)+(D5*(H5+I5)))*(1+J5)+(D5*K5)+L5)*(1+M5)
+  // NO incluir Stripe en el precio base - se aplicará al momento del pago
   const goldCost = globalParams.goldQuotation * goldGrams * factor;
   const materialsCost = goldGrams * (laborCost + stoneCost);
   const subtotalBeforeProfit = goldCost + materialsCost;
@@ -747,24 +752,25 @@ function calculateGramoPrice(
   const commissionCost = goldGrams * salesCommission;
   const subtotalWithCommissions = subtotalWithProfit + commissionCost + shippingCost;
   const subtotalWithVat = subtotalWithCommissions * (1 + globalParams.vat);
-  const subtotalWithStripePercentage = subtotalWithVat * (1 + globalParams.stripePercentage);
-  const finalPrice = subtotalWithStripePercentage + globalParams.stripeFixedFee;
+  // Precio base sin comisiones de Stripe
+  const finalPrice = subtotalWithVat;
 
   return finalPrice;
 }
 
 /**
  * Calcular precio usando fórmula de Broquel
+ * NO incluye comisiones de Stripe - estas se aplican al momento del pago
  */
 function calculateBroquelPrice(
   pricingData: SubcategoryBroquelPricingData,
-  globalParams: PricingParameters
+  broquelParams: BroquelPricingParameters
 ): number {
   const { pz, goldGrams, carats, merma, laborCost, stoneCost, salesCommission, shipping } = pricingData;
 
   // Fórmula Excel paso a paso:
   // 1. (COTIZACIÓN * KILATAJE / 24 * ORO(GRS))
-  const goldCost = globalParams.goldQuotation * (carats / 24) * goldGrams;
+  const goldCost = broquelParams.quotation * (carats / 24) * goldGrams;
 
   // 2. goldCost * (1 + MERMA%)
   const mermaDecimal = merma / 100; // Convertir % a decimal
@@ -777,7 +783,7 @@ function calculateBroquelPrice(
   const subtotalByPieces = subtotalBeforeProfit * pz;
 
   // 5. * (1 + UTILIDAD)
-  const subtotalWithProfit = subtotalByPieces * (1 + globalParams.profitMargin);
+  const subtotalWithProfit = subtotalByPieces * (1 + broquelParams.profitMargin);
 
   // 6. + (PZ * COMISIÓN DE VENTA)
   const commissionCost = pz * salesCommission;
@@ -787,13 +793,12 @@ function calculateBroquelPrice(
   const subtotalWithShipping = subtotalWithCommission + shipping;
 
   // 8. * (1 + IVA)
-  const subtotalWithVat = subtotalWithShipping * (1 + globalParams.vat);
+  const subtotalWithVat = subtotalWithShipping * (1 + broquelParams.vat);
 
+  // NO incluir comisiones de Stripe en el precio base - se aplicarán al momento del pago
   // 9. * (1 + STRIPE%)
-  const subtotalWithStripe = subtotalWithVat * (1 + globalParams.stripePercentage);
-
   // 10. + STRIPE FIJO
-  const finalPrice = subtotalWithStripe + globalParams.stripeFixedFee;
+  const finalPrice = subtotalWithVat; // Precio base sin comisiones de Stripe
 
   return finalPrice;
 }
