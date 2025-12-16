@@ -669,8 +669,9 @@ export async function calculateDynamicProductPrice(
     console.log('[calculateDynamicProductPrice] Calculating price with params:', params);
 
     // Determinar qué calculadora usar basándose en el nombre de la categoría
-    const isBroquel = params.categoryName.toLowerCase() === "broquel";
-    console.log('[calculateDynamicProductPrice] Category:', params.categoryName, 'isBroquel:', isBroquel);
+    const categoryNameLower = params.categoryName.toLowerCase().trim();
+    const isBroquel = categoryNameLower === "broquel" || categoryNameLower === "broqueles";
+    console.log('[calculateDynamicProductPrice] Category:', params.categoryName, 'categoryNameLower:', categoryNameLower, 'isBroquel:', isBroquel);
 
     if (isBroquel) {
       console.log('[calculateDynamicProductPrice] Using Broquel formula');
@@ -686,8 +687,8 @@ export async function calculateDynamicProductPrice(
         console.log('[calculateDynamicProductPrice] No saved data, using defaults');
         // Si no hay datos guardados, usar valores por defecto
         const defaultData: SubcategoryBroquelPricingData = {
-          pz: 1.0,
-          goldGrams: params.goldGrams, // Usar los gramos de la talla
+          pz: params.goldGrams, // Para Broquel, params.goldGrams es en realidad el número de piezas
+          goldGrams: 1.0, // Gramos por pieza por defecto
           carats: 10,
           factor: 0.000,
           merma: 8.00,
@@ -701,10 +702,11 @@ export async function calculateDynamicProductPrice(
         return price;
       }
 
-      // Usar los gramos de la talla en lugar de los guardados
+      // Para Broquel: params.goldGrams es el número de piezas (PZ)
+      // Los gramos de oro por pieza vienen de la configuración de la subcategoría
       const calculationData: SubcategoryBroquelPricingData = {
         ...broquelData,
-        goldGrams: params.goldGrams,
+        pz: params.goldGrams, // params.goldGrams es en realidad el número de piezas
       };
       console.log('[calculateDynamicProductPrice] Calculation data:', calculationData);
 
