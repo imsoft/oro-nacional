@@ -11,24 +11,24 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { Plus, Trash2, Save, Eye, X, ArrowUp, ArrowDown, GripVertical } from "lucide-react";
 import { ProductImagesManager } from "./product-images-manager";
-import { 
-  MultilingualInput, 
-  MultilingualForm, 
+import {
+  MultilingualInput,
+  MultilingualForm,
   MultilingualCard,
   LanguageToggle,
   MultilingualPreview,
   useMultilingualForm
 } from "./multilingual-form";
-import type { 
-  ProductFormData, 
-  MultilingualFormData, 
+import type {
+  ProductFormData,
+  MultilingualFormData,
   Locale
 } from "@/types/multilingual";
 import { createProduct, updateProduct, getCategoriesForAdmin } from "@/lib/supabase/products-multilingual";
 import { getProductById, deleteProductImages } from "@/lib/supabase/products";
-import { 
-  getAllInternalCategories, 
-  getProductInternalCategoriesAndSubcategories, 
+import {
+  getAllInternalCategories,
+  getProductInternalCategoriesAndSubcategories,
   updateProductInternalCategoriesAndSubcategories,
   getInternalSubcategories,
 } from "@/lib/supabase/internal-categories";
@@ -36,6 +36,7 @@ import type { InternalCategory, InternalSubcategory } from "@/lib/supabase/inter
 import { calculateDynamicProductPrice } from "@/lib/supabase/pricing";
 import { Calculator, Loader2 } from "lucide-react";
 import { getStoreSettings } from "@/lib/supabase/settings";
+import { toast } from "sonner";
 
 interface ProductFormProps {
   productId?: string;
@@ -91,6 +92,9 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
         setCategories(cats);
       } catch (error) {
         console.error("Error loading categories:", error);
+        toast.error("Error al cargar categorías", {
+          description: "No se pudieron cargar las categorías de productos. Por favor recarga la página."
+        });
       }
     };
     loadCategories();
@@ -104,6 +108,9 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
         }
       } catch (error) {
         console.error("Error loading exchange rate:", error);
+        toast.warning("Error al cargar tasa de cambio", {
+          description: "Se usará una tasa de cambio predeterminada. Los precios en USD podrían no ser exactos."
+        });
       }
     };
     loadExchangeRate();
@@ -125,12 +132,18 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
             subcategoriesMap.set(cat.id, subs.filter(sub => sub.is_active));
           } catch (error) {
             console.error(`Error loading subcategories for category ${cat.id}:`, error);
+            toast.warning("Error al cargar subcategorías", {
+              description: `No se pudieron cargar las subcategorías de ${cat.name}. Algunas opciones podrían no estar disponibles.`
+            });
             subcategoriesMap.set(cat.id, []);
           }
         }
         setInternalSubcategories(subcategoriesMap);
       } catch (error) {
         console.error("Error loading internal categories:", error);
+        toast.error("Error al cargar categorías internas", {
+          description: "No se pudieron cargar las categorías internas para cálculo de precios. Por favor recarga la página."
+        });
       }
     };
     loadInternalCategories();
@@ -147,6 +160,9 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
         const product = await getProductById(productId);
         if (!product) {
           console.error("Product not found");
+          toast.error("Producto no encontrado", {
+            description: "No se pudo encontrar el producto solicitado. Verifica el ID e intenta de nuevo."
+          });
           setIsLoading(false);
           return;
         }
@@ -166,7 +182,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
 
         // Cargar categoría y subcategoría interna del producto (solo la primera)
         try {
-          const { categories: productCategories, subcategories: productSubcategories } = 
+          const { categories: productCategories, subcategories: productSubcategories } =
             await getProductInternalCategoriesAndSubcategories(productId);
           const internalCategoryId = productCategories.length > 0 ? productCategories[0].id : undefined;
           const internalSubcategoryId = productSubcategories.length > 0 ? productSubcategories[0].id : undefined;
@@ -174,6 +190,9 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
           updateField("internal_subcategory_id", internalSubcategoryId);
         } catch (error) {
           console.error("Error loading product internal categories:", error);
+          toast.warning("Error al cargar categorías internas del producto", {
+            description: "No se pudieron cargar las categorías internas. Puedes seleccionarlas manualmente."
+          });
           updateField("internal_category_id", undefined);
           updateField("internal_subcategory_id", undefined);
         }
@@ -246,6 +265,9 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
 
       } catch (error) {
         console.error("Error loading product:", error);
+        toast.error("Error al cargar el producto", {
+          description: "No se pudo cargar la información del producto. Por favor recarga la página e intenta de nuevo."
+        });
       } finally {
         setIsLoading(false);
       }
@@ -325,10 +347,20 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
       const newImages = formData.existing_images?.filter((_, i) => i !== index);
       updateField("existing_images", newImages);
 
-      alert(t('productForm.imageDeleted') || 'Imagen eliminada exitosamente');
+      toast.success("Imagen eliminada exitosamente", {
+        description: "La imagen ha sido eliminada correctamente del producto."
+      });
     } catch (error) {
       console.error('Error deleting image:', error);
-      alert(t('productForm.errorDeletingImage') || 'Error al eliminar la imagen. Por favor intenta de nuevo.');
+      if (error instanceof Error) {
+        toast.error("Error al eliminar la imagen", {
+          description: error.message || "No se pudo eliminar la imagen. Por favor intenta de nuevo."
+        });
+      } else {
+        toast.error("Error al eliminar la imagen", {
+          description: "Ocurrió un error inesperado al eliminar la imagen."
+        });
+      }
     }
   };
 
@@ -340,8 +372,37 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
       // Validar campos requeridos
       const requiredFields: (keyof ProductFormData)[] = ["name", "description", "material"];
       if (!validateForm(requiredFields)) {
+        toast.error("Campos requeridos faltantes", {
+          description: "Por favor completa todos los campos requeridos (Nombre, Descripción y Material) en español."
+        });
         setIsLoading(false);
         return;
+      }
+
+      // Validar que al menos haya una talla con stock
+      if (!formData.sizes || formData.sizes.length === 0) {
+        toast.error("Sin tallas disponibles", {
+          description: "Debes agregar al menos una talla con stock disponible para el producto."
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Validar que las tallas tengan datos válidos
+      const invalidSizes = formData.sizes.filter(size => !size.size || size.stock < 0 || !size.price || size.price <= 0);
+      if (invalidSizes.length > 0) {
+        toast.error("Tallas con datos inválidos", {
+          description: "Todas las tallas deben tener un nombre, stock válido (0 o mayor) y precio mayor a 0."
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Validar categoría
+      if (!formData.category_id) {
+        toast.warning("Categoría no seleccionada", {
+          description: "Se recomienda seleccionar una categoría para el producto."
+        });
       }
 
       const productData = {
@@ -373,25 +434,77 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
       // Validar que productId sea un UUID válido si existe
       let savedProductId: string;
       if (productId && productId.trim() !== "") {
-        await updateProduct(productId, productData);
-        savedProductId = productId;
+        try {
+          await updateProduct(productId, productData);
+          savedProductId = productId;
+          toast.success("Producto actualizado exitosamente", {
+            description: `El producto "${formData.name.es}" ha sido actualizado correctamente.`
+          });
+        } catch (updateError) {
+          console.error("Error updating product:", updateError);
+          if (updateError instanceof Error) {
+            toast.error("Error al actualizar el producto", {
+              description: updateError.message || "No se pudo actualizar el producto. Por favor verifica los datos e intenta de nuevo."
+            });
+          } else {
+            toast.error("Error al actualizar el producto", {
+              description: "Ocurrió un error inesperado al actualizar el producto."
+            });
+          }
+          setIsLoading(false);
+          return;
+        }
       } else {
-        const newProduct = await createProduct(productData);
-        savedProductId = newProduct.id;
+        try {
+          const newProduct = await createProduct(productData);
+          savedProductId = newProduct.id;
+          toast.success("Producto creado exitosamente", {
+            description: `El producto "${formData.name.es}" ha sido creado correctamente.`
+          });
+        } catch (createError) {
+          console.error("Error creating product:", createError);
+          if (createError instanceof Error) {
+            toast.error("Error al crear el producto", {
+              description: createError.message || "No se pudo crear el producto. Por favor verifica los datos e intenta de nuevo."
+            });
+          } else {
+            toast.error("Error al crear el producto", {
+              description: "Ocurrió un error inesperado al crear el producto."
+            });
+          }
+          setIsLoading(false);
+          return;
+        }
       }
 
       // Guardar categoría y subcategoría interna (solo una de cada una)
-      const internalCategoryIds = formData.internal_category_id ? [formData.internal_category_id] : [];
-      const internalSubcategoryIds = formData.internal_subcategory_id ? [formData.internal_subcategory_id] : [];
-      await updateProductInternalCategoriesAndSubcategories(
-        savedProductId,
-        internalCategoryIds,
-        internalSubcategoryIds
-      );
+      try {
+        const internalCategoryIds = formData.internal_category_id ? [formData.internal_category_id] : [];
+        const internalSubcategoryIds = formData.internal_subcategory_id ? [formData.internal_subcategory_id] : [];
+        await updateProductInternalCategoriesAndSubcategories(
+          savedProductId,
+          internalCategoryIds,
+          internalSubcategoryIds
+        );
+      } catch (categoryError) {
+        console.error("Error updating internal categories:", categoryError);
+        toast.warning("Categorías internas no guardadas", {
+          description: "El producto se guardó correctamente, pero hubo un error al asignar las categorías internas."
+        });
+      }
 
       onSuccess?.();
     } catch (error) {
       console.error("Error saving product:", error);
+      if (error instanceof Error) {
+        toast.error("Error al guardar el producto", {
+          description: error.message || "Ocurrió un error inesperado. Por favor intenta de nuevo."
+        });
+      } else {
+        toast.error("Error al guardar el producto", {
+          description: "Ocurrió un error inesperado al guardar el producto."
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -479,7 +592,9 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
     
     // Validar que la talla tenga gramos/piezas definidos
     if (!size.weight || size.weight <= 0) {
-      alert(`Por favor ingresa las ${fieldName} para esta talla primero.`);
+      toast.warning("Datos incompletos", {
+        description: `Por favor ingresa las ${fieldName} para esta talla primero.`
+      });
       return;
     }
 
@@ -502,12 +617,25 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
           price_usd: newSizes[index].price_usd ?? (exchangeRate > 0 ? Math.round((calculatedPrice / exchangeRate) * 100) / 100 : null)
         };
         updateField("sizes", newSizes);
+        toast.success("Precio calculado", {
+          description: `El precio ha sido calculado exitosamente: $${calculatedPrice.toLocaleString('es-MX', { minimumFractionDigits: 2 })}`
+        });
       } else {
-        alert("No se pudo calcular el precio. Por favor verifica la configuración de la subcategoría.");
+        toast.error("Error en configuración", {
+          description: "No se pudo calcular el precio. Por favor verifica la configuración de la subcategoría."
+        });
       }
     } catch (error) {
       console.error("Error calculating price:", error);
-      alert("Error al calcular el precio. Por favor intenta de nuevo.");
+      if (error instanceof Error) {
+        toast.error("Error al calcular el precio", {
+          description: error.message || "Ocurrió un error al calcular el precio. Por favor intenta de nuevo."
+        });
+      } else {
+        toast.error("Error al calcular el precio", {
+          description: "Ocurrió un error inesperado. Por favor intenta de nuevo."
+        });
+      }
     } finally {
       setCalculatingPriceForIndex(null);
     }
