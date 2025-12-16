@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { ArrowLeft, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { 
-  MultilingualInput, 
-  MultilingualForm, 
+import {
+  MultilingualInput,
+  MultilingualForm,
   MultilingualCard,
   useMultilingualForm
 } from "@/components/admin/multilingual-form";
@@ -42,22 +43,30 @@ export default function NewBlogCategoryPage() {
       // Validar campos requeridos
       const requiredFields: (keyof CategoryFormData)[] = ["name"];
       if (!validateForm(requiredFields)) {
+        toast.error("Campos requeridos", {
+          description: "Por favor completa todos los campos obligatorios en ambos idiomas.",
+        });
         setIsLoading(false);
         return;
       }
 
       const categoryData = {
         name: formData.name,
-        description: formData.description.es || formData.description.en 
-          ? formData.description 
+        description: formData.description.es || formData.description.en
+          ? formData.description
           : undefined,
       };
 
       await createBlogCategory(categoryData);
+      toast.success("Categoría creada", {
+        description: `La categoría "${formData.name.es}" se creó exitosamente.`,
+      });
       router.push("/admin/blog/categorias");
     } catch (error) {
-      console.error("Error creating category:", error);
-      alert(t("createError") || "Error al crear la categoría. Por favor intenta de nuevo.");
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido al crear la categoría";
+      toast.error("Error al crear categoría", {
+        description: errorMessage,
+      });
     } finally {
       setIsLoading(false);
     }

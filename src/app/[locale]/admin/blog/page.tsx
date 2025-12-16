@@ -18,6 +18,7 @@ import {
 import { Link } from "@/i18n/routing";
 import { getAllBlogPosts, deleteBlogPost } from "@/lib/supabase/blog";
 import type { BlogPostListItem } from "@/types/blog";
+import { toast } from "sonner";
 
 export default function BlogAdmin() {
   const t = useTranslations('admin.blog');
@@ -40,6 +41,9 @@ export default function BlogAdmin() {
       setPosts(data);
     } catch (error) {
       console.error("Error loading posts:", error);
+      toast.error("Error al cargar posts", {
+        description: "No se pudieron cargar los posts del blog. Por favor recarga la página."
+      });
     } finally {
       setIsLoading(false);
     }
@@ -64,12 +68,25 @@ export default function BlogAdmin() {
         await loadPosts();
         setDeleteDialogOpen(false);
         setPostToDelete(null);
+        toast.success("Post eliminado exitosamente", {
+          description: `El post "${postToDelete.title}" ha sido eliminado correctamente.`
+        });
       } else {
-        alert(t('deleteError'));
+        toast.error("Error al eliminar el post", {
+          description: "No se pudo eliminar el post. Por favor intenta de nuevo."
+        });
       }
     } catch (error) {
       console.error("Error deleting post:", error);
-      alert(t('deleteError'));
+      if (error instanceof Error) {
+        toast.error("Error al eliminar el post", {
+          description: error.message || "Ocurrió un error inesperado al eliminar el post."
+        });
+      } else {
+        toast.error("Error al eliminar el post", {
+          description: "Ocurrió un error inesperado al eliminar el post."
+        });
+      }
     } finally {
       setIsDeleting(false);
     }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Search, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,7 +60,10 @@ export default function BlogCategoriesAdmin() {
       const data = await getAllBlogCategories();
       setCategories(data);
     } catch (error) {
-      console.error("Error loading categories:", error);
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido al cargar las categorías";
+      toast.error("Error al cargar categorías", {
+        description: errorMessage,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -79,14 +83,22 @@ export default function BlogCategoriesAdmin() {
     try {
       await deleteBlogCategory(categoryToDelete.id);
       setCategories((prev) => prev.filter((c) => c.id !== categoryToDelete.id));
+      toast.success("Categoría eliminada", {
+        description: `La categoría "${categoryToDelete.name.es}" se eliminó exitosamente.`,
+      });
       setDeleteDialogOpen(false);
       setCategoryToDelete(null);
     } catch (err: unknown) {
-      console.error("Error deleting category:", err);
       const errorMessage = err instanceof Error ? err.message : String(err);
-      setError(errorMessage.includes("blog posts") 
-        ? t("deleteErrorWithPosts") 
+      const isPostsError = errorMessage.includes("blog posts");
+      setError(isPostsError
+        ? t("deleteErrorWithPosts")
         : t("deleteError"));
+      toast.error("Error al eliminar", {
+        description: isPostsError
+          ? "No se puede eliminar la categoría porque tiene posts asociados."
+          : errorMessage,
+      });
     } finally {
       setIsDeleting(false);
     }

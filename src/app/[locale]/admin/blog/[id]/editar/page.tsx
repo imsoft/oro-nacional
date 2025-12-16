@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "@/i18n/routing";
 import Image from "next/image";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -65,7 +66,9 @@ export default function EditPostPage({
       ]);
 
       if (!postData) {
-        alert("Post no encontrado");
+        toast.error("Post no encontrado", {
+          description: "El post que intentas editar no existe o ha sido eliminado.",
+        });
         router.push("/admin/blog");
         return;
       }
@@ -82,8 +85,10 @@ export default function EditPostPage({
       setTags(postData.tags?.map((tag) => tag.name).join(", ") || "");
       setCategories(categoriesData);
     } catch (error) {
-      console.error("Error loading post:", error);
-      alert("Error al cargar el post");
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido al cargar el post";
+      toast.error("Error al cargar el post", {
+        description: errorMessage,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -118,17 +123,23 @@ export default function EditPostPage({
     e.preventDefault();
 
     if (!user) {
-      alert("Debes iniciar sesión para editar un post");
+      toast.error("No autorizado", {
+        description: "Debes iniciar sesión para editar un post.",
+      });
       return;
     }
 
     if (!title.trim()) {
-      alert("El título es obligatorio");
+      toast.error("Título requerido", {
+        description: "El título del post es obligatorio.",
+      });
       return;
     }
 
     if (!content.trim()) {
-      alert("El contenido es obligatorio");
+      toast.error("Contenido requerido", {
+        description: "El contenido del post es obligatorio.",
+      });
       return;
     }
 
@@ -152,14 +163,20 @@ export default function EditPostPage({
       const result = await updateBlogPost(params.id, updates);
 
       if (result) {
-        alert("Post actualizado exitosamente");
+        toast.success("Post actualizado", {
+          description: `El post "${title.trim()}" se actualizó exitosamente.`,
+        });
         router.push("/admin/blog");
       } else {
-        alert("Error al actualizar el post. Por favor intenta de nuevo.");
+        toast.error("Error al actualizar", {
+          description: "No se pudo actualizar el post. Por favor intenta de nuevo.",
+        });
       }
     } catch (error) {
-      console.error("Error updating post:", error);
-      alert("Error al actualizar el post. Por favor intenta de nuevo.");
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido al actualizar el post";
+      toast.error("Error al actualizar el post", {
+        description: errorMessage,
+      });
     } finally {
       setIsSaving(false);
     }

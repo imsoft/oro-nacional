@@ -19,6 +19,7 @@ import { Link } from "@/i18n/routing";
 import { createBlogPost, getBlogCategories } from "@/lib/supabase/blog";
 import { useAuthStore } from "@/stores/auth-store";
 import type { BlogCategory } from "@/types/blog";
+import { toast } from "sonner";
 
 export default function NewPostPage() {
   const router = useRouter();
@@ -50,6 +51,9 @@ export default function NewPostPage() {
       setCategories(data);
     } catch (error) {
       console.error("Error loading categories:", error);
+      toast.error("Error al cargar categorías", {
+        description: "No se pudieron cargar las categorías del blog. Por favor recarga la página."
+      });
     }
   };
 
@@ -77,17 +81,23 @@ export default function NewPostPage() {
     e.preventDefault();
 
     if (!user) {
-      alert("Debes iniciar sesión para crear un post");
+      toast.error("Sesión requerida", {
+        description: "Debes iniciar sesión para crear un post del blog."
+      });
       return;
     }
 
     if (!title.trim()) {
-      alert("El título es obligatorio");
+      toast.error("Título requerido", {
+        description: "Debes proporcionar un título para el post."
+      });
       return;
     }
 
     if (!content.trim()) {
-      alert("El contenido es obligatorio");
+      toast.error("Contenido requerido", {
+        description: "Debes proporcionar contenido para el post."
+      });
       return;
     }
 
@@ -111,14 +121,26 @@ export default function NewPostPage() {
       const result = await createBlogPost(postData, user.id);
 
       if (result) {
-        alert("Post creado exitosamente");
+        toast.success("Post creado exitosamente", {
+          description: `El post "${title}" ha sido creado correctamente.`
+        });
         router.push("/admin/blog");
       } else {
-        alert("Error al crear el post. Por favor intenta de nuevo.");
+        toast.error("Error al crear el post", {
+          description: "No se pudo crear el post. Por favor intenta de nuevo."
+        });
       }
     } catch (error) {
       console.error("Error creating post:", error);
-      alert("Error al crear el post. Por favor intenta de nuevo.");
+      if (error instanceof Error) {
+        toast.error("Error al crear el post", {
+          description: error.message || "Ocurrió un error inesperado al crear el post."
+        });
+      } else {
+        toast.error("Error al crear el post", {
+          description: "Ocurrió un error inesperado al crear el post."
+        });
+      }
     } finally {
       setIsLoading(false);
     }

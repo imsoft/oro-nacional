@@ -3,11 +3,12 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { 
-  MultilingualInput, 
-  MultilingualForm, 
+import {
+  MultilingualInput,
+  MultilingualForm,
   MultilingualCard,
   useMultilingualForm
 } from "@/components/admin/multilingual-form";
@@ -54,10 +55,17 @@ export default function EditBlogCategoryPage({ params }: EditCategoryPageProps) 
           name: category.name,
           description: category.description || { es: "", en: "" },
         });
+      } else {
+        toast.error("Categoría no encontrada", {
+          description: "La categoría que intentas editar no existe o ha sido eliminada.",
+        });
+        router.push("/admin/blog/categorias");
       }
     } catch (error) {
-      console.error("Error loading category:", error);
-      alert(t("loadError") || "Error al cargar la categoría.");
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido al cargar la categoría";
+      toast.error("Error al cargar categoría", {
+        description: errorMessage,
+      });
       router.push("/admin/blog/categorias");
     } finally {
       setIsLoadingData(false);
@@ -72,22 +80,30 @@ export default function EditBlogCategoryPage({ params }: EditCategoryPageProps) 
       // Validar campos requeridos
       const requiredFields: (keyof CategoryFormData)[] = ["name"];
       if (!validateForm(requiredFields)) {
+        toast.error("Campos requeridos", {
+          description: "Por favor completa todos los campos obligatorios en ambos idiomas.",
+        });
         setIsLoading(false);
         return;
       }
 
       const categoryData = {
         name: formData.name,
-        description: formData.description.es || formData.description.en 
-          ? formData.description 
+        description: formData.description.es || formData.description.en
+          ? formData.description
           : undefined,
       };
 
       await updateBlogCategory(params.id, categoryData);
+      toast.success("Categoría actualizada", {
+        description: `La categoría "${formData.name.es}" se actualizó exitosamente.`,
+      });
       router.push("/admin/blog/categorias");
     } catch (error) {
-      console.error("Error updating category:", error);
-      alert(t("updateError") || "Error al actualizar la categoría. Por favor intenta de nuevo.");
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido al actualizar la categoría";
+      toast.error("Error al actualizar categoría", {
+        description: errorMessage,
+      });
     } finally {
       setIsLoading(false);
     }
