@@ -4,6 +4,7 @@ import { useState, useEffect, use } from "react";
 import { useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -69,7 +70,9 @@ export default function EditInternalCategoryPage({ params }: EditInternalCategor
       loadSubcategories();
     } else if (categoryId) {
       // Si hay un ID pero no es válido, redirigir
-      alert(t("categoryNotFound") || "ID de categoría inválido");
+      toast.error("Categoría interna no encontrada", {
+        description: "El ID de categoría proporcionado no es válido",
+      });
       router.push("/admin/categorias-internas");
     }
   }, [categoryId]);
@@ -83,7 +86,9 @@ export default function EditInternalCategoryPage({ params }: EditInternalCategor
     try {
       const category = await getInternalCategoryById(categoryId);
       if (!category) {
-        alert(t("categoryNotFound") || "Categoría no encontrada");
+        toast.error("Categoría interna no encontrada", {
+          description: "No se pudo encontrar la categoría solicitada",
+        });
         router.push("/admin/categorias-internas");
         return;
       }
@@ -95,12 +100,16 @@ export default function EditInternalCategoryPage({ params }: EditInternalCategor
         is_active: category.is_active,
       });
     } catch (error: any) {
-      console.error("Error loading category:", error);
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido al cargar la categoría";
       // Solo mostrar error si no es el error de "no encontrado"
       if (error?.code !== "PGRST116") {
-        alert(t("loadError") || "Error al cargar la categoría");
+        toast.error("Error al cargar categoría interna", {
+          description: errorMessage,
+        });
       } else {
-        alert(t("categoryNotFound") || "Categoría no encontrada");
+        toast.error("Categoría interna no encontrada", {
+          description: "La categoría solicitada no existe en la base de datos",
+        });
       }
       router.push("/admin/categorias-internas");
     } finally {
@@ -118,7 +127,10 @@ export default function EditInternalCategoryPage({ params }: EditInternalCategor
       const subs = await getInternalSubcategories(categoryId);
       setSubcategories(subs);
     } catch (error) {
-      console.error("Error loading subcategories:", error);
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido al cargar las subcategorías";
+      toast.error("Error al cargar subcategorías", {
+        description: errorMessage,
+      });
     } finally {
       setIsLoadingSubcategories(false);
     }
@@ -126,7 +138,9 @@ export default function EditInternalCategoryPage({ params }: EditInternalCategor
 
   const handleAddSubcategory = async () => {
     if (!newSubcategoryData.name.trim()) {
-      alert(t("subcategoryNameRequired") || "El nombre es requerido");
+      toast.error("Nombre requerido", {
+        description: "Por favor ingresa un nombre para la subcategoría",
+      });
       return;
     }
 
@@ -138,12 +152,17 @@ export default function EditInternalCategoryPage({ params }: EditInternalCategor
         display_order: subcategories.length,
       });
       setSubcategories([...subcategories, newSubcategory]);
+      toast.success("Subcategoría creada exitosamente", {
+        description: `La subcategoría "${newSubcategoryData.name}" ha sido creada`,
+      });
       // Limpiar el formulario y cerrar el diálogo
       setNewSubcategoryData({ name: "", special_code: "" });
       setIsAddDialogOpen(false);
     } catch (error) {
-      console.error("Error creating subcategory:", error);
-      alert(t("createSubcategoryError") || "Error al crear la subcategoría");
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido al crear la subcategoría";
+      toast.error("Error al crear subcategoría", {
+        description: errorMessage,
+      });
     }
   };
 
@@ -153,13 +172,19 @@ export default function EditInternalCategoryPage({ params }: EditInternalCategor
       const updateValue = field === "special_code" && value === "" ? null : value;
       const updated = await updateInternalSubcategory(subcategoryId, { [field]: updateValue });
       setSubcategories(subcategories.map(sub => sub.id === subcategoryId ? updated : sub));
+      toast.success("Subcategoría actualizada exitosamente", {
+        description: `El campo ha sido actualizado`,
+      });
     } catch (error) {
-      console.error("Error updating subcategory:", error);
-      alert(t("updateSubcategoryError") || "Error al actualizar la subcategoría");
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido al actualizar la subcategoría";
+      toast.error("Error al actualizar subcategoría", {
+        description: errorMessage,
+      });
     }
   };
 
   const handleDeleteSubcategory = async (subcategoryId: string) => {
+    const subcategoryToDelete = subcategories.find(sub => sub.id === subcategoryId);
     if (!confirm(t("deleteSubcategoryConfirm") || "¿Estás seguro de eliminar esta subcategoría?")) {
       return;
     }
@@ -167,9 +192,14 @@ export default function EditInternalCategoryPage({ params }: EditInternalCategor
     try {
       await deleteInternalSubcategory(subcategoryId);
       setSubcategories(subcategories.filter(sub => sub.id !== subcategoryId));
+      toast.success("Subcategoría eliminada exitosamente", {
+        description: subcategoryToDelete ? `La subcategoría "${subcategoryToDelete.name}" ha sido eliminada` : "La subcategoría ha sido eliminada",
+      });
     } catch (error) {
-      console.error("Error deleting subcategory:", error);
-      alert(t("deleteSubcategoryError") || "Error al eliminar la subcategoría");
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido al eliminar la subcategoría";
+      toast.error("Error al eliminar subcategoría", {
+        description: errorMessage,
+      });
     }
   };
 
@@ -188,22 +218,27 @@ export default function EditInternalCategoryPage({ params }: EditInternalCategor
       await updateInternalSubcategory(subcategories[newIndex].id, { display_order: currentOrder });
       await loadSubcategories();
     } catch (error) {
-      console.error("Error moving subcategory:", error);
-      alert(t("moveSubcategoryError") || "Error al mover la subcategoría");
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido al reordenar la subcategoría";
+      toast.error("Error al reordenar subcategoría", {
+        description: errorMessage,
+      });
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validar campos requeridos
+    if (!formData.name.trim()) {
+      toast.error("Nombre requerido", {
+        description: "Por favor ingresa un nombre para la categoría interna",
+      });
+      return;
+    }
+
     setIsSaving(true);
 
     try {
-      if (!formData.name.trim()) {
-        alert(t("nameRequired") || "El nombre es requerido");
-        setIsSaving(false);
-        return;
-      }
-
       await updateInternalCategory(categoryId, {
         name: formData.name.trim(),
         description: formData.description.trim() || undefined,
@@ -211,10 +246,16 @@ export default function EditInternalCategoryPage({ params }: EditInternalCategor
         is_active: formData.is_active,
       });
 
+      toast.success("Categoría interna actualizada exitosamente", {
+        description: `La categoría "${formData.name}" ha sido actualizada`,
+      });
+
       router.push("/admin/categorias-internas");
     } catch (error) {
-      console.error("Error updating category:", error);
-      alert(t("updateError") || "Error al actualizar la categoría. Por favor intenta de nuevo.");
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido al actualizar la categoría";
+      toast.error("Error al actualizar categoría interna", {
+        description: errorMessage,
+      });
     } finally {
       setIsSaving(false);
     }

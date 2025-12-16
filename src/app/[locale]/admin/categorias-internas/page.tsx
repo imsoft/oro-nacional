@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { Plus, Pencil, Trash2, Search, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -42,7 +43,10 @@ export default function InternalCategoriesAdmin() {
       const data = await getAllInternalCategories();
       setCategories(data);
     } catch (error) {
-      console.error("Error loading categories:", error);
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido al cargar las categorías internas";
+      toast.error("Error al cargar categorías internas", {
+        description: errorMessage,
+      });
       setError(t("loadError") || "Error al cargar las categorías");
     } finally {
       setIsLoading(false);
@@ -63,11 +67,16 @@ export default function InternalCategoriesAdmin() {
     try {
       await deleteInternalCategory(categoryToDelete.id);
       setCategories((prev) => prev.filter((c) => c.id !== categoryToDelete.id));
+      toast.success("Categoría interna eliminada exitosamente", {
+        description: `La categoría "${categoryToDelete.name}" ha sido eliminada`,
+      });
       setDeleteDialogOpen(false);
       setCategoryToDelete(null);
     } catch (err: unknown) {
-      console.error("Error deleting category:", err);
-      const errorMessage = err instanceof Error ? err.message : String(err);
+      const errorMessage = err instanceof Error ? err.message : "Error desconocido al eliminar la categoría";
+      toast.error("Error al eliminar categoría interna", {
+        description: errorMessage,
+      });
       setError(errorMessage);
     } finally {
       setIsDeleting(false);

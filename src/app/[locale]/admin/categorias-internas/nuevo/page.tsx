@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { ArrowLeft, Save } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,15 +26,18 @@ export default function NewInternalCategoryPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validar campos requeridos
+    if (!formData.name.trim()) {
+      toast.error("Nombre requerido", {
+        description: "Por favor ingresa un nombre para la categoría interna",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      if (!formData.name.trim()) {
-        alert(t("nameRequired") || "El nombre es requerido");
-        setIsLoading(false);
-        return;
-      }
-
       await createInternalCategory({
         name: formData.name.trim(),
         description: formData.description.trim() || undefined,
@@ -41,10 +45,16 @@ export default function NewInternalCategoryPage() {
         is_active: formData.is_active,
       });
 
+      toast.success("Categoría interna creada exitosamente", {
+        description: `La categoría "${formData.name}" ha sido creada`,
+      });
+
       router.push("/admin/categorias-internas");
     } catch (error) {
-      console.error("Error creating category:", error);
-      alert(t("createError") || "Error al crear la categoría. Por favor intenta de nuevo.");
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido al crear la categoría";
+      toast.error("Error al crear categoría interna", {
+        description: errorMessage,
+      });
     } finally {
       setIsLoading(false);
     }
