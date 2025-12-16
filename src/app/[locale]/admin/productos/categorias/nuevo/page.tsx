@@ -5,13 +5,14 @@ import { useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { ArrowLeft, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { 
-  MultilingualInput, 
-  MultilingualForm, 
+import {
+  MultilingualInput,
+  MultilingualForm,
   MultilingualCard,
   useMultilingualForm
 } from "@/components/admin/multilingual-form";
 import { createCategory } from "@/lib/supabase/products-multilingual";
+import { toast } from "sonner";
 
 interface CategoryFormData {
   name: { es: string; en: string };
@@ -42,22 +43,45 @@ export default function NewProductCategoryPage() {
       // Validar campos requeridos
       const requiredFields: (keyof CategoryFormData)[] = ["name"];
       if (!validateForm(requiredFields)) {
+        toast.error("Campos requeridos faltantes", {
+          description: "Por favor completa el nombre de la categoría en español antes de continuar."
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Validar que el nombre en español no esté vacío
+      if (!formData.name.es || formData.name.es.trim() === "") {
+        toast.error("Nombre en español requerido", {
+          description: "Debes proporcionar un nombre en español para la categoría."
+        });
         setIsLoading(false);
         return;
       }
 
       const categoryData = {
         name: formData.name,
-        description: formData.description.es || formData.description.en 
-          ? formData.description 
+        description: formData.description.es || formData.description.en
+          ? formData.description
           : undefined,
       };
 
       await createCategory(categoryData);
+      toast.success("Categoría creada exitosamente", {
+        description: `La categoría "${formData.name.es}" ha sido creada correctamente.`
+      });
       router.push("/admin/productos/categorias");
     } catch (error) {
       console.error("Error creating category:", error);
-      alert(t("createError") || "Error al crear la categoría. Por favor intenta de nuevo.");
+      if (error instanceof Error) {
+        toast.error("Error al crear la categoría", {
+          description: error.message || "No se pudo crear la categoría. Por favor intenta de nuevo."
+        });
+      } else {
+        toast.error("Error al crear la categoría", {
+          description: "Ocurrió un error inesperado al crear la categoría."
+        });
+      }
     } finally {
       setIsLoading(false);
     }

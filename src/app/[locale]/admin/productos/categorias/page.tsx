@@ -20,6 +20,7 @@ import {
   deleteProductCategory,
 } from "@/lib/supabase/products-multilingual";
 import { Link } from "@/i18n/routing";
+import { toast } from "sonner";
 
 interface ProductCategoryListItem {
   id: string;
@@ -61,6 +62,9 @@ export default function ProductCategoriesAdmin() {
       setCategories(data);
     } catch (error) {
       console.error("Error loading categories:", error);
+      toast.error("Error al cargar categorías", {
+        description: "No se pudieron cargar las categorías de productos. Por favor recarga la página."
+      });
     } finally {
       setIsLoading(false);
     }
@@ -82,12 +86,26 @@ export default function ProductCategoriesAdmin() {
       setCategories((prev) => prev.filter((c) => c.id !== categoryToDelete.id));
       setDeleteDialogOpen(false);
       setCategoryToDelete(null);
+      toast.success("Categoría eliminada exitosamente", {
+        description: `La categoría "${categoryToDelete.name.es}" ha sido eliminada correctamente.`
+      });
     } catch (err: unknown) {
       console.error("Error deleting category:", err);
       const errorMessage = err instanceof Error ? err.message : String(err);
-      setError(errorMessage.includes("products") 
-        ? t("deleteErrorWithProducts") 
-        : t("deleteError"));
+      const displayError = errorMessage.includes("products")
+        ? t("deleteErrorWithProducts")
+        : t("deleteError");
+      setError(displayError);
+
+      if (errorMessage.includes("products")) {
+        toast.error("No se puede eliminar la categoría", {
+          description: "Esta categoría tiene productos asociados. Primero debes eliminar o reasignar los productos."
+        });
+      } else {
+        toast.error("Error al eliminar categoría", {
+          description: err instanceof Error ? err.message : "Ocurrió un error inesperado al eliminar la categoría."
+        });
+      }
     } finally {
       setIsDeleting(false);
     }

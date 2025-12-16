@@ -5,13 +5,14 @@ import { useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { 
-  MultilingualInput, 
-  MultilingualForm, 
+import {
+  MultilingualInput,
+  MultilingualForm,
   MultilingualCard,
   useMultilingualForm
 } from "@/components/admin/multilingual-form";
 import { getProductCategoryById, updateCategory } from "@/lib/supabase/products-multilingual";
+import { toast } from "sonner";
 
 interface CategoryFormData {
   name: { es: string; en: string };
@@ -65,10 +66,23 @@ export default function EditProductCategoryPage({ params }: EditCategoryPageProp
           name: category.name,
           description: category.description || { es: "", en: "" },
         });
+      } else {
+        toast.error("Categoría no encontrada", {
+          description: "No se pudo encontrar la categoría solicitada. Verifica el ID e intenta de nuevo."
+        });
+        router.push("/admin/productos/categorias");
       }
     } catch (error) {
       console.error("Error loading category:", error);
-      alert(t("loadError") || "Error al cargar la categoría.");
+      if (error instanceof Error) {
+        toast.error("Error al cargar la categoría", {
+          description: error.message || "No se pudo cargar la información de la categoría."
+        });
+      } else {
+        toast.error("Error al cargar la categoría", {
+          description: "Ocurrió un error inesperado al cargar la categoría."
+        });
+      }
       router.push("/admin/productos/categorias");
     } finally {
       setIsLoadingData(false);
@@ -83,6 +97,18 @@ export default function EditProductCategoryPage({ params }: EditCategoryPageProp
       // Validar campos requeridos
       const requiredFields: (keyof CategoryFormData)[] = ["name"];
       if (!validateForm(requiredFields)) {
+        toast.error("Campos requeridos faltantes", {
+          description: "Por favor completa el nombre de la categoría en español antes de continuar."
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Validar que el nombre en español no esté vacío
+      if (!formData.name.es || formData.name.es.trim() === "") {
+        toast.error("Nombre en español requerido", {
+          description: "Debes proporcionar un nombre en español para la categoría."
+        });
         setIsLoading(false);
         return;
       }
@@ -95,10 +121,21 @@ export default function EditProductCategoryPage({ params }: EditCategoryPageProp
       };
 
       await updateCategory(categoryId, categoryData);
+      toast.success("Categoría actualizada exitosamente", {
+        description: `La categoría "${formData.name.es}" ha sido actualizada correctamente.`
+      });
       router.push("/admin/productos/categorias");
     } catch (error) {
       console.error("Error updating category:", error);
-      alert(t("updateError") || "Error al actualizar la categoría. Por favor intenta de nuevo.");
+      if (error instanceof Error) {
+        toast.error("Error al actualizar la categoría", {
+          description: error.message || "No se pudo actualizar la categoría. Por favor intenta de nuevo."
+        });
+      } else {
+        toast.error("Error al actualizar la categoría", {
+          description: "Ocurrió un error inesperado al actualizar la categoría."
+        });
+      }
     } finally {
       setIsLoading(false);
     }
