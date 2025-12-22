@@ -5,6 +5,7 @@ import { PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { Button } from '@/components/ui/button';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { toast } from 'sonner';
 
 interface StripePaymentElementProps {
   clientSecret: string;
@@ -35,12 +36,18 @@ export function StripePaymentElement({
     e.preventDefault();
 
     if (!stripe || !elements) {
-      setError('Stripe no está inicializado. Por favor recarga la página.');
+      const errorMsg = 'Stripe no está inicializado. Por favor recarga la página.';
+      setError(errorMsg);
+      toast.error('Error de inicialización', {
+        description: errorMsg
+      });
       return;
     }
 
     setIsProcessing(true);
     setError(null);
+
+    console.log('[Stripe Payment] Starting payment confirmation with clientSecret:', clientSecret?.substring(0, 20) + '...');
 
     try {
       // Confirmar el pago
@@ -54,22 +61,74 @@ export function StripePaymentElement({
       });
 
       if (confirmError) {
-        setError(confirmError.message || 'Error al procesar el pago');
-        onError(confirmError.message || 'Error al procesar el pago');
+        console.error('[Stripe Payment] Confirmation error:', confirmError);
+        const errorMsg = confirmError.message || 'Error al procesar el pago';
+        setError(errorMsg);
+        toast.error('Error en el pago', {
+          description: errorMsg
+        });
+        onError(errorMsg);
         setIsProcessing(false);
         return;
       }
 
-      if (paymentIntent && paymentIntent.status === 'succeeded') {
-        onSuccess(paymentIntent.id);
+      // Manejar diferentes estados del Payment Intent
+      if (paymentIntent) {
+        console.log('[Stripe Payment] Payment Intent status:', paymentIntent.status);
+        console.log('[Stripe Payment] Payment Intent ID:', paymentIntent.id);
+
+        if (paymentIntent.status === 'succeeded') {
+          // Pago completado exitosamente
+          console.log('[Stripe Payment] Payment succeeded!');
+          toast.success('Pago completado', {
+            description: 'Tu pago se procesó exitosamente'
+          });
+          onSuccess(paymentIntent.id);
+        } else if (paymentIntent.status === 'processing') {
+          // Pago en proceso (común con algunos métodos de pago)
+          console.log('[Stripe Payment] Payment is processing');
+          toast.success('Pago en proceso', {
+            description: 'Tu pago está siendo procesado. Recibirás una confirmación pronto.'
+          });
+          onSuccess(paymentIntent.id);
+        } else if (paymentIntent.status === 'requires_payment_method') {
+          // Método de pago rechazado
+          const errorMsg = 'El método de pago fue rechazado. Por favor intenta con otra tarjeta.';
+          console.warn('[Stripe Payment] Payment method rejected');
+          setError(errorMsg);
+          toast.error('Método de pago rechazado', {
+            description: errorMsg
+          });
+          onError('El método de pago fue rechazado');
+          setIsProcessing(false);
+        } else {
+          // Otros estados
+          const errorMsg = `Estado del pago: ${paymentIntent.status}. Por favor contacta con soporte.`;
+          console.warn('[Stripe Payment] Unexpected status:', paymentIntent.status);
+          setError(errorMsg);
+          toast.warning('Estado inesperado', {
+            description: errorMsg
+          });
+          onError(`Payment status: ${paymentIntent.status}`);
+          setIsProcessing(false);
+        }
       } else {
-        setError('El pago no se completó correctamente');
-        onError('El pago no se completó correctamente');
+        const errorMsg = 'No se recibió confirmación del pago';
+        console.error('[Stripe Payment] No payment intent received');
+        setError(errorMsg);
+        toast.error('Error de confirmación', {
+          description: errorMsg
+        });
+        onError(errorMsg);
         setIsProcessing(false);
       }
     } catch (err) {
+      console.error('[Stripe Payment] Exception during payment:', err);
       const errorMessage = err instanceof Error ? err.message : 'Error inesperado al procesar el pago';
       setError(errorMessage);
+      toast.error('Error inesperado', {
+        description: errorMessage
+      });
       onError(errorMessage);
       setIsProcessing(false);
     }
