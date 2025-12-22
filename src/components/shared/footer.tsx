@@ -76,7 +76,6 @@ const Footer = () => {
     ],
     servicio: [
       { name: t("service.shipping"), href: "/shipping" },
-      { name: t("service.warranty"), href: "/warranty" },
       { name: t("service.care"), href: "/care" },
       { name: t("service.faq"), href: "/faq" },
     ],

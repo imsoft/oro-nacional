@@ -82,7 +82,7 @@
     "service": {
       "title": "Service",
       "shipping": "Shipping",
-      "warranty": "Warranty",
+      
       "care": "Care",
       "faq": "FAQ"
     },
@@ -330,7 +330,7 @@
       "purchase": "Purchase and Payment",
       "shipping": "Shipping and Delivery",
       "returns": "Returns and Exchanges",
-      "warranty": "Warranty and Maintenance",
+      
       "about": "About Oro Nacional"
     },
     "questions": {
@@ -416,24 +416,6 @@
         "engraved": {
           "q": "Can engraved pieces be returned?",
           "a": "Personalized pieces with engraving are considered special orders and CANNOT be returned, they can only be exchanged for manufacturing defects. Please verify the spelling before confirming the engraving."
-        }
-      },
-      "warranty": {
-        "duration": {
-          "q": "How long does the warranty last?",
-          "a": "We offer a manufacturing warranty on all our pieces. This covers manufacturing defects, soldering, settings, and gold authenticity. The warranty does not cover natural wear, accidental damage, or modifications by third parties."
-        },
-        "maintenance": {
-          "q": "What does free maintenance include?",
-          "a": "During the first year, we include unlimited free professional cleaning. You can come to the store whenever you want for us to clean your jewelry with ultrasound. We also check that all stones are secure."
-        },
-        "claim": {
-          "q": "How do I claim the warranty?",
-          "a": "Bring your jewelry with the authenticity certificate and proof of purchase to our store or send it securely. Our masters evaluate it within 24-48 hours. If the warranty applies, we repair it at no cost within 5-10 days."
-        },
-        "cleaning": {
-          "q": "How often should I clean my jewelry?",
-          "a": "We recommend basic cleaning at home every 2-4 weeks with warm water and mild soap. An annual professional cleaning with ultrasound keeps your jewelry radiant. The first professional cleaning is FREE at Oro Nacional."
         }
       },
       "about": {

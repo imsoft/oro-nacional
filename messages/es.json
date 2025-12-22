@@ -37,7 +37,7 @@
   },
   "benefits": {
     "title": "¿Por qué comprar joyería en Oro Nacional?",
-    "subtitle": "Tu joyería de confianza en Guadalajara con garantía, envíos seguros y tradición artesanal",
+    "subtitle": "Tu joyería de confianza en Guadalajara con envíos seguros y tradición artesanal",
     "certified": {
       "title": "Oro Certificado",
       "description": "Joyería de oro 10k con certificado de autenticidad garantizado"
@@ -82,7 +82,6 @@
     "service": {
       "title": "Servicio",
       "shipping": "Envíos",
-      "warranty": "Garantía",
       "care": "Cuidados",
       "faq": "FAQ"
     },
@@ -208,12 +207,12 @@
     "quote": "La joyería artesanal no es solo crear objetos hermosos, es preservar una tradición milenaria, honrar el trabajo manual y crear tesoros que trasciendan el tiempo.",
     "quoteAuthor": "Maestro Roberto García, Oro Nacional",
     "qualityGuaranteed": "Calidad Garantizada",
-    "certificationsTitle": "Certificaciones y Garantías",
-    "certificationsDescription": "Tu confianza es nuestro mayor tesoro. Respaldamos cada pieza con certificaciones y garantías que aseguran tu inversión.",
+    "certificationsTitle": "Certificaciones",
+    "certificationsDescription": "Tu confianza es nuestro mayor tesoro. Respaldamos cada pieza con certificaciones que aseguran tu inversión.",
     "cert1Title": "Certificado de Autenticidad",
     "cert1Description": "Cada pieza incluye un certificado que garantiza la pureza del oro 10k y la autenticidad de las piedras preciosas.",
-    "cert2Title": "Garantía de Manufactura",
-    "cert2Description": "Ofrecemos garantía en manufactura y acabados. Reparaciones sin costo por defectos de fabricación.",
+    "cert2Title": "Calidad de Manufactura",
+    "cert2Description": "Cada pieza es elaborada con los más altos estándares de calidad en manufactura y acabados profesionales.",
     "cert3Title": "Certificación de Diamantes",
     "cert3Description": "Todos nuestros diamantes cuentan con certificación internacional que valida su calidad, corte y características.",
     "cert4Title": "Mantenimiento Gratuito",
@@ -231,7 +230,7 @@
     "excellence3Description": "Todos nuestros envíos están completamente asegurados contra pérdida, robo o daño durante el transporte.",
     "excellence4Title": "Valuación Profesional",
     "excellence4Description": "Ofrecemos servicio de valuación profesional para efectos de seguro sin costo adicional.",
-    "certificationsQuestion": "¿Tienes preguntas sobre nuestras garantías o certificaciones?",
+    "certificationsQuestion": "¿Tienes preguntas sobre nuestras certificaciones?",
     "contactUs": "Contáctanos",
     "contactUsText": "y con gusto te atenderemos.",
     "workshopImageAlt": "Taller de joyería artesanal Oro Nacional en Guadalajara",
@@ -245,8 +244,8 @@
     "artisanTraditionDesc": "Nuestros maestros joyeros cuentan con décadas de experiencia en técnicas tradicionales jaliscienses.",
     "customDesign": "Diseño Personalizado",
     "customDesignDesc": "Creamos piezas únicas diseñadas exclusivamente para ti y tus momentos especiales.",
-    "lifetimeWarranty": "Garantía de Manufactura",
-    "lifetimeWarrantyDesc": "Todas nuestras piezas cuentan con garantía en manufactura y autenticidad.",
+    "qualityManufacturing": "Manufactura de Calidad",
+    "qualityManufacturingDesc": "Todas nuestras piezas son elaboradas con los más altos estándares de calidad y autenticidad.",
     "ourWorkshop": "Nuestro Taller",
     "ourWorkshopText": "En nuestro taller en Guadalajara, cada pieza es creada con dedicación y esmero. Utilizamos técnicas tradicionales combinadas con tecnología moderna para garantizar la más alta calidad en cada joya.",
     "visitUs": "Visítanos",
@@ -319,7 +318,7 @@
   },
   "faq": {
     "title": "Preguntas Frecuentes",
-    "subtitle": "Encuentra respuestas rápidas a las preguntas más comunes sobre nuestros productos, envíos, garantías y más.",
+    "subtitle": "Encuentra respuestas rápidas a las preguntas más comunes sobre nuestros productos, envíos y más.",
     "searchPlaceholder": "Buscar pregunta...",
     "notFoundTitle": "¿No Encontraste tu Respuesta?",
     "notFoundDesc": "Nuestro equipo está listo para ayudarte. Contáctanos por teléfono o correo y te responderemos a la brevedad.",
@@ -330,7 +329,6 @@
       "purchase": "Compra y Pago",
       "shipping": "Envíos y Entregas",
       "returns": "Devoluciones y Cambios",
-      "warranty": "Garantía y Mantenimiento",
       "about": "Sobre Oro Nacional"
     },
     "questions": {
@@ -416,24 +414,6 @@
         "engraved": {
           "q": "¿Las piezas con grabado se pueden devolver?",
           "a": "Las piezas personalizadas con grabado son consideradas pedidos especiales y NO pueden devolverse, solo pueden cambiarse por defectos de manufactura. Verifica bien la ortografía antes de confirmar el grabado."
-        }
-      },
-      "warranty": {
-        "duration": {
-          "q": "¿Cuánto tiempo dura la garantía?",
-          "a": "Ofrecemos garantía de manufactura en todas nuestras piezas. Esto cubre defectos de fabricación, soldaduras, engarces y autenticidad del oro. La garantía no cubre desgaste natural, daños accidentales o modificaciones por terceros."
-        },
-        "maintenance": {
-          "q": "¿Qué incluye el mantenimiento gratuito?",
-          "a": "Durante el primer año, incluimos limpieza profesional gratuita ilimitada. Puedes venir a la tienda cuando quieras para que limpiemos tu joya con ultrasonido. También revisamos que todas las piedras estén seguras."
-        },
-        "claim": {
-          "q": "¿Cómo hago válida la garantía?",
-          "a": "Trae tu joya con el certificado de autenticidad y comprobante de compra a nuestra tienda o envíala de forma segura. Nuestros maestros la evalúan en 24-48 horas. Si aplica garantía, la reparamos sin costo en 5-10 días."
-        },
-        "cleaning": {
-          "q": "¿Cada cuánto debo limpiar mi joyería?",
-          "a": "Recomendamos limpieza básica en casa cada 2-4 semanas con agua tibia y jabón suave. Una limpieza profesional anual con ultrasonido mantiene tus joyas radiantes. La primera limpieza profesional es GRATIS en Oro Nacional."
         }
       },
       "about": {
