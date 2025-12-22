@@ -831,13 +831,9 @@ const CheckoutPage = () => {
 
                 {/* Seguridad */}
                 <div className="mt-6 pt-6 border-t border-border">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    <span>Pago 100% seguro y encriptado</span>
-                  </div>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    <span>Garantía de satisfacción 30 días</span>
+                    <span>Pago 100% seguro y encriptado</span>
                   </div>
                 </div>
               </div>
