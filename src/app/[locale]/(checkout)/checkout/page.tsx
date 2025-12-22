@@ -480,6 +480,20 @@ const CheckoutPage = () => {
                   </h2>
                 </div>
 
+                {/* Mensaje informativo */}
+                {(!shippingData.fullName || !shippingData.email || !shippingData.phone ||
+                  !shippingData.street || !shippingData.number || !shippingData.colony ||
+                  !shippingData.city || !shippingData.state || !shippingData.zipCode) && (
+                  <div className="mb-6 p-4 rounded-lg bg-amber-50 border border-amber-200">
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                      <p className="text-sm text-amber-800">
+                        <strong>Importante:</strong> Por favor completa todos los datos de envío arriba antes de proceder con el pago.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <Tabs value={paymentMethod} onValueChange={(value) => {
                   setPaymentMethod(value as "card" | "transfer" | "cash");
                   setClientSecret(null);
