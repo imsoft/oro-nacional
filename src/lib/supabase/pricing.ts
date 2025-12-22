@@ -758,7 +758,7 @@ export async function calculateDynamicProductPrice(
 
 /**
  * Calcular precio usando fórmula de Gramo
- * NO incluye comisiones de Stripe - estas se aplican al momento del pago
+ * INCLUYE comisiones de Stripe: 3.6% + $3 MXN
  */
 function calculateGramoPrice(
   pricingData: SubcategoryPricingData,
@@ -767,7 +767,6 @@ function calculateGramoPrice(
   const { goldGrams, factor, laborCost, stoneCost, salesCommission, shippingCost } = pricingData;
 
   // Formula: ((($H$2*D5*F5)+(D5*(H5+I5)))*(1+J5)+(D5*K5)+L5)*(1+M5)
-  // NO incluir Stripe en el precio base - se aplicará al momento del pago
   const goldCost = globalParams.goldQuotation * goldGrams * factor;
   const materialsCost = goldGrams * (laborCost + stoneCost);
   const subtotalBeforeProfit = goldCost + materialsCost;
@@ -775,15 +774,18 @@ function calculateGramoPrice(
   const commissionCost = goldGrams * salesCommission;
   const subtotalWithCommissions = subtotalWithProfit + commissionCost + shippingCost;
   const subtotalWithVat = subtotalWithCommissions * (1 + globalParams.vat);
-  // Precio base sin comisiones de Stripe
-  const finalPrice = subtotalWithVat;
+
+  // Agregar comisiones de Stripe: 3.6% + $3 MXN
+  const stripePercentage = 0.036; // 3.6%
+  const stripeFixedFee = 3; // $3 MXN
+  const finalPrice = (subtotalWithVat * (1 + stripePercentage)) + stripeFixedFee;
 
   return finalPrice;
 }
 
 /**
  * Calcular precio usando fórmula de Broquel
- * NO incluye comisiones de Stripe - estas se aplican al momento del pago
+ * INCLUYE comisiones de Stripe: 3.6% + $3 MXN
  */
 function calculateBroquelPrice(
   pricingData: SubcategoryBroquelPricingData,
@@ -818,10 +820,10 @@ function calculateBroquelPrice(
   // 8. * (1 + IVA)
   const subtotalWithVat = subtotalWithShipping * (1 + broquelParams.vat);
 
-  // NO incluir comisiones de Stripe en el precio base - se aplicarán al momento del pago
-  // 9. * (1 + STRIPE%)
-  // 10. + STRIPE FIJO
-  const finalPrice = subtotalWithVat; // Precio base sin comisiones de Stripe
+  // 9. Agregar comisiones de Stripe: 3.6% + $3 MXN
+  const stripePercentage = 0.036; // 3.6%
+  const stripeFixedFee = 3; // $3 MXN
+  const finalPrice = (subtotalWithVat * (1 + stripePercentage)) + stripeFixedFee;
 
   return finalPrice;
 }

@@ -199,12 +199,10 @@ export default function BroquelCalculatorPage() {
     // 8. * (1 + IVA)
     const subtotalWithVat = subtotalWithShipping * (1 + parameters.vat);
 
-    // NO incluir comisiones de Stripe en el precio base - se aplicarán al momento del pago
-    // 9. * (1 + STRIPE%)
-    // const subtotalWithStripe = subtotalWithVat * (1 + parameters.stripePercentage);
-    // 10. + STRIPE FIJO
-    // const finalPrice = subtotalWithStripe + parameters.stripeFixedFee;
-    const finalPrice = subtotalWithVat; // Precio base sin comisiones de Stripe
+    // 9. INCLUIR comisiones de Stripe en el precio final: 3.6% + $3 MXN
+    const stripePercentage = 0.036; // 3.6%
+    const stripeFixedFee = 3; // $3 MXN
+    const finalPrice = (subtotalWithVat * (1 + stripePercentage)) + stripeFixedFee;
 
     return {
       id: subcategoryItem.id,

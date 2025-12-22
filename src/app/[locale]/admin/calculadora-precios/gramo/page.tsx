@@ -153,12 +153,11 @@ export default function PriceCalculatorPage() {
     const subtotalWithCommissions =
       subtotalWithProfit + commissionCost + shippingCost;
     const subtotalWithVat = subtotalWithCommissions * (1 + parameters.vat);
-    // NO incluir comisiones de Stripe en el precio base - se aplicarán al momento del pago
-    // const subtotalWithStripePercentage =
-    //   subtotalWithVat * (1 + parameters.stripePercentage);
-    // const finalPrice =
-    //   subtotalWithStripePercentage + parameters.stripeFixedFee;
-    const finalPrice = subtotalWithVat; // Precio base sin comisiones de Stripe
+
+    // INCLUIR comisiones de Stripe en el precio final: 3.6% + $3 MXN
+    const stripePercentage = 0.036; // 3.6%
+    const stripeFixedFee = 3; // $3 MXN
+    const finalPrice = (subtotalWithVat * (1 + stripePercentage)) + stripeFixedFee;
 
     return {
       id: subcategory.id,
