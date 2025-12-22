@@ -61,12 +61,31 @@ const CheckoutPage = () => {
   // Meses sin intereses
   const [selectedInstallments, setSelectedInstallments] = useState<InstallmentOption>(1);
 
+  // Función para calcular comisión adicional de MSI según Stripe México
+  const getMSIAdditionalFee = (installments: number): number => {
+    const feeMap: { [key: number]: number } = {
+      1: 0,      // Sin MSI, no hay comisión adicional
+      3: 0.05,   // 5% adicional
+      6: 0.075,  // 7.5% adicional
+      9: 0.10,   // 10% adicional
+      12: 0.125, // 12.5% adicional
+      18: 0.175, // 17.5% adicional
+      24: 0.225, // 22.5% adicional
+    };
+    return feeMap[installments] || 0;
+  };
+
   const shippingCost = 0; // Envío gratis
   // El total del carrito está en MXN, convertirlo a la moneda del contexto
-  const finalTotalMXN = total + shippingCost;
+  const subtotalMXN = total + shippingCost;
+
+  // Agregar comisión adicional de MSI si aplica (solo para MXN)
+  const msiAdditionalFee = currency === 'MXN' ? getMSIAdditionalFee(selectedInstallments) : 0;
+  const finalTotalMXN = subtotalMXN * (1 + msiAdditionalFee);
+
   // Convertir a la moneda seleccionada para mostrar y para Stripe
-  const finalTotal = currency === 'USD' 
-    ? (exchangeRate > 0 ? finalTotalMXN / exchangeRate : finalTotalMXN)
+  const finalTotal = currency === 'USD'
+    ? (exchangeRate > 0 ? subtotalMXN / exchangeRate : subtotalMXN) // USD no tiene MSI
     : finalTotalMXN;
 
   // Inicializar Stripe
@@ -825,10 +844,27 @@ const CheckoutPage = () => {
                     <span className="text-muted-foreground">Envío</span>
                     <span className="font-medium text-green-600">GRATIS</span>
                   </div>
+                  {/* Mostrar comisión MSI si aplica */}
+                  {currency === 'MXN' && selectedInstallments > 1 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">
+                        Comisión MSI ({selectedInstallments} meses)
+                      </span>
+                      <span className="font-medium text-amber-600">
+                        +{formatPrice(subtotalMXN * msiAdditionalFee)}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-lg font-semibold border-t border-border pt-3">
                     <span>Total</span>
                     <span className="text-[#D4AF37]">{formatPrice(finalTotal)}</span>
                   </div>
+                  {/* Mensaje informativo sobre MSI */}
+                  {currency === 'MXN' && selectedInstallments > 1 && (
+                    <p className="text-xs text-muted-foreground pt-2">
+                      Pagarás {formatPrice(finalTotal / selectedInstallments)} mensuales por {selectedInstallments} meses
+                    </p>
+                  )}
                 </div>
 
                 {/* Botón - Solo mostrar si no es pago con tarjeta usando Stripe */}
