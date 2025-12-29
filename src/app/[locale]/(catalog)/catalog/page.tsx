@@ -14,19 +14,20 @@ import { getProducts } from "@/lib/supabase/products";
 import type { Product } from "@/types/product";
 
 // Mapear nombres de categorías del filtro a slugs de categorías en la BD
+// Los slugs en la BD son en español (slug_es)
 const categorySlugMap: Record<string, string> = {
-  anillos: "rings",
-  collares: "necklaces",
-  aretes: "earrings",
-  pulseras: "bracelets",
+  anillos: "anillos",
+  collares: "collares",
+  aretes: "aretes",
+  pulseras: "pulseras",
 };
 
 // Mapeo inverso: de slug de BD a nombre de filtro
 const reverseCategoryMap: Record<string, string> = {
-  rings: "anillos",
-  necklaces: "collares",
-  earrings: "aretes",
-  bracelets: "pulseras",
+  anillos: "anillos",
+  collares: "collares",
+  aretes: "aretes",
+  pulseras: "pulseras",
 };
 
 const CatalogPage = ({ params }: { params: { locale: 'es' | 'en' } }) => {
