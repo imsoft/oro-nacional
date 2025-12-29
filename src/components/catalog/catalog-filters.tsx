@@ -11,20 +11,20 @@ export interface CatalogFiltersState {
   priceRange: [number, number];
 }
 
+export interface CategoryOption {
+  id: string;
+  slug: string;
+  name: string;
+}
+
 interface CatalogFiltersProps {
   filters: CatalogFiltersState;
   onFiltersChange: (filters: CatalogFiltersState) => void;
+  categories: CategoryOption[];
 }
 
-const CatalogFilters = ({ filters, onFiltersChange }: CatalogFiltersProps) => {
+const CatalogFilters = ({ filters, onFiltersChange, categories }: CatalogFiltersProps) => {
   const t = useTranslations("catalog");
-
-  const categories = [
-    { id: "anillos", label: t("categoryRings") },
-    { id: "collares", label: t("categoryNecklaces") },
-    { id: "aretes", label: t("categoryEarrings") },
-    { id: "pulseras", label: t("categoryBracelets") },
-  ];
 
   const handleCategoryChange = (categoryId: string, checked: boolean) => {
     const newCategories = checked
@@ -70,17 +70,17 @@ const CatalogFilters = ({ filters, onFiltersChange }: CatalogFiltersProps) => {
           {categories.map((category) => (
             <div key={category.id} className="flex items-center space-x-2">
               <Checkbox
-                id={category.id}
-                checked={filters.categories.includes(category.id)}
+                id={category.slug}
+                checked={filters.categories.includes(category.slug)}
                 onCheckedChange={(checked) =>
-                  handleCategoryChange(category.id, checked === true)
+                  handleCategoryChange(category.slug, checked === true)
                 }
               />
               <Label
-                htmlFor={category.id}
+                htmlFor={category.slug}
                 className="text-sm font-normal cursor-pointer"
               >
-                {category.label}
+                {category.name}
               </Label>
             </div>
           ))}

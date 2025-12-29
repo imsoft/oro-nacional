@@ -6,29 +6,13 @@ import { useSearchParams } from 'next/navigation';
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
 import CatalogHeader from "@/components/catalog/catalog-header";
-import CatalogFilters, { type CatalogFiltersState } from "@/components/catalog/catalog-filters";
+import CatalogFilters, { type CatalogFiltersState, type CategoryOption } from "@/components/catalog/catalog-filters";
 import ProductsGrid from "@/components/catalog/products-grid";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Loader2 } from "lucide-react";
 import { getProducts } from "@/lib/supabase/products";
+import { getCategories } from "@/lib/supabase/products-multilingual";
 import type { Product } from "@/types/product";
-
-// Mapear nombres de categorías del filtro a slugs de categorías en la BD
-// Los slugs en la BD son en español (slug_es)
-const categorySlugMap: Record<string, string> = {
-  anillos: "anillos",
-  collares: "collares",
-  aretes: "aretes",
-  pulseras: "pulseras",
-};
-
-// Mapeo inverso: de slug de BD a nombre de filtro
-const reverseCategoryMap: Record<string, string> = {
-  anillos: "anillos",
-  collares: "collares",
-  aretes: "aretes",
-  pulseras: "pulseras",
-};
 
 const CatalogPage = ({ params }: { params: { locale: 'es' | 'en' } }) => {
   const t = useTranslations('catalog');
@@ -37,40 +21,50 @@ const CatalogPage = ({ params }: { params: { locale: 'es' | 'en' } }) => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<string>("featured");
-  
+
   // Obtener categoría de la URL si existe
   const categoryFromUrl = searchParams?.get('category') || null;
-  const initialCategoryFilter = categoryFromUrl 
-    ? (reverseCategoryMap[categoryFromUrl] || categoryFromUrl)
-    : null;
 
   const [filters, setFilters] = useState<CatalogFiltersState>({
-    categories: initialCategoryFilter ? [initialCategoryFilter] : [],
+    categories: categoryFromUrl ? [categoryFromUrl] : [],
     priceRange: [0, 50000],
   });
 
   useEffect(() => {
-    loadProducts();
+    loadData();
   }, [locale]);
 
   // Actualizar filtros cuando cambia la categoría en la URL
   useEffect(() => {
     if (categoryFromUrl) {
-      const filterCategory = reverseCategoryMap[categoryFromUrl] || categoryFromUrl;
       setFilters(prev => ({
         ...prev,
-        categories: [filterCategory],
+        categories: [categoryFromUrl],
       }));
     }
   }, [categoryFromUrl]);
 
-  const loadProducts = async () => {
+  const loadData = async () => {
     setIsLoading(true);
-    const data = await getProducts(locale);
-    setProducts(data);
+    const [productsData, categoriesData] = await Promise.all([
+      getProducts(locale),
+      getCategories(locale)
+    ]);
+
+    setProducts(productsData);
+
+    // Transformar las categorías al formato esperado por el componente de filtros
+    const formattedCategories: CategoryOption[] = categoriesData.map((cat: any) => ({
+      id: cat.id,
+      slug: cat.slug,
+      name: cat.name,
+    }));
+
+    setCategories(formattedCategories);
     setIsLoading(false);
   };
 
@@ -106,9 +100,7 @@ const CatalogPage = ({ params }: { params: { locale: 'es' | 'en' } }) => {
     if (filters.categories.length > 0) {
       filtered = filtered.filter((product) => {
         const categorySlug = product.categorySlug;
-        return filters.categories.some(
-          (filterCategory) => categorySlugMap[filterCategory] === categorySlug
-        );
+        return filters.categories.includes(categorySlug);
       });
     }
 
@@ -180,7 +172,11 @@ const CatalogPage = ({ params }: { params: { locale: 'es' | 'en' } }) => {
         <div className="mt-8 lg:mt-12 flex flex-col lg:flex-row gap-8">
           {/* Filtros laterales - Desktop */}
           <div className="hidden lg:block">
-            <CatalogFilters filters={filters} onFiltersChange={setFilters} />
+            <CatalogFilters
+              filters={filters}
+              onFiltersChange={setFilters}
+              categories={categories}
+            />
           </div>
 
           {/* Filtros laterales - Mobile */}
@@ -188,7 +184,11 @@ const CatalogPage = ({ params }: { params: { locale: 'es' | 'en' } }) => {
             <SheetContent side="left" className="w-[300px] overflow-y-auto">
               <div className="py-6">
                 <h2 className="text-lg font-semibold mb-6">{t('filters')}</h2>
-                <CatalogFilters filters={filters} onFiltersChange={setFilters} />
+                <CatalogFilters
+                  filters={filters}
+                  onFiltersChange={setFilters}
+                  categories={categories}
+                />
               </div>
             </SheetContent>
           </Sheet>
