@@ -54,6 +54,7 @@ export async function getPricingParameters(): Promise<PricingParameters> {
 }
 
 // Update global pricing parameters
+// NOTE: También actualiza broquel_pricing_parameters.quotation para mantener sincronizada la cotización
 export async function updatePricingParameters(
   parameters: PricingParameters
 ): Promise<PricingParameters> {
@@ -72,6 +73,7 @@ export async function updatePricingParameters(
     stripe_fixed_fee: parameters.stripeFixedFee,
   };
 
+  let result;
   if (current) {
     // Update existing row
     const { data, error } = await supabase
@@ -86,7 +88,7 @@ export async function updatePricingParameters(
       throw error;
     }
 
-    return convertPricingParameters(data);
+    result = data;
   } else {
     // Insert new row if none exists
     const { data, error } = await supabase
@@ -100,8 +102,24 @@ export async function updatePricingParameters(
       throw error;
     }
 
-    return convertPricingParameters(data);
+    result = data;
   }
+
+  // Sincronizar la cotización con broquel_pricing_parameters
+  const { data: broquelCurrent } = await supabase
+    .from("broquel_pricing_parameters")
+    .select("id")
+    .limit(1)
+    .single();
+
+  if (broquelCurrent) {
+    await supabase
+      .from("broquel_pricing_parameters")
+      .update({ quotation: parameters.goldQuotation })
+      .eq("id", broquelCurrent.id);
+  }
+
+  return convertPricingParameters(result);
 }
 
 // Get pricing data for a single product
@@ -419,18 +437,28 @@ function convertBroquelPricingParameters(row: BroquelPricingParametersRow): Broq
 }
 
 // Get global broquel pricing parameters
+// NOTE: La cotización del oro (quotation) se sincroniza con pricing_parameters.gold_quotation
+// para que ambos calculadores (Gramo y Broquel) usen el mismo precio del oro
 export async function getBroquelPricingParameters(): Promise<BroquelPricingParameters> {
-  const { data, error } = await supabase
+  // Obtener parámetros de broquel
+  const { data: broquelData, error: broquelError } = await supabase
     .from("broquel_pricing_parameters")
     .select("*")
     .limit(1)
     .single();
 
-  if (error) {
-    console.error("Error fetching broquel pricing parameters:", error);
-    // Return default values if error
+  // Obtener la cotización del oro desde pricing_parameters (fuente única de verdad)
+  const { data: pricingData, error: pricingError } = await supabase
+    .from("pricing_parameters")
+    .select("gold_quotation")
+    .limit(1)
+    .single();
+
+  if (broquelError) {
+    console.error("Error fetching broquel pricing parameters:", broquelError);
+    // Return default values if error, usando la cotización de pricing_parameters si está disponible
     return {
-      quotation: 2550,
+      quotation: pricingData?.gold_quotation || 2450,
       profitMargin: 0.08,
       vat: 0.16,
       stripePercentage: 0.036,
@@ -438,14 +466,38 @@ export async function getBroquelPricingParameters(): Promise<BroquelPricingParam
     };
   }
 
-  return convertBroquelPricingParameters(data);
+  // Usar la cotización de pricing_parameters si está disponible, sino usar la de broquel
+  const syncedQuotation = pricingData?.gold_quotation || broquelData.quotation;
+
+  return {
+    quotation: syncedQuotation,
+    profitMargin: broquelData.profit_margin,
+    vat: broquelData.vat,
+    stripePercentage: broquelData.stripe_percentage,
+    stripeFixedFee: broquelData.stripe_fixed_fee,
+  };
 }
 
 // Update global broquel pricing parameters
+// NOTE: También actualiza pricing_parameters.gold_quotation para mantener sincronizada la cotización
 export async function updateBroquelPricingParameters(
   parameters: BroquelPricingParameters
 ): Promise<BroquelPricingParameters> {
-  // Get the current row to update it
+  // 1. Actualizar la cotización en pricing_parameters (fuente única de verdad)
+  const { data: pricingCurrent } = await supabase
+    .from("pricing_parameters")
+    .select("id")
+    .limit(1)
+    .single();
+
+  if (pricingCurrent) {
+    await supabase
+      .from("pricing_parameters")
+      .update({ gold_quotation: parameters.quotation })
+      .eq("id", pricingCurrent.id);
+  }
+
+  // 2. Actualizar broquel_pricing_parameters
   const { data: current } = await supabase
     .from("broquel_pricing_parameters")
     .select("id")
