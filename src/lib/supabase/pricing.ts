@@ -54,7 +54,7 @@ export async function getPricingParameters(): Promise<PricingParameters> {
 }
 
 // Update global pricing parameters
-// NOTE: También actualiza broquel_pricing_parameters.quotation para mantener sincronizada la cotización
+// NOTE: La cotización se sincroniza automáticamente con broquel_pricing_parameters vía trigger de BD (046_sync_gold_quotation_triggers.sql)
 export async function updatePricingParameters(
   parameters: PricingParameters
 ): Promise<PricingParameters> {
@@ -73,9 +73,8 @@ export async function updatePricingParameters(
     stripe_fixed_fee: parameters.stripeFixedFee,
   };
 
-  let result;
   if (current) {
-    // Update existing row
+    // Update existing row (trigger sincronizará automáticamente con broquel_pricing_parameters)
     const { data, error } = await supabase
       .from("pricing_parameters")
       .update(updateData)
@@ -88,7 +87,7 @@ export async function updatePricingParameters(
       throw error;
     }
 
-    result = data;
+    return convertPricingParameters(data);
   } else {
     // Insert new row if none exists
     const { data, error } = await supabase
@@ -102,24 +101,8 @@ export async function updatePricingParameters(
       throw error;
     }
 
-    result = data;
+    return convertPricingParameters(data);
   }
-
-  // Sincronizar la cotización con broquel_pricing_parameters
-  const { data: broquelCurrent } = await supabase
-    .from("broquel_pricing_parameters")
-    .select("id")
-    .limit(1)
-    .single();
-
-  if (broquelCurrent) {
-    await supabase
-      .from("broquel_pricing_parameters")
-      .update({ quotation: parameters.goldQuotation })
-      .eq("id", broquelCurrent.id);
-  }
-
-  return convertPricingParameters(result);
 }
 
 // Get pricing data for a single product
@@ -479,25 +462,11 @@ export async function getBroquelPricingParameters(): Promise<BroquelPricingParam
 }
 
 // Update global broquel pricing parameters
-// NOTE: También actualiza pricing_parameters.gold_quotation para mantener sincronizada la cotización
+// NOTE: La cotización se sincroniza automáticamente con pricing_parameters vía trigger de BD (046_sync_gold_quotation_triggers.sql)
 export async function updateBroquelPricingParameters(
   parameters: BroquelPricingParameters
 ): Promise<BroquelPricingParameters> {
-  // 1. Actualizar la cotización en pricing_parameters (fuente única de verdad)
-  const { data: pricingCurrent } = await supabase
-    .from("pricing_parameters")
-    .select("id")
-    .limit(1)
-    .single();
-
-  if (pricingCurrent) {
-    await supabase
-      .from("pricing_parameters")
-      .update({ gold_quotation: parameters.quotation })
-      .eq("id", pricingCurrent.id);
-  }
-
-  // 2. Actualizar broquel_pricing_parameters
+  // Get the current row to update it
   const { data: current } = await supabase
     .from("broquel_pricing_parameters")
     .select("id")
@@ -513,7 +482,7 @@ export async function updateBroquelPricingParameters(
   };
 
   if (current) {
-    // Update existing row
+    // Update existing row (trigger sincronizará automáticamente con pricing_parameters)
     const { data, error } = await supabase
       .from("broquel_pricing_parameters")
       .update(updateData)
