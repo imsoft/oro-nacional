@@ -57,13 +57,13 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
   const [isCalculatingPrice, setIsCalculatingPrice] = useState(false);
   const { addItem } = useCartStore();
 
-  // Comisiones adicionales de MSI (sobre el precio base)
-  const MSI_FEES = {
-    0: 0,      // Sin MSI (pago de contado - solo comisión base de Stripe)
-    3: 0.05,   // 3 meses - 5%
-    6: 0.075,  // 6 meses - 7.5%
-    9: 0.10,   // 9 meses - 10%
-    12: 0.125, // 12 meses - 12.5%
+  // Tasas de interés para pagos a meses (sobre el precio base)
+  const INTEREST_RATES = {
+    0: 0,      // Pago de contado - sin intereses (solo comisión base de Stripe)
+    3: 0.05,   // 3 meses - 5% de intereses
+    6: 0.075,  // 6 meses - 7.5% de intereses
+    9: 0.10,   // 9 meses - 10% de intereses
+    12: 0.125, // 12 meses - 12.5% de intereses
   };
 
   // Obtener parámetros de Stripe desde la base de datos
@@ -159,24 +159,26 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
     return convertPrice(priceMXN, selectedSizeObj?.price_usd ?? product.basePriceUSD);
   }, [calculatedPrice, isSizesWithPrice, selectedSize, sizesArray, product.basePrice, product.basePriceUSD, product.price, convertPrice]);
 
-  // Calcular precio final con comisión de Stripe y MSI
+  // Calcular precio final con comisión de Stripe e intereses
   const finalPrice = useMemo(() => {
     if (!stripeParams) return currentPrice;
 
     const basePrice = currentPrice;
-    const msiFee = MSI_FEES[selectedMSI as keyof typeof MSI_FEES] || 0;
+    const interestRate = INTEREST_RATES[selectedMSI as keyof typeof INTEREST_RATES] || 0;
 
     // Si es pago de contado (0 MSI), solo aplicar comisión base de Stripe
     if (selectedMSI === 0) {
       return basePrice * (1 + stripeParams.percentage) + stripeParams.fixedFee;
     }
 
-    // Si es MSI, aplicar comisión adicional de MSI sobre el precio base, luego Stripe
-    const priceWithMSI = basePrice * (1 + msiFee);
-    return priceWithMSI * (1 + stripeParams.percentage) + stripeParams.fixedFee;
+    // Si es a meses, aplicar intereses sobre el precio base, luego Stripe
+    const priceWithInterest = basePrice * (1 + interestRate);
+    return priceWithInterest * (1 + stripeParams.percentage) + stripeParams.fixedFee;
   }, [currentPrice, selectedMSI, stripeParams]);
+
   const displayPrice = formatPrice(finalPrice);
   const monthlyPayment = selectedMSI > 0 ? finalPrice / selectedMSI : finalPrice;
+  const interestAmount = selectedMSI > 0 ? finalPrice - (currentPrice * (1 + (stripeParams?.percentage || 0)) + (stripeParams?.fixedFee || 0)) : 0;
 
   const handleShare = async () => {
     const shareData = {
@@ -329,10 +331,10 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
           </div>
         )}
 
-        {/* Selector de MSI */}
+        {/* Selector de Pagos a Meses */}
         <div>
           <Label className="text-base font-semibold">
-            Meses Sin Intereses (MSI)
+            Opciones de Pago a Meses
           </Label>
           <RadioGroup
             value={selectedMSI.toString()}
@@ -343,66 +345,88 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
               <RadioGroupItem value="0" id="msi-0" className="peer sr-only" />
               <Label
                 htmlFor="msi-0"
-                className="flex flex-col items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium cursor-pointer transition-all border-muted bg-card hover:bg-muted peer-data-[state=checked]:border-[#D4AF37] peer-data-[state=checked]:bg-[#D4AF37]/10"
+                className="flex flex-col items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium cursor-pointer transition-all border-muted bg-card hover:bg-muted peer-data-[state=checked]:border-green-600 peer-data-[state=checked]:bg-green-50"
               >
                 <span className="text-xs text-muted-foreground">De contado</span>
-                <span className="text-xs font-semibold mt-1">Sin recargo</span>
+                <span className="text-xs font-semibold text-green-600 mt-1">0% interés</span>
               </Label>
             </div>
             <div>
               <RadioGroupItem value="3" id="msi-3" className="peer sr-only" />
               <Label
                 htmlFor="msi-3"
-                className="flex flex-col items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium cursor-pointer transition-all border-muted bg-card hover:bg-muted peer-data-[state=checked]:border-[#D4AF37] peer-data-[state=checked]:bg-[#D4AF37]/10"
+                className="flex flex-col items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium cursor-pointer transition-all border-muted bg-card hover:bg-muted peer-data-[state=checked]:border-amber-600 peer-data-[state=checked]:bg-amber-50"
               >
                 <span className="text-xs text-muted-foreground">3 meses</span>
-                <span className="text-sm font-semibold text-blue-600 mt-1">5%</span>
+                <span className="text-sm font-semibold text-amber-600 mt-1">5% interés</span>
               </Label>
             </div>
             <div>
               <RadioGroupItem value="6" id="msi-6" className="peer sr-only" />
               <Label
                 htmlFor="msi-6"
-                className="flex flex-col items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium cursor-pointer transition-all border-muted bg-card hover:bg-muted peer-data-[state=checked]:border-[#D4AF37] peer-data-[state=checked]:bg-[#D4AF37]/10"
+                className="flex flex-col items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium cursor-pointer transition-all border-muted bg-card hover:bg-muted peer-data-[state=checked]:border-amber-600 peer-data-[state=checked]:bg-amber-50"
               >
                 <span className="text-xs text-muted-foreground">6 meses</span>
-                <span className="text-sm font-semibold text-blue-600 mt-1">7.5%</span>
+                <span className="text-sm font-semibold text-amber-600 mt-1">7.5% interés</span>
               </Label>
             </div>
             <div>
               <RadioGroupItem value="9" id="msi-9" className="peer sr-only" />
               <Label
                 htmlFor="msi-9"
-                className="flex flex-col items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium cursor-pointer transition-all border-muted bg-card hover:bg-muted peer-data-[state=checked]:border-[#D4AF37] peer-data-[state=checked]:bg-[#D4AF37]/10"
+                className="flex flex-col items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium cursor-pointer transition-all border-muted bg-card hover:bg-muted peer-data-[state=checked]:border-amber-600 peer-data-[state=checked]:bg-amber-50"
               >
                 <span className="text-xs text-muted-foreground">9 meses</span>
-                <span className="text-sm font-semibold text-blue-600 mt-1">10%</span>
+                <span className="text-sm font-semibold text-amber-600 mt-1">10% interés</span>
               </Label>
             </div>
             <div>
               <RadioGroupItem value="12" id="msi-12" className="peer sr-only" />
               <Label
                 htmlFor="msi-12"
-                className="flex flex-col items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium cursor-pointer transition-all border-muted bg-card hover:bg-muted peer-data-[state=checked]:border-[#D4AF37] peer-data-[state=checked]:bg-[#D4AF37]/10"
+                className="flex flex-col items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium cursor-pointer transition-all border-muted bg-card hover:bg-muted peer-data-[state=checked]:border-amber-600 peer-data-[state=checked]:bg-amber-50"
               >
                 <span className="text-xs text-muted-foreground">12 meses</span>
-                <span className="text-sm font-semibold text-blue-600 mt-1">12.5%</span>
+                <span className="text-sm font-semibold text-amber-600 mt-1">12.5% interés</span>
               </Label>
             </div>
           </RadioGroup>
         </div>
 
         {/* Información de pago mensual */}
-        {selectedMSI > 0 && (
-          <div className="bg-muted/50 rounded-lg p-4">
+        {selectedMSI > 0 ? (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium text-amber-900">
+                  Pago mensual ({selectedMSI} meses):
+                </span>
+                <span className="text-lg font-bold text-amber-600">
+                  {formatPrice(monthlyPayment)} {currency}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-amber-700">Total a pagar:</span>
+                <span className="font-semibold text-amber-900">{formatPrice(finalPrice)} {currency}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-amber-700">Incluye intereses del {(INTEREST_RATES[selectedMSI as keyof typeof INTEREST_RATES] * 100)}%:</span>
+                <span className="font-semibold text-amber-900">+{formatPrice(interestAmount)} {currency}</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">
-                Pago mensual ({selectedMSI} meses):
+              <span className="text-sm font-medium text-green-900">
+                Pago de contado (sin intereses):
               </span>
-              <span className="text-base font-semibold text-[#D4AF37]">
-                {formatPrice(monthlyPayment)} {currency}
+              <span className="text-lg font-bold text-green-600">
+                {formatPrice(finalPrice)} {currency}
               </span>
             </div>
+            <p className="text-xs text-green-700 mt-2">✓ Mejor precio disponible</p>
           </div>
         )}
 

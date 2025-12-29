@@ -572,7 +572,20 @@
     "successPassword": "Password updated successfully",
     "errorUpdate": "Error updating information",
     "passwordMismatch": "Passwords don't match",
-    "passwordMinLength": "Password must be at least 6 characters"
+    "passwordMinLength": "Password must be at least 6 characters",
+    "personalInfoUpdated": "Personal information updated successfully",
+    "errorUpdatingInfo": "Error updating information",
+    "addressSaved": "Address saved successfully",
+    "errorSavingAddress": "Error saving address",
+    "passwordsDontMatch": "Passwords don't match",
+    "passwordUpdated": "Password updated successfully",
+    "errorUpdatingPassword": "Error updating password",
+    "updateContactInfo": "Update your contact information",
+    "saveAddressForFasterShipping": "Save your address for faster shipping",
+    "updatePasswordSecurely": "Update your password securely",
+    "emailCannotBeChanged": "Email address cannot be modified",
+    "passwordMinChars": "Minimum 6 characters",
+    "changePasswordButton": "Change Password"
   },
   "favorites": {
     "title": "My Favorites",
@@ -626,9 +639,9 @@
   "checkout": {
     "paymentOptions": "Payment Options",
     "payInFull": "Pay in Full",
-    "installments": "{count} Interest-Free Months",
-    "noInterest": "No interest",
-    "saveOnProcessing": "Save on processing",
+    "installments": "{count} Months with Interest",
+    "withInterest": "with {rate}% interest",
+    "noAdditionalFees": "No additional fees",
     "perMonth": "per month",
     "total": "Total",
     "paymentSummary": "Payment Plan Summary",
@@ -636,7 +649,8 @@
     "selectedPlan": "Selected plan",
     "monthlyPayment": "Monthly payment",
     "totalToPay": "Total to pay",
-    "zeroInterest": "Zero interest"
+    "interestApplied": "Interest applied ({rate}%)",
+    "cashDiscount": "Cash price (no interest)"
   },
   "catalog": {
     "title": "Jewelry Catalog",

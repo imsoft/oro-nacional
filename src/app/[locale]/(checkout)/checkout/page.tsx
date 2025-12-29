@@ -837,34 +837,48 @@ const CheckoutPage = () => {
                 {/* Totales */}
                 <div className="space-y-3 border-t border-border pt-4">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Subtotal</span>
+                    <span className="text-muted-foreground">Subtotal (precio de contado)</span>
                     <span className="font-medium">{formatPrice(total)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Envío</span>
                     <span className="font-medium text-green-600">GRATIS</span>
                   </div>
-                  {/* Mostrar comisión MSI si aplica */}
+                  {/* Mostrar intereses si aplica */}
                   {currency === 'MXN' && selectedInstallments > 1 && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">
-                        Comisión MSI ({selectedInstallments} meses)
+                      <span className="text-amber-600 font-medium">
+                        Intereses ({selectedInstallments} meses - {(msiAdditionalFee * 100).toFixed(1)}%)
                       </span>
                       <span className="font-medium text-amber-600">
                         +{formatPrice(subtotalMXN * msiAdditionalFee)}
                       </span>
                     </div>
                   )}
-                  <div className="flex justify-between text-lg font-semibold border-t border-border pt-3">
-                    <span>Total</span>
-                    <span className="text-[#D4AF37]">{formatPrice(finalTotal)}</span>
+                  <div className={`flex justify-between text-lg font-semibold border-t border-border pt-3 ${currency === 'MXN' && selectedInstallments > 1 ? 'text-amber-600' : 'text-green-600'}`}>
+                    <span>Total a Pagar</span>
+                    <span>{formatPrice(finalTotal)}</span>
                   </div>
-                  {/* Mensaje informativo sobre MSI */}
-                  {currency === 'MXN' && selectedInstallments > 1 && (
-                    <p className="text-xs text-muted-foreground pt-2">
-                      Pagarás {formatPrice(finalTotal / selectedInstallments)} mensuales por {selectedInstallments} meses
-                    </p>
-                  )}
+                  {/* Mensaje informativo */}
+                  {currency === 'MXN' && selectedInstallments > 1 ? (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm space-y-1">
+                      <p className="font-semibold text-amber-900">
+                        💳 Pago mensual: {formatPrice(finalTotal / selectedInstallments)} x {selectedInstallments} meses
+                      </p>
+                      <p className="text-xs text-amber-700">
+                        Este plan incluye {(msiAdditionalFee * 100).toFixed(1)}% de intereses sobre el precio base
+                      </p>
+                    </div>
+                  ) : currency === 'MXN' && selectedInstallments === 1 ? (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm">
+                      <p className="font-semibold text-green-900">
+                        ✓ Pago de contado - Sin intereses
+                      </p>
+                      <p className="text-xs text-green-700">
+                        Obtienes el mejor precio disponible
+                      </p>
+                    </div>
+                  ) : null}
                 </div>
 
                 {/* Botón - Solo mostrar si no es pago con tarjeta usando Stripe */}

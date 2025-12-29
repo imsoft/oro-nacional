@@ -562,7 +562,20 @@
     "successPassword": "Contraseña actualizada correctamente",
     "errorUpdate": "Error al actualizar la información",
     "passwordMismatch": "Las contraseñas no coinciden",
-    "passwordMinLength": "La contraseña debe tener al menos 6 caracteres"
+    "passwordMinLength": "La contraseña debe tener al menos 6 caracteres",
+    "personalInfoUpdated": "Información personal actualizada correctamente",
+    "errorUpdatingInfo": "Error al actualizar la información",
+    "addressSaved": "Dirección guardada correctamente",
+    "errorSavingAddress": "Error al guardar la dirección",
+    "passwordsDontMatch": "Las contraseñas no coinciden",
+    "passwordUpdated": "Contraseña actualizada correctamente",
+    "errorUpdatingPassword": "Error al actualizar la contraseña",
+    "updateContactInfo": "Actualiza tu información de contacto",
+    "saveAddressForFasterShipping": "Guarda tu dirección para envíos más rápidos",
+    "updatePasswordSecurely": "Actualiza tu contraseña de forma segura",
+    "emailCannotBeChanged": "El correo electrónico no se puede modificar",
+    "passwordMinChars": "Mínimo 6 caracteres",
+    "changePasswordButton": "Cambiar Contraseña"
   },
   "favorites": {
     "title": "Mis Favoritos",
@@ -616,9 +629,9 @@
   "checkout": {
     "paymentOptions": "Opciones de Pago",
     "payInFull": "Pago de Contado",
-    "installments": "{count} Meses Sin Intereses",
-    "noInterest": "Sin intereses",
-    "saveOnProcessing": "Ahorra en procesamiento",
+    "installments": "{count} Meses con Intereses",
+    "withInterest": "con intereses del {rate}%",
+    "noAdditionalFees": "Sin cargos adicionales",
     "perMonth": "por mes",
     "total": "Total",
     "paymentSummary": "Resumen de tu Plan de Pago",
@@ -626,7 +639,8 @@
     "selectedPlan": "Plan seleccionado",
     "monthlyPayment": "Pago mensual",
     "totalToPay": "Total a pagar",
-    "zeroInterest": "Cero intereses"
+    "interestApplied": "Intereses aplicados ({rate}%)",
+    "cashDiscount": "Precio de contado (sin intereses)"
   },
   "catalog": {
     "title": "Catálogo de Joyería",
