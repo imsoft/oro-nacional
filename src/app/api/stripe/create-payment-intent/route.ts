@@ -25,8 +25,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { amount, currency = 'mxn', orderId, customerEmail, installments, metadata: customMetadata = {} } = body;
-    console.log('[Stripe API] Request data:', { amount, currency, orderId, customerEmail, installments });
+    const { amount, currency = 'mxn', orderId, customerEmail, metadata: customMetadata = {} } = body;
+    console.log('[Stripe API] Request data:', { amount, currency, orderId, customerEmail });
 
     // Validar que el monto sea válido
     if (!amount || amount < 1) {
@@ -37,8 +37,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Configurar opciones de pago según los meses sin intereses
-    // Si se especifican meses sin intereses (mayor a 1), configurar Stripe
+    // Crear Payment Intent simple - Los intereses ya están incluidos en el monto
+    // El cliente paga el total de una sola vez con su tarjeta
     const paymentIntentParams: Stripe.PaymentIntentCreateParams = {
       amount: Math.round(amount * 100), // Convertir a centavos
       currency: currency.toLowerCase(),
@@ -48,36 +48,9 @@ export async function POST(request: NextRequest) {
       metadata: {
         orderId: orderId || '',
         customerEmail: customerEmail || '',
-        installments: installments?.toString() || '1',
         ...customMetadata, // Incluir locale y otros metadatos personalizados
       },
     };
-
-    // Agregar configuración de MSI solo si se solicitan meses sin intereses Y la moneda es MXN
-    // Nota: Los MSI en México solo están disponibles para pagos en MXN
-    if (installments && installments > 1 && currency.toLowerCase() === 'mxn') {
-      // Validar que installments sea un valor permitido (3, 6, 9, 12)
-      const validInstallments = [3, 6, 9, 12];
-      if (!validInstallments.includes(installments)) {
-        console.warn('[Stripe API] Invalid installment count:', installments, 'Using 1 instead');
-      } else {
-        paymentIntentParams.payment_method_options = {
-          card: {
-            installments: {
-              enabled: true,
-              plan: {
-                count: installments,
-                interval: 'month' as const,
-                type: 'fixed_count' as const,
-              },
-            },
-          },
-        };
-        console.log('[Stripe API] Configured installments:', installments, 'months');
-      }
-    } else if (installments && installments > 1 && currency.toLowerCase() !== 'mxn') {
-      console.warn('[Stripe API] Installments requested for non-MXN currency. MSI only available for MXN.');
-    }
 
     // Crear el Payment Intent
     console.log('[Stripe API] Creating Payment Intent with params:', JSON.stringify(paymentIntentParams, null, 2));
