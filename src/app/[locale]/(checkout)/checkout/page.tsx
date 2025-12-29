@@ -18,7 +18,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { createOrder } from "@/lib/supabase/orders";
 import { getStripeClient } from "@/lib/stripe/client";
 import { StripePaymentElement } from "@/components/checkout/stripe-payment-element";
-import { InstallmentSelector, type InstallmentOption } from "@/components/checkout/installment-selector";
+// Eliminado: InstallmentSelector ya no se usa en checkout
 import type { CreateOrderData, PaymentMethod } from "@/types/order";
 import { getStoreSettings } from "@/lib/supabase/settings";
 import type { StoreSettings } from "@/lib/supabase/settings";
@@ -56,37 +56,16 @@ const CheckoutPage = () => {
   });
 
   // Método de pago
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "transfer" | "cash">("card");
-
-  // Meses sin intereses
-  const [selectedInstallments, setSelectedInstallments] = useState<InstallmentOption>(1);
-
-  // Función para calcular comisión adicional de MSI según Stripe México
-  const getMSIAdditionalFee = (installments: number): number => {
-    const feeMap: { [key: number]: number } = {
-      1: 0,      // Sin MSI, no hay comisión adicional
-      3: 0.05,   // 5% adicional
-      6: 0.075,  // 7.5% adicional
-      9: 0.10,   // 10% adicional
-      12: 0.125, // 12.5% adicional
-      18: 0.175, // 17.5% adicional
-      24: 0.225, // 22.5% adicional
-    };
-    return feeMap[installments] || 0;
-  };
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "transfer">("card");
 
   const shippingCost = 0; // Envío gratis
   // El total del carrito está en MXN, convertirlo a la moneda del contexto
   const subtotalMXN = total + shippingCost;
 
-  // Agregar comisión adicional de MSI si aplica (solo para MXN)
-  const msiAdditionalFee = currency === 'MXN' ? getMSIAdditionalFee(selectedInstallments) : 0;
-  const finalTotalMXN = subtotalMXN * (1 + msiAdditionalFee);
-
   // Convertir a la moneda seleccionada para mostrar y para Stripe
   const finalTotal = currency === 'USD'
-    ? (exchangeRate > 0 ? subtotalMXN / exchangeRate : subtotalMXN) // USD no tiene MSI
-    : finalTotalMXN;
+    ? (exchangeRate > 0 ? subtotalMXN / exchangeRate : subtotalMXN)
+    : subtotalMXN;
 
   // Inicializar Stripe
   useEffect(() => {
@@ -514,41 +493,16 @@ const CheckoutPage = () => {
                 )}
 
                 <Tabs value={paymentMethod} onValueChange={(value) => {
-                  setPaymentMethod(value as "card" | "transfer" | "cash");
+                  setPaymentMethod(value as "card" | "transfer");
                   setClientSecret(null);
                   setOrderId(null);
-                  // Resetear MSI al cambiar de método de pago
-                  setSelectedInstallments(1);
                 }}>
-                  <TabsList className="grid w-full grid-cols-3">
+                  <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="card">Tarjeta</TabsTrigger>
                     <TabsTrigger value="transfer">Transferencia</TabsTrigger>
-                    <TabsTrigger value="cash">Efectivo</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="card" className="space-y-4 mt-6">
-                    {/* Selector de Meses Sin Intereses */}
-                    {stripeEnabled && currency === 'MXN' && (
-                      <InstallmentSelector
-                        total={finalTotal}
-                        selectedInstallments={selectedInstallments}
-                        onInstallmentChange={(installments) => {
-                          setSelectedInstallments(installments);
-                          // Resetear clientSecret para forzar la creación de un nuevo payment intent
-                          setClientSecret(null);
-                          setOrderId(null);
-                        }}
-                      />
-                    )}
-                    {stripeEnabled && currency === 'USD' && (
-                      <div className="rounded-lg bg-muted/50 p-4 border border-border">
-                        <p className="text-sm text-muted-foreground">
-                          Los meses sin intereses (MSI) están disponibles solo para pagos en MXN. 
-                          Para usar MSI, cambia el idioma a Español.
-                        </p>
-                      </div>
-                    )}
-
                     {stripeEnabled && clientSecret && stripeClient ? (
                       <Elements stripe={stripeClient} options={{ clientSecret }}>
                         <StripePaymentElement
@@ -582,9 +536,7 @@ const CheckoutPage = () => {
                             // Determinar la moneda según el contexto (español → MXN, inglés → USD)
                             const stripeCurrency = currency.toLowerCase();
                             // El amount debe estar en unidades (el API lo convertirá a centavos)
-                            const stripeAmount = currency === 'USD'
-                              ? finalTotal // Ya está en USD
-                              : finalTotalMXN; // En MXN
+                            const stripeAmount = finalTotal;
 
                             // Crear un timeout para la solicitud
                             const controller = new AbortController();
@@ -598,7 +550,6 @@ const CheckoutPage = () => {
                                 currency: stripeCurrency,
                                 orderId: createdOrderId,
                                 customerEmail: shippingData.email,
-                                installments: currency === 'MXN' ? selectedInstallments : 1, // Solo enviar installments si es MXN
                                 metadata: {
                                   locale: locale, // Agregar locale para los correos
                                 },
@@ -720,74 +671,6 @@ const CheckoutPage = () => {
                     </div>
                   </TabsContent>
 
-                  <TabsContent value="cash" className="mt-6">
-                    <div className="space-y-4">
-                      <div className="p-4 rounded-lg bg-muted">
-                        <p className="text-sm text-muted-foreground mb-4">
-                          Podrás pagar en efectivo al recibir tu pedido. Nuestro repartidor
-                          llevará una terminal para pagos con tarjeta también.
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Para coordinar la entrega y el pago, contáctanos usando los datos a continuación.
-                        </p>
-                      </div>
-
-                      {storeSettings && (
-                        <div className="p-4 rounded-lg border border-[#D4AF37]/20 bg-[#D4AF37]/5">
-                          <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                            <Phone className="h-4 w-4 text-[#D4AF37]" />
-                            Datos de Contacto
-                          </h3>
-                          <div className="space-y-2 text-sm">
-                            {storeSettings.phone && (
-                              <div className="flex items-start gap-2">
-                                <Phone className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                                <div>
-                                  <span className="text-muted-foreground">Teléfono: </span>
-                                  <a 
-                                    href={`tel:${storeSettings.phone.replace(/\s/g, '')}`}
-                                    className="text-foreground font-medium hover:text-[#D4AF37] transition-colors"
-                                  >
-                                    {storeSettings.phone}
-                                  </a>
-                                </div>
-                              </div>
-                            )}
-                            {storeSettings.contact_email && (
-                              <div className="flex items-start gap-2">
-                                <Mail className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                                <div>
-                                  <span className="text-muted-foreground">Email: </span>
-                                  <a 
-                                    href={`mailto:${storeSettings.contact_email}`}
-                                    className="text-foreground font-medium hover:text-[#D4AF37] transition-colors break-all"
-                                  >
-                                    {storeSettings.contact_email}
-                                  </a>
-                                </div>
-                              </div>
-                            )}
-                            {storeSettings.address && (
-                              <div className="flex items-start gap-2">
-                                <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                                <div className="text-foreground">
-                                  <div className="font-medium">Dirección:</div>
-                                  <a
-                                    href="https://maps.app.goo.gl/GBnsUNi5fe9QNEDj8"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-muted-foreground hover:text-[#D4AF37] transition-colors"
-                                  >
-                                    {storeSettings.address}
-                                  </a>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </TabsContent>
                 </Tabs>
               </div>
 
@@ -844,41 +727,15 @@ const CheckoutPage = () => {
                     <span className="text-muted-foreground">Envío</span>
                     <span className="font-medium text-green-600">GRATIS</span>
                   </div>
-                  {/* Mostrar intereses si aplica */}
-                  {currency === 'MXN' && selectedInstallments > 1 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-amber-600 font-medium">
-                        Intereses ({selectedInstallments} meses - {(msiAdditionalFee * 100).toFixed(1)}%)
-                      </span>
-                      <span className="font-medium text-amber-600">
-                        +{formatPrice(subtotalMXN * msiAdditionalFee)}
-                      </span>
-                    </div>
-                  )}
-                  <div className={`flex justify-between text-lg font-semibold border-t border-border pt-3 ${currency === 'MXN' && selectedInstallments > 1 ? 'text-amber-600' : 'text-green-600'}`}>
+                  <div className="flex justify-between text-lg font-semibold border-t border-border pt-3 text-[#D4AF37]">
                     <span>Total a Pagar</span>
                     <span>{formatPrice(finalTotal)}</span>
                   </div>
-                  {/* Mensaje informativo */}
-                  {currency === 'MXN' && selectedInstallments > 1 ? (
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm space-y-1">
-                      <p className="font-semibold text-amber-900">
-                        💳 Pago mensual: {formatPrice(finalTotal / selectedInstallments)} x {selectedInstallments} meses
-                      </p>
-                      <p className="text-xs text-amber-700">
-                        Este plan incluye {(msiAdditionalFee * 100).toFixed(1)}% de intereses sobre el precio base
-                      </p>
-                    </div>
-                  ) : currency === 'MXN' && selectedInstallments === 1 ? (
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm">
-                      <p className="font-semibold text-green-900">
-                        ✓ Pago de contado - Sin intereses
-                      </p>
-                      <p className="text-xs text-green-700">
-                        Obtienes el mejor precio disponible
-                      </p>
-                    </div>
-                  ) : null}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
+                    <p className="text-blue-900 text-xs">
+                      💡 El precio mostrado ya incluye todos los intereses según el plan de pagos seleccionado en la página del producto.
+                    </p>
+                  </div>
                 </div>
 
                 {/* Botón - Solo mostrar si no es pago con tarjeta usando Stripe */}
