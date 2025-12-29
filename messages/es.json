@@ -357,7 +357,7 @@
       "purchase": {
         "payment": {
           "q": "¿Qué métodos de pago aceptan?",
-          "a": "Aceptamos todas las tarjetas de crédito y débito (Visa, Mastercard, American Express), transferencia bancaria, depósito bancario y efectivo en tienda. También ofrecemos meses sin intereses en compras mayores a $3,000 MXN con tarjetas participantes."
+          "a": "Aceptamos todas las tarjetas de crédito y débito (Visa, Mastercard, American Express). También ofrecemos meses sin intereses en compras mayores a $3,000 MXN con tarjetas participantes."
         },
         "installments": {
           "q": "¿Puedo pagar a meses sin intereses?",
@@ -606,8 +606,6 @@
     "products": "Productos",
     "clearCart": "Limpiar Carrito",
     "acceptedPaymentMethods": "Métodos de Pago Aceptados",
-    "transfer": "Transferencia",
-    "cash": "Efectivo",
     "installmentsAvailable": "Pagos en mensualidades disponibles",
     "securePurchase": "Compra Segura",
     "securePurchaseDesc": "Procesamos tus pagos de forma segura con encriptación SSL",

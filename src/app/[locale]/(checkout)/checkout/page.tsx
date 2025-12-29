@@ -12,17 +12,12 @@ import Footer from "@/components/shared/footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCartStore } from "@/stores/cart-store";
 import { useAuthStore } from "@/stores/auth-store";
 import { createOrder } from "@/lib/supabase/orders";
 import { getStripeClient } from "@/lib/stripe/client";
 import { StripePaymentElement } from "@/components/checkout/stripe-payment-element";
-// Eliminado: InstallmentSelector ya no se usa en checkout
-import type { CreateOrderData, PaymentMethod } from "@/types/order";
-import { getStoreSettings } from "@/lib/supabase/settings";
-import type { StoreSettings } from "@/lib/supabase/settings";
-import { Phone, Mail, MapPin } from "lucide-react";
+import type { CreateOrderData } from "@/types/order";
 import { useCurrency } from "@/contexts/currency-context";
 
 const CheckoutPage = () => {
@@ -40,7 +35,6 @@ const CheckoutPage = () => {
   const [stripeEnabled, setStripeEnabled] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
-  const [storeSettings, setStoreSettings] = useState<StoreSettings | null>(null);
 
   // Datos de envío
   const [shippingData, setShippingData] = useState({
@@ -55,8 +49,8 @@ const CheckoutPage = () => {
     zipCode: "",
   });
 
-  // Método de pago
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "transfer">("card");
+  // Método de pago - Solo tarjeta disponible
+  const [paymentMethod] = useState<"card">("card");
 
   const shippingCost = 0; // Envío gratis
   // El total del carrito está en MXN, convertirlo a la moneda del contexto
@@ -77,15 +71,6 @@ const CheckoutPage = () => {
       }
     };
     initStripe();
-  }, []);
-
-  // Cargar datos de configuración de la tienda
-  useEffect(() => {
-    const loadSettings = async () => {
-      const settings = await getStoreSettings();
-      setStoreSettings(settings);
-    };
-    loadSettings();
   }, []);
 
   useEffect(() => {
@@ -115,12 +100,6 @@ const CheckoutPage = () => {
   const createOrderForStripe = async (): Promise<string | null> => {
     if (orderId) return orderId;
 
-    const paymentMethodMap: Record<string, PaymentMethod> = {
-      card: "Tarjeta",
-      transfer: "Transferencia",
-      cash: "Efectivo",
-    };
-
     const orderData: CreateOrderData = {
       customer_name: shippingData.fullName,
       customer_email: shippingData.email,
@@ -130,7 +109,7 @@ const CheckoutPage = () => {
       shipping_state: shippingData.state,
       shipping_zip_code: shippingData.zipCode,
       shipping_country: "México",
-      payment_method: paymentMethodMap[paymentMethod],
+      payment_method: "Tarjeta",
       items: items.map((item) => ({
         product_id: item.id,
         product_name: item.name,
@@ -228,12 +207,6 @@ const CheckoutPage = () => {
     setIsLoading(true);
 
     try {
-      const paymentMethodMap: Record<string, PaymentMethod> = {
-        card: "Tarjeta",
-        transfer: "Transferencia",
-        cash: "Efectivo",
-      };
-
       const orderData: CreateOrderData = {
         customer_name: shippingData.fullName,
         customer_email: shippingData.email,
@@ -243,7 +216,7 @@ const CheckoutPage = () => {
         shipping_state: shippingData.state,
         shipping_zip_code: shippingData.zipCode,
         shipping_country: "México",
-        payment_method: paymentMethodMap[paymentMethod],
+        payment_method: "Tarjeta",
         items: items.map((item) => ({
           product_id: item.id,
           product_name: item.name,
@@ -492,17 +465,14 @@ const CheckoutPage = () => {
                   </div>
                 )}
 
-                <Tabs value={paymentMethod} onValueChange={(value) => {
-                  setPaymentMethod(value as "card" | "transfer");
-                  setClientSecret(null);
-                  setOrderId(null);
-                }}>
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="card">Tarjeta</TabsTrigger>
-                    <TabsTrigger value="transfer">Transferencia</TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="card" className="space-y-4 mt-6">
+                {/* Pago con Tarjeta */}
+                <div className="space-y-4 mt-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <CreditCard className="h-5 w-5 text-[#D4AF37]" />
+                    <h3 className="text-lg font-semibold text-foreground">
+                      Pago con Tarjeta
+                    </h3>
+                  </div>
                     {stripeEnabled && clientSecret && stripeClient ? (
                       <Elements stripe={stripeClient} options={{ clientSecret }}>
                         <StripePaymentElement
@@ -596,120 +566,11 @@ const CheckoutPage = () => {
                     ) : !stripeEnabled ? (
                       <div className="p-4 rounded-lg bg-muted">
                         <p className="text-sm text-muted-foreground">
-                          El pago con tarjeta no está disponible en este momento. Por favor selecciona otro método de pago.
+                          El pago con tarjeta no está disponible en este momento. Por favor contacta con soporte.
                         </p>
                       </div>
                     ) : null}
-                  </TabsContent>
-
-                  <TabsContent value="transfer" className="mt-6">
-                    <div className="space-y-4">
-                      {/* Información de seguridad */}
-                      <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
-                        <div className="flex items-start gap-2">
-                          <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                          <div className="text-sm text-blue-900">
-                            <p className="font-semibold mb-1">Proceso seguro de pago</p>
-                            <p className="text-blue-800">
-                              Por seguridad, los datos bancarios completos se enviarán únicamente a tu correo electrónico después de confirmar tu pedido.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Opciones de transferencia/depósito */}
-                      <div className="p-4 rounded-lg bg-muted">
-                        <h3 className="font-semibold text-foreground mb-3">Opciones de pago disponibles:</h3>
-                        <div className="space-y-3 text-sm">
-                          <div className="flex items-start gap-2">
-                            <div className="w-2 h-2 rounded-full bg-[#D4AF37] mt-1.5 flex-shrink-0"></div>
-                            <div>
-                              <p className="font-medium text-foreground">Transferencia bancaria</p>
-                              <p className="text-muted-foreground">Realiza la transferencia desde tu banca en línea</p>
-                            </div>
-                          </div>
-                          <div className="flex items-start gap-2">
-                            <div className="w-2 h-2 rounded-full bg-[#D4AF37] mt-1.5 flex-shrink-0"></div>
-                            <div>
-                              <p className="font-medium text-foreground">Depósito en efectivo</p>
-                              <p className="text-muted-foreground">Deposita en cualquier sucursal bancaria</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Pasos a seguir */}
-                      <div className="p-4 rounded-lg border border-border">
-                        <h3 className="font-semibold text-foreground mb-3">Pasos a seguir:</h3>
-                        <ol className="space-y-2 text-sm text-muted-foreground">
-                          <li className="flex items-start gap-2">
-                            <span className="font-semibold text-[#D4AF37] flex-shrink-0">1.</span>
-                            <span>Confirma tu pedido haciendo clic en el botón "Confirmar Pedido"</span>
-                          </li>
-                          <li className="flex items-start gap-2">
-                            <span className="font-semibold text-[#D4AF37] flex-shrink-0">2.</span>
-                            <span>Recibirás un correo con los datos bancarios completos (CLABE, número de cuenta, beneficiario)</span>
-                          </li>
-                          <li className="flex items-start gap-2">
-                            <span className="font-semibold text-[#D4AF37] flex-shrink-0">3.</span>
-                            <span>Realiza tu transferencia o depósito en efectivo</span>
-                          </li>
-                          <li className="flex items-start gap-2">
-                            <span className="font-semibold text-[#D4AF37] flex-shrink-0">4.</span>
-                            <span>Envía tu comprobante de pago por correo electrónico o WhatsApp</span>
-                          </li>
-                          <li className="flex items-start gap-2">
-                            <span className="font-semibold text-[#D4AF37] flex-shrink-0">5.</span>
-                            <span>Confirmaremos tu pago y procesaremos tu envío</span>
-                          </li>
-                        </ol>
-                      </div>
-
-                      {/* Contacto para dudas */}
-                      {storeSettings && (
-                        <div className="p-4 rounded-lg border border-[#D4AF37]/20 bg-[#D4AF37]/5">
-                          <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                            <Phone className="h-4 w-4 text-[#D4AF37]" />
-                            ¿Tienes dudas? Contáctanos
-                          </h3>
-                          <div className="space-y-2 text-sm">
-                            {storeSettings.phone && (
-                              <div className="flex items-start gap-2">
-                                <Phone className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                                <div>
-                                  <span className="text-muted-foreground">WhatsApp/Teléfono: </span>
-                                  <a
-                                    href={`https://wa.me/${storeSettings.phone.replace(/\D/g, '')}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-foreground font-medium hover:text-[#D4AF37] transition-colors"
-                                  >
-                                    {storeSettings.phone}
-                                  </a>
-                                </div>
-                              </div>
-                            )}
-                            {storeSettings.contact_email && (
-                              <div className="flex items-start gap-2">
-                                <Mail className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                                <div>
-                                  <span className="text-muted-foreground">Email: </span>
-                                  <a
-                                    href={`mailto:${storeSettings.contact_email}`}
-                                    className="text-foreground font-medium hover:text-[#D4AF37] transition-colors break-all"
-                                  >
-                                    {storeSettings.contact_email}
-                                  </a>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </TabsContent>
-
-                </Tabs>
+                </div>
               </div>
 
               {/* Error */}

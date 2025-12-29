@@ -3,7 +3,7 @@
 // =============================================
 
 export type OrderStatus = 'Pendiente' | 'Procesando' | 'Enviado' | 'Entregado' | 'Cancelado';
-export type PaymentMethod = 'Tarjeta' | 'Transferencia' | 'Efectivo';
+export type PaymentMethod = 'Tarjeta';
 export type PaymentStatus = 'Pendiente' | 'Pagado' | 'Fallido' | 'Reembolsado';
 
 // Tipo para crear un nuevo pedido

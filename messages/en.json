@@ -359,7 +359,7 @@
       "purchase": {
         "payment": {
           "q": "What payment methods do you accept?",
-          "a": "We accept all credit and debit cards (Visa, Mastercard, American Express), bank transfer, bank deposit, and cash in store. We also offer interest-free installments on purchases over $3,000 MXN with participating cards."
+          "a": "We accept all credit and debit cards (Visa, Mastercard, American Express). We also offer interest-free installments on purchases over $3,000 MXN with participating cards."
         },
         "installments": {
           "q": "Can I pay in interest-free installments?",
@@ -616,8 +616,6 @@
     "products": "Products",
     "clearCart": "Clear Cart",
     "acceptedPaymentMethods": "Accepted Payment Methods",
-    "transfer": "Transfer",
-    "cash": "Cash",
     "installmentsAvailable": "Monthly installments available",
     "securePurchase": "Secure Purchase",
     "securePurchaseDesc": "We process your payments securely with SSL encryption",
