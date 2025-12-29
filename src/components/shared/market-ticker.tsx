@@ -16,6 +16,8 @@ export function MarketTicker() {
       setIsLoading(true);
       setError(null);
 
+      console.log('[MarketTicker] Fetching market data...');
+
       // Obtener cotización del oro y tasa de cambio desde configuración
       const [goldResponse, exchangeResponse] = await Promise.all([
         fetch('/api/settings/gold-quotation'),
@@ -24,23 +26,21 @@ export function MarketTicker() {
 
       if (goldResponse.ok) {
         const goldResult = await goldResponse.json();
-        // Siempre establecer el valor, incluso si es null (la API ahora siempre devuelve un valor por defecto)
-        setGoldQuotation(goldResult.gold_quotation ?? 2450.00);
+        console.log('[MarketTicker] Gold quotation response:', goldResult);
+        setGoldQuotation(goldResult.gold_quotation);
       } else {
-        // Si la respuesta no es OK, usar valor por defecto
-        setGoldQuotation(2450.00);
+        console.error('[MarketTicker] Gold quotation API error:', goldResponse.status);
       }
 
       if (exchangeResponse.ok) {
         const exchangeResult = await exchangeResponse.json();
-        // Siempre establecer el valor, incluso si es null (la API ahora siempre devuelve un valor por defecto)
-        setExchangeRate(exchangeResult.exchange_rate ?? 18.00);
+        console.log('[MarketTicker] Exchange rate response:', exchangeResult);
+        setExchangeRate(exchangeResult.exchange_rate);
       } else {
-        // Si la respuesta no es OK, usar valor por defecto
-        setExchangeRate(18.00);
+        console.error('[MarketTicker] Exchange rate API error:', exchangeResponse.status);
       }
     } catch (err) {
-      console.error('Error fetching market data:', err);
+      console.error('[MarketTicker] Error fetching market data:', err);
       setError('Error loading market data');
     } finally {
       setIsLoading(false);
@@ -79,8 +79,10 @@ export function MarketTicker() {
   }
 
   // Usar valores por defecto si no hay datos (nunca debería pasar ahora, pero por seguridad)
-  const displayGoldQuotation = goldQuotation ?? 2450.00;
+  const displayGoldQuotation = goldQuotation ?? 2550.00;
   const displayExchangeRate = exchangeRate ?? 18.00;
+
+  console.log('[MarketTicker] Displaying:', { goldQuotation, exchangeRate, displayGoldQuotation, displayExchangeRate });
 
   // Calcular valores según el idioma
   const goldPrice = locale === 'es' 
