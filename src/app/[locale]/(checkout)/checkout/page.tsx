@@ -604,30 +604,84 @@ const CheckoutPage = () => {
 
                   <TabsContent value="transfer" className="mt-6">
                     <div className="space-y-4">
-                      <div className="p-4 rounded-lg bg-muted">
-                        <p className="text-sm text-muted-foreground mb-4">
-                          Realiza tu transferencia bancaria y envía el comprobante. Recibirás los datos bancarios completos después de confirmar tu pedido.
-                        </p>
-                        <div className="space-y-2 text-sm">
-                          <p className="font-medium">Banco: BBVA</p>
-                          <p>Los datos completos se enviarán a tu correo</p>
+                      {/* Información de seguridad */}
+                      <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
+                        <div className="flex items-start gap-2">
+                          <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                          <div className="text-sm text-blue-900">
+                            <p className="font-semibold mb-1">Proceso seguro de pago</p>
+                            <p className="text-blue-800">
+                              Por seguridad, los datos bancarios completos se enviarán únicamente a tu correo electrónico después de confirmar tu pedido.
+                            </p>
+                          </div>
                         </div>
                       </div>
 
+                      {/* Opciones de transferencia/depósito */}
+                      <div className="p-4 rounded-lg bg-muted">
+                        <h3 className="font-semibold text-foreground mb-3">Opciones de pago disponibles:</h3>
+                        <div className="space-y-3 text-sm">
+                          <div className="flex items-start gap-2">
+                            <div className="w-2 h-2 rounded-full bg-[#D4AF37] mt-1.5 flex-shrink-0"></div>
+                            <div>
+                              <p className="font-medium text-foreground">Transferencia bancaria</p>
+                              <p className="text-muted-foreground">Realiza la transferencia desde tu banca en línea</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-2">
+                            <div className="w-2 h-2 rounded-full bg-[#D4AF37] mt-1.5 flex-shrink-0"></div>
+                            <div>
+                              <p className="font-medium text-foreground">Depósito en efectivo</p>
+                              <p className="text-muted-foreground">Deposita en cualquier sucursal bancaria</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Pasos a seguir */}
+                      <div className="p-4 rounded-lg border border-border">
+                        <h3 className="font-semibold text-foreground mb-3">Pasos a seguir:</h3>
+                        <ol className="space-y-2 text-sm text-muted-foreground">
+                          <li className="flex items-start gap-2">
+                            <span className="font-semibold text-[#D4AF37] flex-shrink-0">1.</span>
+                            <span>Confirma tu pedido haciendo clic en el botón "Confirmar Pedido"</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="font-semibold text-[#D4AF37] flex-shrink-0">2.</span>
+                            <span>Recibirás un correo con los datos bancarios completos (CLABE, número de cuenta, beneficiario)</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="font-semibold text-[#D4AF37] flex-shrink-0">3.</span>
+                            <span>Realiza tu transferencia o depósito en efectivo</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="font-semibold text-[#D4AF37] flex-shrink-0">4.</span>
+                            <span>Envía tu comprobante de pago por correo electrónico o WhatsApp</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="font-semibold text-[#D4AF37] flex-shrink-0">5.</span>
+                            <span>Confirmaremos tu pago y procesaremos tu envío</span>
+                          </li>
+                        </ol>
+                      </div>
+
+                      {/* Contacto para dudas */}
                       {storeSettings && (
                         <div className="p-4 rounded-lg border border-[#D4AF37]/20 bg-[#D4AF37]/5">
                           <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                             <Phone className="h-4 w-4 text-[#D4AF37]" />
-                            Datos de Contacto
+                            ¿Tienes dudas? Contáctanos
                           </h3>
                           <div className="space-y-2 text-sm">
                             {storeSettings.phone && (
                               <div className="flex items-start gap-2">
                                 <Phone className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                                 <div>
-                                  <span className="text-muted-foreground">Teléfono: </span>
-                                  <a 
-                                    href={`tel:${storeSettings.phone.replace(/\s/g, '')}`}
+                                  <span className="text-muted-foreground">WhatsApp/Teléfono: </span>
+                                  <a
+                                    href={`https://wa.me/${storeSettings.phone.replace(/\D/g, '')}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     className="text-foreground font-medium hover:text-[#D4AF37] transition-colors"
                                   >
                                     {storeSettings.phone}
@@ -640,27 +694,11 @@ const CheckoutPage = () => {
                                 <Mail className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                                 <div>
                                   <span className="text-muted-foreground">Email: </span>
-                                  <a 
+                                  <a
                                     href={`mailto:${storeSettings.contact_email}`}
                                     className="text-foreground font-medium hover:text-[#D4AF37] transition-colors break-all"
                                   >
                                     {storeSettings.contact_email}
-                                  </a>
-                                </div>
-                              </div>
-                            )}
-                            {storeSettings.address && (
-                              <div className="flex items-start gap-2">
-                                <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                                <div className="text-foreground">
-                                  <div className="font-medium">Dirección:</div>
-                                  <a
-                                    href="https://maps.app.goo.gl/GBnsUNi5fe9QNEDj8"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-muted-foreground hover:text-[#D4AF37] transition-colors"
-                                  >
-                                    {storeSettings.address}
                                   </a>
                                 </div>
                               </div>
