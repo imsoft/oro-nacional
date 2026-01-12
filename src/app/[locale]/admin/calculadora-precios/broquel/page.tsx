@@ -240,15 +240,30 @@ export default function BroquelCalculatorPage() {
   }, [subcategories, productBroquelData, parameters]);
 
   const handleParameterChange = async (key: keyof BroquelPricingParameters, value: string) => {
-    const numValue = parseFloat(value) || 0;
+    // Allow empty string for better UX while typing
+    if (value === "" || value === "-") {
+      setParameters({ ...parameters, [key]: 0 });
+      return;
+    }
+    
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) {
+      return; // Don't update if invalid number
+    }
+    
     const newParameters = { ...parameters, [key]: numValue };
     setParameters(newParameters);
 
     // Auto-save to database
     try {
-      await updateBroquelPricingParameters(newParameters);
+      const updatedParams = await updateBroquelPricingParameters(newParameters);
+      // Update state with the response from database to ensure sync
+      setParameters(updatedParams);
     } catch (error) {
       console.error("Error saving broquel pricing parameters:", error);
+      // Revert on error
+      const params = await getBroquelPricingParameters();
+      setParameters(params);
     }
   };
 
@@ -553,10 +568,11 @@ export default function BroquelCalculatorPage() {
                     id="quotation"
                     type="number"
                     step="0.01"
-                    value={parameters.quotation}
+                    value={parameters.quotation || ""}
                     onChange={(e) =>
                       handleParameterChange("quotation", e.target.value)
                     }
+                    key={`quotation-${parameters.quotation}`}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">

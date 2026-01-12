@@ -196,16 +196,31 @@ export default function PriceCalculatorPage() {
   }, [subcategories, subcategoryPricingData, parameters]);
 
   const handleParameterChange = async (key: keyof PricingParameters, value: string) => {
-    const numValue = parseFloat(value) || 0;
+    // Allow empty string for better UX while typing
+    if (value === "" || value === "-") {
+      setParameters({ ...parameters, [key]: 0 });
+      return;
+    }
+    
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) {
+      return; // Don't update if invalid number
+    }
+    
     const newParameters = { ...parameters, [key]: numValue };
     setParameters(newParameters);
 
     // Auto-save to database
     setIsSavingParameters(true);
     try {
-      await updatePricingParameters(newParameters);
+      const updatedParams = await updatePricingParameters(newParameters);
+      // Update state with the response from database to ensure sync
+      setParameters(updatedParams);
     } catch (error) {
       console.error("Error saving pricing parameters:", error);
+      // Revert on error
+      const params = await getPricingParameters();
+      setParameters(params);
     } finally {
       setIsSavingParameters(false);
     }
@@ -508,10 +523,11 @@ export default function PriceCalculatorPage() {
                       id="goldQuotation"
                       type="number"
                       step="0.01"
-                      value={parameters.goldQuotation}
+                      value={parameters.goldQuotation || ""}
                       onChange={(e) =>
                         handleParameterChange("goldQuotation", e.target.value)
                       }
+                      key={`goldQuotation-${parameters.goldQuotation}`}
                     />
                   </div>
                   <div className="space-y-2">
