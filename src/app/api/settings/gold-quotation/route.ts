@@ -5,7 +5,7 @@ export async function GET() {
   try {
     const parameters = await getPricingParameters();
 
-    console.log('[Gold Quotation API] Parameters fetched:', parameters);
+    console.log('[Gold Quotation API] Parameters fetched:', JSON.stringify(parameters, null, 2));
 
     if (!parameters) {
       // Valor por defecto si no hay parámetros
@@ -15,7 +15,10 @@ export async function GET() {
       });
     }
 
-    const goldQuotation = parameters.goldQuotation || 2550.00;
+    // Usar el valor directamente sin fallback, ya que si parameters existe, goldQuotation debería existir
+    const goldQuotation = parameters.goldQuotation;
+    console.log('[Gold Quotation API] Raw goldQuotation value:', goldQuotation);
+    console.log('[Gold Quotation API] Type of goldQuotation:', typeof goldQuotation);
     console.log('[Gold Quotation API] Returning gold_quotation:', goldQuotation);
     
     // No cachear la respuesta para que siempre obtenga el valor más reciente

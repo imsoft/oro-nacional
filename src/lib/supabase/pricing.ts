@@ -52,6 +52,8 @@ function convertPricingParameters(row: PricingParametersRow): PricingParameters 
 
 // Get global pricing parameters
 export async function getPricingParameters(): Promise<PricingParameters | null> {
+  console.log('[getPricingParameters] Starting query...');
+  
   const { data, error } = await supabase
     .from("pricing_parameters")
     .select("*")
@@ -60,19 +62,25 @@ export async function getPricingParameters(): Promise<PricingParameters | null> 
     .maybeSingle();
 
   if (error) {
-    console.error("Error fetching pricing parameters:", error);
+    console.error("[getPricingParameters] Error fetching pricing parameters:", error);
+    console.error("[getPricingParameters] Error details:", JSON.stringify(error, null, 2));
     // Return null instead of throwing to allow graceful handling
     return null;
   }
 
   if (!data) {
-    console.warn("No pricing parameters found in database");
+    console.warn("[getPricingParameters] No pricing parameters found in database");
     return null;
   }
 
-  console.log('[getPricingParameters] Raw data from DB:', data);
+  console.log('[getPricingParameters] Raw data from DB:', JSON.stringify(data, null, 2));
+  console.log('[getPricingParameters] gold_quotation raw value:', data.gold_quotation);
+  console.log('[getPricingParameters] gold_quotation type:', typeof data.gold_quotation);
+  
   const converted = convertPricingParameters(data);
-  console.log('[getPricingParameters] Converted data:', converted);
+  console.log('[getPricingParameters] Converted data:', JSON.stringify(converted, null, 2));
+  console.log('[getPricingParameters] Converted goldQuotation:', converted.goldQuotation);
+  console.log('[getPricingParameters] Converted goldQuotation type:', typeof converted.goldQuotation);
   
   return converted;
 }
