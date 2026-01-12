@@ -2,13 +2,14 @@ import { supabase } from "./client";
 import type { PricingParameters } from "@/types/pricing";
 
 // Database types matching the schema
+// Supabase puede devolver strings para campos numeric, así que aceptamos ambos
 interface PricingParametersRow {
   id: string;
-  gold_quotation: number;
-  profit_margin: number;
-  vat: number;
-  stripe_percentage: number;
-  stripe_fixed_fee: number;
+  gold_quotation: number | string;
+  profit_margin: number | string;
+  vat: number | string;
+  stripe_percentage: number | string;
+  stripe_fixed_fee: number | string;
   created_at: string;
   updated_at: string;
 }
@@ -28,12 +29,24 @@ interface ProductPricingRow {
 
 // Convert database row to application type
 function convertPricingParameters(row: PricingParametersRow): PricingParameters {
+  // Asegurar que los valores numéricos se conviertan correctamente
+  // Supabase puede devolver strings para campos numeric
   return {
-    goldQuotation: row.gold_quotation,
-    profitMargin: row.profit_margin,
-    vat: row.vat,
-    stripePercentage: row.stripe_percentage,
-    stripeFixedFee: row.stripe_fixed_fee,
+    goldQuotation: typeof row.gold_quotation === 'string' 
+      ? parseFloat(row.gold_quotation) 
+      : Number(row.gold_quotation),
+    profitMargin: typeof row.profit_margin === 'string' 
+      ? parseFloat(row.profit_margin) 
+      : Number(row.profit_margin),
+    vat: typeof row.vat === 'string' 
+      ? parseFloat(row.vat) 
+      : Number(row.vat),
+    stripePercentage: typeof row.stripe_percentage === 'string' 
+      ? parseFloat(row.stripe_percentage) 
+      : Number(row.stripe_percentage),
+    stripeFixedFee: typeof row.stripe_fixed_fee === 'string' 
+      ? parseFloat(row.stripe_fixed_fee) 
+      : Number(row.stripe_fixed_fee),
   };
 }
 
@@ -42,6 +55,7 @@ export async function getPricingParameters(): Promise<PricingParameters | null> 
   const { data, error } = await supabase
     .from("pricing_parameters")
     .select("*")
+    .order("updated_at", { ascending: false })
     .limit(1)
     .maybeSingle();
 
@@ -56,7 +70,11 @@ export async function getPricingParameters(): Promise<PricingParameters | null> 
     return null;
   }
 
-  return convertPricingParameters(data);
+  console.log('[getPricingParameters] Raw data from DB:', data);
+  const converted = convertPricingParameters(data);
+  console.log('[getPricingParameters] Converted data:', converted);
+  
+  return converted;
 }
 
 // Update global pricing parameters
