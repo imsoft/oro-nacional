@@ -19,9 +19,21 @@ export function MarketTicker() {
       console.log('[MarketTicker] Fetching market data...');
 
       // Obtener cotización del oro y tasa de cambio desde configuración
+      // Agregar timestamp para evitar caché
+      const timestamp = Date.now();
       const [goldResponse, exchangeResponse] = await Promise.all([
-        fetch('/api/settings/gold-quotation'),
-        fetch('/api/settings/exchange-rate'),
+        fetch(`/api/settings/gold-quotation?t=${timestamp}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache',
+          },
+        }),
+        fetch(`/api/settings/exchange-rate?t=${timestamp}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache',
+          },
+        }),
       ]);
 
       if (goldResponse.ok) {
@@ -51,8 +63,8 @@ export function MarketTicker() {
     // Fetch immediately
     fetchMarketData();
 
-    // Fetch every 30 seconds
-    const interval = setInterval(fetchMarketData, 30000);
+    // Fetch every 10 seconds for more frequent updates
+    const interval = setInterval(fetchMarketData, 10000);
 
     return () => clearInterval(interval);
   }, []);

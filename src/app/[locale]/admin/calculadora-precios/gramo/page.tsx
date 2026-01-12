@@ -96,7 +96,9 @@ export default function PriceCalculatorPage() {
     try {
       // Load pricing parameters from database
       const params = await getPricingParameters();
-      setParameters(params);
+      if (params) {
+        setParameters(params);
+      }
 
       // Obtener subcategorías de la categoría interna "Gramo"
       const subcategoriesData = await getInternalSubcategoriesByCategoryName("Gramo");
@@ -220,7 +222,9 @@ export default function PriceCalculatorPage() {
       console.error("Error saving pricing parameters:", error);
       // Revert on error
       const params = await getPricingParameters();
-      setParameters(params);
+      if (params) {
+        setParameters(params);
+      }
     } finally {
       setIsSavingParameters(false);
     }

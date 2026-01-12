@@ -71,10 +71,12 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
     const loadStripeParams = async () => {
       try {
         const params = await getPricingParameters();
-        setStripeParams({
-          percentage: params.stripePercentage,
-          fixedFee: params.stripeFixedFee,
-        });
+        if (params) {
+          setStripeParams({
+            percentage: params.stripePercentage,
+            fixedFee: params.stripeFixedFee,
+          });
+        }
       } catch (error) {
         console.error("Error loading Stripe parameters:", error);
         // Valores por defecto si falla la carga

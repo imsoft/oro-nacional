@@ -38,16 +38,22 @@ function convertPricingParameters(row: PricingParametersRow): PricingParameters 
 }
 
 // Get global pricing parameters
-export async function getPricingParameters(): Promise<PricingParameters> {
+export async function getPricingParameters(): Promise<PricingParameters | null> {
   const { data, error } = await supabase
     .from("pricing_parameters")
     .select("*")
     .limit(1)
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error("Error fetching pricing parameters:", error);
-    throw error;
+    // Return null instead of throwing to allow graceful handling
+    return null;
+  }
+
+  if (!data) {
+    console.warn("No pricing parameters found in database");
+    return null;
   }
 
   return convertPricingParameters(data);
@@ -765,6 +771,10 @@ export async function calculateDynamicProductPrice(
       // Obtener parámetros globales de Gramo
       const globalParams = await getPricingParameters();
       console.log('[calculateDynamicProductPrice] Gramo params:', globalParams);
+
+      if (!globalParams) {
+        throw new Error('No pricing parameters found');
+      }
 
       // Calcular precio usando fórmula de Gramo
       const gramoData = await getSubcategoryPricing(params.subcategoryId);
