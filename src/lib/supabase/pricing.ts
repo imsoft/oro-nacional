@@ -58,12 +58,17 @@ export async function getPricingParameters(): Promise<PricingParameters> {
 export async function updatePricingParameters(
   parameters: PricingParameters
 ): Promise<PricingParameters> {
-  // Get the current row to update it
-  const { data: current } = await supabase
+  // Get the current row to update it - use maybeSingle to avoid errors if no row exists
+  const { data: current, error: selectError } = await supabase
     .from("pricing_parameters")
     .select("id")
     .limit(1)
-    .single();
+    .maybeSingle();
+
+  if (selectError && selectError.code !== 'PGRST116') {
+    console.error("Error fetching pricing parameters:", selectError);
+    throw selectError;
+  }
 
   const updateData = {
     gold_quotation: parameters.goldQuotation,
@@ -73,7 +78,7 @@ export async function updatePricingParameters(
     stripe_fixed_fee: parameters.stripeFixedFee,
   };
 
-  if (current) {
+  if (current && current.id) {
     // Update existing row (trigger sincronizará automáticamente con broquel_pricing_parameters)
     const { data, error } = await supabase
       .from("pricing_parameters")
@@ -85,6 +90,10 @@ export async function updatePricingParameters(
     if (error) {
       console.error("Error updating pricing parameters:", error);
       throw error;
+    }
+
+    if (!data) {
+      throw new Error("No data returned after update");
     }
 
     return convertPricingParameters(data);
@@ -99,6 +108,10 @@ export async function updatePricingParameters(
     if (error) {
       console.error("Error inserting pricing parameters:", error);
       throw error;
+    }
+
+    if (!data) {
+      throw new Error("No data returned after insert");
     }
 
     return convertPricingParameters(data);
@@ -466,12 +479,17 @@ export async function getBroquelPricingParameters(): Promise<BroquelPricingParam
 export async function updateBroquelPricingParameters(
   parameters: BroquelPricingParameters
 ): Promise<BroquelPricingParameters> {
-  // Get the current row to update it
-  const { data: current } = await supabase
+  // Get the current row to update it - use maybeSingle to avoid errors if no row exists
+  const { data: current, error: selectError } = await supabase
     .from("broquel_pricing_parameters")
     .select("id")
     .limit(1)
-    .single();
+    .maybeSingle();
+
+  if (selectError && selectError.code !== 'PGRST116') {
+    console.error("Error fetching broquel pricing parameters:", selectError);
+    throw selectError;
+  }
 
   const updateData = {
     quotation: parameters.quotation,
@@ -481,7 +499,7 @@ export async function updateBroquelPricingParameters(
     stripe_fixed_fee: parameters.stripeFixedFee,
   };
 
-  if (current) {
+  if (current && current.id) {
     // Update existing row (trigger sincronizará automáticamente con pricing_parameters)
     const { data, error } = await supabase
       .from("broquel_pricing_parameters")
@@ -493,6 +511,10 @@ export async function updateBroquelPricingParameters(
     if (error) {
       console.error("Error updating broquel pricing parameters:", error);
       throw error;
+    }
+
+    if (!data) {
+      throw new Error("No data returned after update");
     }
 
     return convertBroquelPricingParameters(data);
@@ -507,6 +529,10 @@ export async function updateBroquelPricingParameters(
     if (error) {
       console.error("Error inserting broquel pricing parameters:", error);
       throw error;
+    }
+
+    if (!data) {
+      throw new Error("No data returned after insert");
     }
 
     return convertBroquelPricingParameters(data);
