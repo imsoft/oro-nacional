@@ -722,22 +722,24 @@ export default function PriceCalculatorPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="bg-white rounded-lg p-4 border border-blue-200">
-            <p className="text-sm font-mono text-gray-800 mb-3">
-              <span className="font-semibold text-blue-900">Precio Final = </span>
-              ((Costo Oro + Costo Materiales) × (1 + Utilidad) + Costo Comisión + Envío) × (1 + IVA)
+            <p className="text-sm font-semibold text-blue-900 mb-3">Precio Final =</p>
+            <p className="text-xs font-mono text-gray-800 leading-relaxed bg-gray-50 p-3 rounded border">
+              (((Cotización × Oro × Factor) + (Oro × (Mano de obra + Piedra))) × (1 + Utilidad) + (Oro × Comisión de venta) + Envío) × (1 + IVA) × (1 + Stripe %) + Stripe fijo
             </p>
-            <div className="space-y-2 text-xs text-gray-600 border-t pt-3">
-              <p><span className="font-semibold">Costo Oro:</span> Cotización × Oro(grs) × Factor</p>
-              <p><span className="font-semibold">Costo Materiales:</span> Oro(grs) × (Mano de Obra + Piedra)</p>
-              <p><span className="font-semibold">Costo Comisión:</span> Oro(grs) × Comisión de Venta</p>
+
+            <div className="mt-4 space-y-2 text-xs text-gray-700 border-t pt-3">
+              <p className="font-semibold text-blue-900 mb-2">Desglose de componentes:</p>
+              <div className="space-y-1.5 ml-2">
+                <p><span className="font-semibold text-blue-800">Costo Oro:</span> Cotización × Oro(grs) × Factor</p>
+                <p><span className="font-semibold text-blue-800">Costo Materiales:</span> Oro(grs) × (Mano de Obra + Piedra)</p>
+                <p><span className="font-semibold text-blue-800">Costo Comisión:</span> Oro(grs) × Comisión de Venta</p>
+              </div>
             </div>
           </div>
 
-          <div className="bg-amber-50 rounded-lg p-3 border border-amber-200">
-            <p className="text-xs text-amber-800">
-              <span className="font-semibold">Nota importante:</span> Las comisiones de Stripe (
-              {(parameters.stripePercentage * 100).toFixed(2)}% + {formatMXN(parameters.stripeFixedFee)}
-              ) NO se incluyen en el precio base. Estas se aplicarán automáticamente al momento del pago en el checkout.
+          <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+            <p className="text-xs text-blue-900">
+              <span className="font-semibold">Nota importante:</span> Las comisiones de Stripe ({(parameters.stripePercentage * 100).toFixed(2)}% + {formatMXN(parameters.stripeFixedFee)}) SÍ se incluyen en el precio final calculado. El cliente verá este precio final en el sitio web y NO habrá cargos adicionales en el checkout.
             </p>
           </div>
 
