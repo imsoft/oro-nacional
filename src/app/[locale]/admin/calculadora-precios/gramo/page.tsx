@@ -40,6 +40,11 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
+import {
   getPricingParameters,
   updatePricingParameters,
   getAllSubcategoryPricing,
@@ -973,6 +978,60 @@ export default function PriceCalculatorPage() {
                                       <span>Nuevo precio: <span className="font-semibold text-[#D4AF37]">{formatMXN(calc.finalPrice)}</span></span>
                                     </div>
                                   </div>
+                                  <HoverCard>
+                                    <HoverCardTrigger asChild>
+                                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                                        <Info className="h-4 w-4" />
+                                      </Button>
+                                    </HoverCardTrigger>
+                                    <HoverCardContent className="w-96" align="end">
+                                      <div className="space-y-3">
+                                        <h4 className="font-semibold text-sm border-b pb-2">Desglose del Cálculo - Método Gramo</h4>
+                                        <div className="space-y-2 text-xs">
+                                          <div className="flex justify-between items-center">
+                                            <span className="text-muted-foreground">1. Costo del Oro:</span>
+                                            <span className="font-mono">{calc.goldGrams}g × {formatMXN(parameters?.goldQuotation || 0)} = {formatMXN(calc.goldCost)}</span>
+                                          </div>
+                                          <div className="flex justify-between items-center">
+                                            <span className="text-muted-foreground">2. Materiales (Factor {calc.factor}):</span>
+                                            <span className="font-mono">{formatMXN(calc.goldCost)} × {calc.factor} = {formatMXN(calc.materialsCost)}</span>
+                                          </div>
+                                          <div className="flex justify-between items-center">
+                                            <span className="text-muted-foreground">3. + Mano de Obra:</span>
+                                            <span className="font-mono">{formatMXN(calc.materialsCost)} + {formatMXN(calc.laborCost)} = {formatMXN(calc.materialsCost + calc.laborCost)}</span>
+                                          </div>
+                                          <div className="flex justify-between items-center">
+                                            <span className="text-muted-foreground">4. + Piedra:</span>
+                                            <span className="font-mono">{formatMXN(calc.materialsCost + calc.laborCost)} + {formatMXN(calc.stoneCost)} = {formatMXN(calc.materialsCost + calc.laborCost + calc.stoneCost)}</span>
+                                          </div>
+                                          <div className="flex justify-between items-center border-t pt-2">
+                                            <span className="text-muted-foreground">5. + Utilidad ({parameters?.profitMargin || 0}%):</span>
+                                            <span className="font-mono font-semibold">{formatMXN(calc.subtotalWithProfit)}</span>
+                                          </div>
+                                          <div className="flex justify-between items-center">
+                                            <span className="text-muted-foreground">6. + Comisión ({calc.salesCommission}):</span>
+                                            <span className="font-mono">{formatMXN(calc.subtotalWithCommissions)}</span>
+                                          </div>
+                                          <div className="flex justify-between items-center">
+                                            <span className="text-muted-foreground">7. + Envío:</span>
+                                            <span className="font-mono">{formatMXN(calc.subtotalWithCommissions)} + {formatMXN(calc.shippingCost)}</span>
+                                          </div>
+                                          <div className="flex justify-between items-center">
+                                            <span className="text-muted-foreground">8. + IVA ({parameters?.vat || 0}%):</span>
+                                            <span className="font-mono font-semibold">{formatMXN(calc.subtotalWithVat)}</span>
+                                          </div>
+                                          <div className="flex justify-between items-center">
+                                            <span className="text-muted-foreground">9. + Stripe ({parameters?.stripePercentage || 0}%):</span>
+                                            <span className="font-mono font-semibold">{formatMXN(calc.subtotalWithStripePercentage)}</span>
+                                          </div>
+                                          <div className="flex justify-between items-center border-t pt-2 bg-amber-50 -mx-2 px-2 py-2 rounded">
+                                            <span className="font-semibold">Precio Final:</span>
+                                            <span className="font-bold text-lg text-[#D4AF37]">{formatMXN(calc.finalPrice)}</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </HoverCardContent>
+                                  </HoverCard>
                                 </div>
                               ))}
                             </div>

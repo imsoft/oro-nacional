@@ -48,6 +48,11 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 
 // Datos específicos por subcategoría
 interface ProductBroquelData {
@@ -1038,6 +1043,68 @@ export default function BroquelCalculatorPage() {
                                       <span>Nuevo precio: <span className="font-semibold text-[#D4AF37]">{formatMXN(calc.finalPrice)}</span></span>
                                     </div>
                                   </div>
+                                  <HoverCard>
+                                    <HoverCardTrigger asChild>
+                                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                                        <Info className="h-4 w-4" />
+                                      </Button>
+                                    </HoverCardTrigger>
+                                    <HoverCardContent className="w-96" align="end">
+                                      <div className="space-y-3">
+                                        <h4 className="font-semibold text-sm border-b pb-2">Desglose del Cálculo - Método Broquel</h4>
+                                        <div className="space-y-2 text-xs">
+                                          <div className="flex justify-between items-center">
+                                            <span className="text-muted-foreground">1. Oro base ({calc.goldGrams}g × {calc.pz} pz):</span>
+                                            <span className="font-mono">{(calc.goldGrams * calc.pz).toFixed(3)}g total</span>
+                                          </div>
+                                          <div className="flex justify-between items-center">
+                                            <span className="text-muted-foreground">2. Factor kilataje ({calc.carats}k):</span>
+                                            <span className="font-mono">{(calc.carats / 24).toFixed(4)} × oro</span>
+                                          </div>
+                                          <div className="flex justify-between items-center">
+                                            <span className="text-muted-foreground">3. Merma aplicada ({calc.merma}%):</span>
+                                            <span className="font-mono">+{calc.merma}% al costo</span>
+                                          </div>
+                                          <div className="flex justify-between items-center">
+                                            <span className="text-muted-foreground">4. Cotización del oro:</span>
+                                            <span className="font-mono">{formatMXN(parameters?.quotation || 0)}/g</span>
+                                          </div>
+                                          <div className="flex justify-between items-center border-t pt-2">
+                                            <span className="text-muted-foreground">5. + Mano de Obra:</span>
+                                            <span className="font-mono">+{formatMXN(calc.laborCost)}</span>
+                                          </div>
+                                          <div className="flex justify-between items-center">
+                                            <span className="text-muted-foreground">6. + Piedra:</span>
+                                            <span className="font-mono">+{formatMXN(calc.stoneCost)}</span>
+                                          </div>
+                                          <div className="flex justify-between items-center">
+                                            <span className="text-muted-foreground">7. + Comisión Venta:</span>
+                                            <span className="font-mono">+{formatMXN(calc.salesCommission)}</span>
+                                          </div>
+                                          <div className="flex justify-between items-center">
+                                            <span className="text-muted-foreground">8. + Envío:</span>
+                                            <span className="font-mono">+{formatMXN(calc.shipping)}</span>
+                                          </div>
+                                          <div className="flex justify-between items-center border-t pt-2">
+                                            <span className="text-muted-foreground">9. + Utilidad ({parameters?.profitMargin || 0}%):</span>
+                                            <span className="font-mono font-semibold">{formatMXN(calc.subtotalWithProfit)}</span>
+                                          </div>
+                                          <div className="flex justify-between items-center">
+                                            <span className="text-muted-foreground">10. + IVA ({parameters?.vat || 0}%):</span>
+                                            <span className="font-mono font-semibold">{formatMXN(calc.subtotalWithVat)}</span>
+                                          </div>
+                                          <div className="flex justify-between items-center">
+                                            <span className="text-muted-foreground">11. + Stripe ({parameters?.stripePercentage || 0}%):</span>
+                                            <span className="font-mono font-semibold">{formatMXN(calc.subtotalWithStripe)}</span>
+                                          </div>
+                                          <div className="flex justify-between items-center border-t pt-2 bg-purple-50 -mx-2 px-2 py-2 rounded">
+                                            <span className="font-semibold">Precio Final:</span>
+                                            <span className="font-bold text-lg text-[#D4AF37]">{formatMXN(calc.finalPrice)}</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </HoverCardContent>
+                                  </HoverCard>
                                 </div>
                               ))}
                             </div>
