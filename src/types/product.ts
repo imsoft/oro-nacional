@@ -82,6 +82,8 @@ export interface ProductListItem {
   name: string;
   slug: string;
   price: number;
+  base_price?: number;
+  base_grams?: number;
   stock: number;
   material: string;
   is_active: boolean;

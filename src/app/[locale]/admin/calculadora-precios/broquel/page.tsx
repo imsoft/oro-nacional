@@ -40,7 +40,14 @@ import {
   updateBroquelPricingParameters,
   type BroquelPricingParameters,
 } from "@/lib/supabase/pricing";
-import { updateMultipleProductPrices } from "@/lib/supabase/products";
+import { updateMultipleProductPrices, getProductsWithDetailsBySubcategory } from "@/lib/supabase/products";
+import type { ProductListItem } from "@/types/product";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 // Datos específicos por subcategoría
 interface ProductBroquelData {
@@ -83,7 +90,11 @@ export default function BroquelCalculatorPage() {
   const [selectedSubcategoryId, setSelectedProductId] = useState<string | null>(null);
   const [updatingSubcategories, setUpdatingProducts] = useState<Set<string>>(new Set());
   const [isUpdatingAll, setIsUpdatingAll] = useState(false);
-  
+
+  // Products by subcategory for accordion display
+  const [subcategoryProducts, setSubcategoryProducts] = useState<Map<string, ProductListItem[]>>(new Map());
+  const [loadingProducts, setLoadingProducts] = useState<Set<string>>(new Set());
+
   // Refs for debouncing save operations
   const saveTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
@@ -320,6 +331,29 @@ export default function BroquelCalculatorPage() {
     } else {
       alert("Código incorrecto");
       setUnlockCode("");
+    }
+  };
+
+  // Load products for a subcategory when accordion is opened
+  const loadProductsForSubcategory = async (subcategoryId: string) => {
+    // Skip if already loaded or loading
+    if (subcategoryProducts.has(subcategoryId) || loadingProducts.has(subcategoryId)) {
+      return;
+    }
+
+    setLoadingProducts(prev => new Set(prev).add(subcategoryId));
+
+    try {
+      const products = await getProductsWithDetailsBySubcategory(subcategoryId);
+      setSubcategoryProducts(prev => new Map(prev).set(subcategoryId, products));
+    } catch (error) {
+      console.error(`Error loading products for subcategory ${subcategoryId}:`, error);
+    } finally {
+      setLoadingProducts(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(subcategoryId);
+        return newSet;
+      });
     }
   };
 
@@ -782,251 +816,240 @@ export default function BroquelCalculatorPage() {
         </CardContent>
       </Card>
 
-      {/* Products table with calculations */}
+      {/* Products accordions with calculations */}
       <Card>
         <CardHeader>
-          <CardTitle>Productos y Cálculos de Precio</CardTitle>
+          <CardTitle>Subcategorías y Cálculos de Precio</CardTitle>
           <CardDescription>
             {calculatedSubcategories.length} subcategoría(s) con cálculo de precio final
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full divide-y divide-border text-xs">
-              <thead className="bg-muted">
-                <tr>
-                  <th className="sticky left-0 z-10 bg-muted px-2 py-2 text-left text-[10px] font-medium text-muted-foreground uppercase tracking-tight border-r">
-                    Nombre
-                  </th>
-                  <th className="px-2 py-2 text-left text-[10px] font-medium text-muted-foreground uppercase tracking-tight">
-                    PZ
-                  </th>
-                  <th className="px-2 py-2 text-left text-[10px] font-medium text-muted-foreground uppercase tracking-tight">
-                    Oro (GRS)
-                  </th>
-                  <th className="px-2 py-2 text-left text-[10px] font-medium text-muted-foreground uppercase tracking-tight">
-                    Kilat.
-                  </th>
-                  <th className="px-2 py-2 text-left text-[10px] font-medium text-muted-foreground uppercase tracking-tight">
-                    Factor
-                  </th>
-                  <th className="px-2 py-2 text-left text-[10px] font-medium text-muted-foreground uppercase tracking-tight">
-                    Merma %
-                  </th>
-                  <th className="px-2 py-2 text-left text-[10px] font-medium text-muted-foreground uppercase tracking-tight">
-                    M. Obra
-                  </th>
-                  <th className="px-2 py-2 text-left text-[10px] font-medium text-muted-foreground uppercase tracking-tight">
-                    Piedra
-                  </th>
-                  <th className="px-2 py-2 text-left text-[10px] font-medium text-muted-foreground uppercase tracking-tight">
-                    Com. Vta
-                  </th>
-                  <th className="px-2 py-2 text-left text-[10px] font-medium text-muted-foreground uppercase tracking-tight">
-                    Envío
-                  </th>
-                  <th className="px-2 py-2 text-left text-[10px] font-medium text-muted-foreground uppercase tracking-tight bg-blue-50">
-                    + Util.
-                  </th>
-                  <th className="px-2 py-2 text-left text-[10px] font-medium text-muted-foreground uppercase tracking-tight bg-green-50">
-                    + IVA
-                  </th>
-                  <th className="px-2 py-2 text-left text-[10px] font-medium text-muted-foreground uppercase tracking-tight bg-green-50">
-                    + Stripe
-                  </th>
-                  <th className="px-2 py-2 text-left text-[10px] font-medium text-foreground uppercase tracking-tight bg-[#D4AF37]/10 border-l">
-                    Precio Final
-                  </th>
-                  <th className="sticky right-0 z-10 bg-muted px-2 py-2 text-left text-[10px] font-medium text-muted-foreground uppercase tracking-tight border-l">
-                    Acciones
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-card divide-y divide-border">
-                {calculatedSubcategories.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={15}
-                      className="px-6 py-12 text-center text-muted-foreground"
-                    >
-                      No hay subcategorías para calcular
-                    </td>
-                  </tr>
-                ) : (
-                  calculatedSubcategories.map((calc) => {
-                    // Subcategories don't have prices, so no price comparison needed
-                    const priceDifference = 0;
-                    const isUpdating = updatingSubcategories.has(calc.id);
+        <CardContent>
+          {calculatedSubcategories.length === 0 ? (
+            <div className="px-6 py-12 text-center text-muted-foreground">
+              No hay subcategorías para calcular
+            </div>
+          ) : (
+            <Accordion type="multiple" className="w-full">
+              {calculatedSubcategories.map((calc) => {
+                const subcategory = subcategories.find(s => s.id === calc.id);
+                const products = subcategoryProducts.get(calc.id) || [];
+                const isLoadingProductsForThis = loadingProducts.has(calc.id);
 
-                    return (
-                      <tr key={calc.id} className="hover:bg-muted/50">
-                        <td className="sticky left-0 z-10 bg-card px-2 py-2 whitespace-nowrap text-xs font-medium text-foreground border-r">
-                          <div className="max-w-[150px] truncate">
-                            {(() => {
-                              const subcategory = subcategories.find(s => s.id === calc.id);
-                              return subcategory?.special_code ? (
-                                <>
-                                  <span className="font-medium">{subcategory.special_code}</span>
-                                  <span className="text-muted-foreground"> - {calc.name}</span>
-                                </>
-                              ) : (
-                                calc.name
-                              );
-                            })()}
-                          </div>
-                        </td>
-                        <td className="px-2 py-2 whitespace-nowrap">
-                          <Input
-                            type="number"
-                            step="0.01"
-                            value={calc.pz}
-                            onChange={(e) =>
-                              handleSubcategoryDataChange(calc.id, "pz", e.target.value)
-                            }
-                            className="w-14 h-7 text-[11px] px-1"
-                          />
-                        </td>
-                        <td className="px-2 py-2 whitespace-nowrap">
-                          <Input
-                            type="number"
-                            step="0.001"
-                            value={calc.goldGrams}
-                            onChange={(e) =>
-                              handleSubcategoryDataChange(calc.id, "goldGrams", e.target.value)
-                            }
-                            className="w-16 h-7 text-[11px] px-1"
-                          />
-                        </td>
-                        <td className="px-2 py-2 whitespace-nowrap">
-                          <Input
-                            type="number"
-                            step="1"
-                            value={calc.carats}
-                            onChange={(e) =>
-                              handleSubcategoryDataChange(calc.id, "carats", e.target.value)
-                            }
-                            className="w-14 h-7 text-[11px] px-1"
-                            disabled={!isUnlocked}
-                          />
-                        </td>
-                        <td className="px-2 py-2 whitespace-nowrap">
-                          <Input
-                            type="number"
-                            step="0.001"
-                            value={calc.factor}
-                            onChange={(e) =>
-                              handleSubcategoryDataChange(calc.id, "factor", e.target.value)
-                            }
-                            className="w-16 h-7 text-[11px] px-1"
-                            disabled={!isUnlocked}
-                          />
-                        </td>
-                        <td className="px-2 py-2 whitespace-nowrap">
-                          <Input
-                            type="number"
-                            step="0.01"
-                            value={calc.merma}
-                            onChange={(e) =>
-                              handleSubcategoryDataChange(calc.id, "merma", e.target.value)
-                            }
-                            className="w-16 h-7 text-[11px] px-1"
-                            disabled={!isUnlocked}
-                          />
-                        </td>
-                        <td className="px-2 py-2 whitespace-nowrap">
-                          <Input
-                            type="number"
-                            step="0.01"
-                            value={calc.laborCost}
-                            onChange={(e) =>
-                              handleSubcategoryDataChange(calc.id, "laborCost", e.target.value)
-                            }
-                            className="w-16 h-7 text-[11px] px-1"
-                            disabled={!isUnlocked}
-                          />
-                        </td>
-                        <td className="px-2 py-2 whitespace-nowrap">
-                          <Input
-                            type="number"
-                            step="0.01"
-                            value={calc.stoneCost}
-                            onChange={(e) =>
-                              handleSubcategoryDataChange(calc.id, "stoneCost", e.target.value)
-                            }
-                            className="w-16 h-7 text-[11px] px-1"
-                            disabled={!isUnlocked}
-                          />
-                        </td>
-                        <td className="px-2 py-2 whitespace-nowrap">
-                          <Input
-                            type="number"
-                            step="0.01"
-                            value={calc.salesCommission}
-                            onChange={(e) =>
-                              handleSubcategoryDataChange(calc.id, "salesCommission", e.target.value)
-                            }
-                            className="w-16 h-7 text-[11px] px-1"
-                            disabled={!isUnlocked}
-                          />
-                        </td>
-                        <td className="px-2 py-2 whitespace-nowrap">
-                          <Input
-                            type="number"
-                            step="0.01"
-                            value={calc.shipping}
-                            onChange={(e) =>
-                              handleSubcategoryDataChange(calc.id, "shipping", e.target.value)
-                            }
-                            className="w-20 h-7 text-[11px] px-1"
-                            disabled={!isUnlocked}
-                          />
-                        </td>
-                        <td className="px-2 py-2 whitespace-nowrap text-xs bg-blue-50/50">
-                          {formatMXN(calc.subtotalWithProfit)}
-                        </td>
-                        <td className="px-2 py-2 whitespace-nowrap text-xs bg-green-50/50">
-                          {formatMXN(calc.subtotalWithVat)}
-                        </td>
-                        <td className="px-2 py-2 whitespace-nowrap text-xs bg-green-50/50">
-                          {formatMXN(calc.subtotalWithStripe)}
-                        </td>
-                        <td className="px-2 py-2 whitespace-nowrap bg-[#D4AF37]/10 border-l">
-                          <div className="space-y-0.5 min-w-[110px]">
-                            <div className="font-bold text-foreground text-xs">
-                              {formatMXN(calc.finalPrice)}
-                            </div>
-                            <div className="text-[10px] text-muted-foreground">
-                              Precio Calculado: {formatMXN(calc.finalPrice)}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="sticky right-0 z-10 bg-card px-2 py-2 whitespace-nowrap border-l">
-                          <Button
-                            size="sm"
-                            onClick={() => handleApplyPriceToProducts(calc.id, calc.finalPrice)}
-                            disabled={isApplyingPrices || applyingToSubcategory === calc.id}
-                            className="gap-2 bg-green-600 hover:bg-green-700 text-white"
-                          >
-                            {isApplyingPrices && applyingToSubcategory === calc.id ? (
+                return (
+                  <AccordionItem key={calc.id} value={calc.id}>
+                    <AccordionTrigger
+                      className="hover:no-underline"
+                      onClick={() => loadProductsForSubcategory(calc.id)}
+                    >
+                      <div className="flex items-center justify-between w-full pr-4">
+                        <div className="flex flex-col items-start gap-1">
+                          <div className="font-semibold text-left">
+                            {subcategory?.special_code ? (
                               <>
-                                <Loader2 className="h-3 w-3 animate-spin" />
-                                Aplicando...
+                                <span className="text-foreground">{subcategory.special_code}</span>
+                                <span className="text-muted-foreground"> - {calc.name}</span>
                               </>
                             ) : (
-                              <>
-                                <Save className="h-3 w-3" />
-                                Aplicar Precio
-                              </>
+                              calc.name
                             )}
-                          </Button>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
+                          </div>
+                          <div className="flex gap-4 text-xs text-muted-foreground">
+                            <span>PZ: {calc.pz}</span>
+                            <span>Oro: {calc.goldGrams}g</span>
+                            <span>Precio Final: <span className="font-bold text-[#D4AF37]">{formatMXN(calc.finalPrice)}</span></span>
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleApplyPriceToProducts(calc.id, calc.finalPrice);
+                          }}
+                          disabled={isApplyingPrices || applyingToSubcategory === calc.id}
+                          className="gap-2 bg-green-600 hover:bg-green-700 text-white"
+                        >
+                          {isApplyingPrices && applyingToSubcategory === calc.id ? (
+                            <>
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                              Aplicando...
+                            </>
+                          ) : (
+                            <>
+                              <Save className="h-3 w-3" />
+                              Aplicar
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-6 pt-4">
+                        {/* Variables de entrada */}
+                        <div className="bg-purple-50/50 rounded-lg p-4 border border-purple-200">
+                          <h4 className="font-semibold text-sm mb-3 text-purple-900">Variables de Cálculo</h4>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="space-y-1">
+                              <Label htmlFor={`pz-${calc.id}`} className="text-xs">PZ (Piezas)</Label>
+                              <Input
+                                id={`pz-${calc.id}`}
+                                type="number"
+                                step="0.01"
+                                value={calc.pz}
+                                onChange={(e) => handleSubcategoryDataChange(calc.id, "pz", e.target.value)}
+                                className="h-8"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor={`goldGrams-${calc.id}`} className="text-xs">Oro (grs)</Label>
+                              <Input
+                                id={`goldGrams-${calc.id}`}
+                                type="number"
+                                step="0.001"
+                                value={calc.goldGrams}
+                                onChange={(e) => handleSubcategoryDataChange(calc.id, "goldGrams", e.target.value)}
+                                className="h-8"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor={`carats-${calc.id}`} className="text-xs">Kilataje</Label>
+                              <Input
+                                id={`carats-${calc.id}`}
+                                type="number"
+                                step="1"
+                                value={calc.carats}
+                                onChange={(e) => handleSubcategoryDataChange(calc.id, "carats", e.target.value)}
+                                disabled={!isUnlocked}
+                                className="h-8"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor={`merma-${calc.id}`} className="text-xs">Merma %</Label>
+                              <Input
+                                id={`merma-${calc.id}`}
+                                type="number"
+                                step="0.01"
+                                value={calc.merma}
+                                onChange={(e) => handleSubcategoryDataChange(calc.id, "merma", e.target.value)}
+                                disabled={!isUnlocked}
+                                className="h-8"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor={`laborCost-${calc.id}`} className="text-xs">Mano de Obra</Label>
+                              <Input
+                                id={`laborCost-${calc.id}`}
+                                type="number"
+                                step="0.01"
+                                value={calc.laborCost}
+                                onChange={(e) => handleSubcategoryDataChange(calc.id, "laborCost", e.target.value)}
+                                disabled={!isUnlocked}
+                                className="h-8"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor={`stoneCost-${calc.id}`} className="text-xs">Piedra</Label>
+                              <Input
+                                id={`stoneCost-${calc.id}`}
+                                type="number"
+                                step="0.01"
+                                value={calc.stoneCost}
+                                onChange={(e) => handleSubcategoryDataChange(calc.id, "stoneCost", e.target.value)}
+                                disabled={!isUnlocked}
+                                className="h-8"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor={`salesCommission-${calc.id}`} className="text-xs">Comisión Venta</Label>
+                              <Input
+                                id={`salesCommission-${calc.id}`}
+                                type="number"
+                                step="0.01"
+                                value={calc.salesCommission}
+                                onChange={(e) => handleSubcategoryDataChange(calc.id, "salesCommission", e.target.value)}
+                                disabled={!isUnlocked}
+                                className="h-8"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor={`shipping-${calc.id}`} className="text-xs">Envío</Label>
+                              <Input
+                                id={`shipping-${calc.id}`}
+                                type="number"
+                                step="0.01"
+                                value={calc.shipping}
+                                onChange={(e) => handleSubcategoryDataChange(calc.id, "shipping", e.target.value)}
+                                disabled={!isUnlocked}
+                                className="h-8"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Resultados de cálculo */}
+                        <div className="bg-blue-50/50 rounded-lg p-4 border border-blue-200">
+                          <h4 className="font-semibold text-sm mb-3 text-blue-900">Desglose de Costos</h4>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            <div>
+                              <p className="text-xs text-muted-foreground">+ Utilidad</p>
+                              <p className="font-semibold">{formatMXN(calc.subtotalWithProfit)}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground">+ IVA</p>
+                              <p className="font-semibold">{formatMXN(calc.subtotalWithVat)}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground">+ Stripe %</p>
+                              <p className="font-semibold">{formatMXN(calc.subtotalWithStripe)}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground">Precio Final</p>
+                              <p className="font-bold text-lg text-[#D4AF37]">{formatMXN(calc.finalPrice)}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Productos relacionados */}
+                        <div className="bg-green-50/50 rounded-lg p-4 border border-green-200">
+                          <h4 className="font-semibold text-sm mb-3 text-green-900">Productos Relacionados</h4>
+                          {isLoadingProductsForThis ? (
+                            <div className="flex items-center justify-center py-8">
+                              <Loader2 className="h-6 w-6 animate-spin text-green-600" />
+                              <span className="ml-2 text-sm text-muted-foreground">Cargando productos...</span>
+                            </div>
+                          ) : products.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">No hay productos con esta subcategoría</p>
+                          ) : (
+                            <div className="space-y-3">
+                              {products.map((product) => (
+                                <div key={product.id} className="bg-white rounded-lg p-3 border border-green-100 flex items-center gap-4">
+                                  {product.primary_image && (
+                                    <img
+                                      src={product.primary_image}
+                                      alt={product.name}
+                                      className="w-16 h-16 object-cover rounded"
+                                    />
+                                  )}
+                                  <div className="flex-1">
+                                    <h5 className="font-medium text-sm">{product.name}</h5>
+                                    <p className="text-xs text-muted-foreground">Material: {product.material}</p>
+                                    <div className="flex gap-4 mt-1 text-xs">
+                                      <span>Precio actual: <span className="font-semibold">{formatMXN(product.price)}</span></span>
+                                      <span>Nuevo precio: <span className="font-semibold text-[#D4AF37]">{formatMXN(calc.finalPrice)}</span></span>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                );
+              })}
+            </Accordion>
+          )}
         </CardContent>
       </Card>
 

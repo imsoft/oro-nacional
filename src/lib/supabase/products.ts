@@ -1176,3 +1176,99 @@ export async function updateMultipleProductPrices(
 
   return results;
 }
+
+/**
+ * Get products with full details by internal subcategory ID
+ * Used by price calculators to show products in accordions
+ */
+export async function getProductsWithDetailsBySubcategory(subcategoryId: string): Promise<ProductListItem[]> {
+  // First get product IDs for this subcategory
+  const { data: productRelations, error: relationError } = await supabase
+    .from("product_internal_categories")
+    .select("product_id")
+    .eq("internal_subcategory_id", subcategoryId);
+
+  if (relationError || !productRelations || productRelations.length === 0) {
+    return [];
+  }
+
+  const productIds = productRelations.map(rel => rel.product_id);
+
+  // Now get full product details
+  const { data, error } = await supabase
+    .from("products")
+    .select(
+      `
+      id,
+      name_es,
+      name_en,
+      slug_es,
+      slug_en,
+      price,
+      base_price,
+      base_grams,
+      stock,
+      material_es,
+      material_en,
+      is_active,
+      created_at,
+      category:product_categories(id, name_es, name_en),
+      images:product_images(image_url, is_primary),
+      sizes:product_sizes(id, size, stock, price, price_usd, weight, display_order)
+    `
+    )
+    .in("id", productIds)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching products by subcategory:", error);
+    return [];
+  }
+
+  // Transform data for list view
+  const products: ProductListItem[] = (data as unknown[]).map((product: unknown) => {
+    const p = product as {
+      id: string;
+      name_es: string;
+      name_en: string;
+      slug_es: string;
+      slug_en: string;
+      price: number;
+      base_price?: number;
+      base_grams?: number;
+      stock: number;
+      material_es: string;
+      material_en: string;
+      is_active: boolean;
+      category?: { name_es: string; name_en: string };
+      images?: Array<{ is_primary: boolean; image_url: string }>;
+      sizes?: Array<{ id: string; size: string; stock: number; price?: number; price_usd?: number; weight?: number; display_order?: number }>;
+    };
+    return {
+      id: p.id,
+      name: p.name_es || p.name_en || 'Sin nombre',
+      slug: p.slug_es || p.slug_en || '',
+      price: p.price,
+      base_price: p.base_price,
+      base_grams: p.base_grams,
+      stock: p.stock,
+      material: p.material_es || p.material_en || 'Sin material',
+      is_active: p.is_active,
+      category_name: p.category?.name_es || p.category?.name_en,
+      primary_image: p.images?.find((img) => img.is_primary)?.image_url,
+      sizes: p.sizes?.map(size => ({
+        id: size.id,
+        product_id: p.id,
+        size: size.size,
+        stock: size.stock,
+        price: size.price,
+        price_usd: size.price_usd ?? null,
+        weight: size.weight,
+        display_order: size.display_order,
+        created_at: '',
+      })),
+    };
+  });
+
+  return products;
+}
