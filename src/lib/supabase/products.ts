@@ -1144,14 +1144,24 @@ export async function updateMultipleProductPrices(
         throw sizesError;
       }
 
-      // 3. Update all size prices with the final price directly (no proportional calculation)
+      // 3. Update all size prices proportionally based on weight
       if (sizes && sizes.length > 0) {
-        const sizeUpdates = sizes.map(size => ({
-          id: size.id,
-          price: Math.round(update.price * 100) / 100, // Round to 2 decimal places
-        }));
+        const sizeUpdates = sizes.map(size => {
+          // Si la talla tiene peso definido, calcular precio proporcional
+          // precio_talla = (weight_talla / baseGrams) × basePrice
+          let calculatedPrice = update.price;
 
-        // Update all size prices with the same final price
+          if (size.weight && size.weight > 0 && update.baseGrams > 0) {
+            calculatedPrice = (size.weight / update.baseGrams) * update.price;
+          }
+
+          return {
+            id: size.id,
+            price: Math.round(calculatedPrice * 100) / 100, // Round to 2 decimal places
+          };
+        });
+
+        // Update all size prices
         for (const sizeUpdate of sizeUpdates) {
           const { error: sizeUpdateError } = await supabase
             .from("product_sizes")
