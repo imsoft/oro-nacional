@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCartStore } from "@/stores/cart-store";
-import { getPricingParameters, calculateDynamicProductPrice } from "@/lib/supabase/pricing";
+import { getPricingParameters } from "@/lib/supabase/pricing";
 import { useCurrency } from "@/contexts/currency-context";
 
 interface ProductInfoProps {
@@ -53,8 +53,6 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
   const [selectedMSI, setSelectedMSI] = useState<number>(0); // 0 = Sin MSI (pago de contado)
   const [isFavorite, setIsFavorite] = useState(false);
   const [stripeParams, setStripeParams] = useState<{ percentage: number; fixedFee: number } | null>(null);
-  const [calculatedPrice, setCalculatedPrice] = useState<number | null>(null);
-  const [isCalculatingPrice, setIsCalculatingPrice] = useState(false);
   const { addItem } = useCartStore();
 
   // Tasas de interés para pagos a meses (sobre el precio base)
@@ -89,77 +87,26 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
     loadStripeParams();
   }, []);
 
-  // Calcular precio dinámicamente si hay categoría/subcategoría interna y gramos
-  useEffect(() => {
-    const calculatePrice = async () => {
-      // Solo calcular si hay categoría interna, subcategoría interna y gramos
-      if (
-        !product.internalCategory ||
-        !product.internalSubcategory ||
-        !isSizesWithPrice ||
-        !selectedSize
-      ) {
-        setCalculatedPrice(null);
-        return;
-      }
-
-      const selectedSizeObj = (sizesArray as Array<{ size: string; price: number; stock: number; weight?: number }>)
-        .find(s => s.size === selectedSize);
-
-      // Si no hay gramos en la talla, no calcular dinámicamente
-      if (!selectedSizeObj?.weight) {
-        setCalculatedPrice(null);
-        return;
-      }
-
-      setIsCalculatingPrice(true);
-      try {
-        // Si hay precio base y gramos base, calcular proporcionalmente
-        if (product.basePrice && product.baseGrams && product.baseGrams > 0) {
-          // Calcular precio proporcional: basePrice * (sizeWeight / baseGrams)
-          const proportionalPrice = product.basePrice * (selectedSizeObj.weight / product.baseGrams);
-          setCalculatedPrice(Math.round(proportionalPrice * 100) / 100); // Redondear a 2 decimales
-        } else {
-          // Si no hay precio base, calcular dinámicamente desde cero
-          const dynamicPrice = await calculateDynamicProductPrice({
-            goldGrams: selectedSizeObj.weight,
-            subcategoryId: product.internalSubcategory.id,
-            categoryName: product.internalCategory.name,
-          });
-
-          setCalculatedPrice(dynamicPrice);
-        }
-      } catch (error) {
-        console.error("Error calculating dynamic price:", error);
-        setCalculatedPrice(null);
-      } finally {
-        setIsCalculatingPrice(false);
-      }
-    };
-
-    calculatePrice();
-  }, [selectedSize, product.internalCategory, product.internalSubcategory, product.basePrice, product.baseGrams, isSizesWithPrice, sizesArray]);
-
+  // NO calcular precio dinámicamente - siempre usar el precio guardado desde el formulario
+  // El precio debe venir de sizes[].price que se guarda en el formulario de edición/creación
+  
   // Calcular precio base según talla seleccionada (ya incluye IVA)
-  // Si hay precio calculado dinámicamente, usarlo; si no, usar el precio guardado
+  // Siempre usar el precio guardado desde el formulario
   const currentPrice = useMemo(() => {
-    // Si hay precio calculado dinámicamente, usarlo
-    if (calculatedPrice !== null) {
-      return calculatedPrice;
-    }
-
-    // Si no, usar el precio guardado
+    // Si no hay tallas con precio, usar precio base del producto
     if (!isSizesWithPrice || !selectedSize) {
       const basePriceMXN = product.basePrice ?? parseFloat(product.price.replace(/[^0-9.-]+/g, ""));
       return convertPrice(basePriceMXN, product.basePriceUSD);
     }
 
+    // Usar el precio guardado de la talla seleccionada
     const selectedSizeObj = (sizesArray as Array<{ size: string; price: number; price_usd?: number | null; stock: number }>)
       .find(s => s.size === selectedSize);
 
+    // Prioridad: precio de la talla > precio base del producto > precio del producto (obsoleto)
     const priceMXN = selectedSizeObj?.price ?? product.basePrice ?? parseFloat(product.price.replace(/[^0-9.-]+/g, ""));
     return convertPrice(priceMXN, selectedSizeObj?.price_usd ?? product.basePriceUSD);
-  }, [calculatedPrice, isSizesWithPrice, selectedSize, sizesArray, product.basePrice, product.basePriceUSD, product.price, convertPrice]);
+  }, [isSizesWithPrice, selectedSize, sizesArray, product.basePrice, product.basePriceUSD, product.price, convertPrice]);
 
   // Calcular precio final con comisión de Stripe e intereses
   const finalPrice = useMemo(() => {
@@ -236,16 +183,14 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
       <div className="flex items-baseline gap-4">
         <div className="flex items-baseline gap-2">
           <p className="text-4xl font-semibold text-foreground">
-            {isCalculatingPrice ? "Calculando..." : formatPrice(currentPrice)}
+            {formatPrice(currentPrice)}
           </p>
-          {!isCalculatingPrice && (
-            <span className="text-lg font-medium text-muted-foreground">
-              {currency}
-            </span>
-          )}
+          <span className="text-lg font-medium text-muted-foreground">
+            {currency}
+          </span>
         </div>
         <p className="text-sm text-muted-foreground">
-          {calculatedPrice !== null ? "Precio calculado dinámicamente" : "IVA incluido"}
+          IVA incluido
         </p>
       </div>
 

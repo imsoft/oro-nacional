@@ -126,7 +126,12 @@ const ProductCard = ({
         <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
           {description}
         </p>
-        <div className="mt-auto pt-4 flex items-center justify-end">
+        <div className="mt-auto pt-4 flex items-center justify-between">
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-semibold text-foreground">
+              {price}
+            </span>
+          </div>
           <Button
             asChild
             size="sm"

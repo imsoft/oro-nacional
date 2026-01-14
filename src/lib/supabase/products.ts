@@ -23,7 +23,8 @@ export async function getProducts(locale: 'es' | 'en' = 'es') {
       material_en,
       is_active,
       category:product_categories(id, name_es, name_en, slug_es, slug_en),
-      images:product_images(id, image_url, is_primary)
+      images:product_images(id, image_url, is_primary),
+      sizes:product_sizes(id, size, price, price_usd, stock, weight, display_order)
     `
     )
     .eq("is_active", true)
@@ -51,13 +52,21 @@ export async function getProducts(locale: 'es' | 'en' = 'es') {
       is_active: boolean;
       category?: { id: string; name_es: string; name_en: string; slug_es: string; slug_en: string };
       images?: Array<{ id: string; image_url: string; is_primary: boolean }>;
+      sizes?: Array<{ id: string; size: string; price?: number; price_usd?: number | null; stock: number; weight?: number; display_order?: number }>;
     };
+    
+    // Obtener precio de la primera talla disponible, o usar el precio obsoleto como fallback
+    const firstSize = p.sizes && p.sizes.length > 0 
+      ? p.sizes.sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))[0]
+      : null;
+    const productPrice = firstSize?.price ?? p.price ?? 0;
+    
     return {
       id: p.id,
       name: locale === 'es' ? (p.name_es || p.name_en) : (p.name_en || p.name_es),
       slug: locale === 'es' ? (p.slug_es || p.slug_en) : (p.slug_en || p.slug_es),
       description: locale === 'es' ? (p.description_es || p.description_en) : (p.description_en || p.description_es),
-      price: p.price,
+      price: productPrice, // Usar precio de la primera talla
       stock: p.stock,
       material: locale === 'es' ? (p.material_es || p.material_en) : (p.material_en || p.material_es),
       is_active: p.is_active,
@@ -67,6 +76,17 @@ export async function getProducts(locale: 'es' | 'en' = 'es') {
         slug: locale === 'es' ? (p.category.slug_es || p.category.slug_en) : (p.category.slug_en || p.category.slug_es),
       } : null,
       images: p.images || [],
+      sizes: p.sizes?.map(size => ({
+        id: size.id,
+        product_id: p.id,
+        size: size.size,
+        stock: size.stock,
+        price: size.price ?? 0,
+        price_usd: size.price_usd ?? null,
+        weight: size.weight,
+        display_order: size.display_order ?? 0,
+        created_at: '', // Not needed for display
+      })) || [],
     } as Product;
   });
 
