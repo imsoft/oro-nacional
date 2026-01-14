@@ -61,10 +61,15 @@ export async function getProducts(locale: 'es' | 'en' = 'es') {
       : null;
     const productPrice = firstSize?.price ?? p.price ?? 0;
     
+    // Determinar slug - si no hay slug en el idioma actual, usar el del otro idioma
+    const slug = locale === 'es' 
+      ? (p.slug_es || p.slug_en || '') 
+      : (p.slug_en || p.slug_es || '');
+    
     return {
       id: p.id,
       name: locale === 'es' ? (p.name_es || p.name_en) : (p.name_en || p.name_es),
-      slug: locale === 'es' ? (p.slug_es || p.slug_en) : (p.slug_en || p.slug_es),
+      slug: slug,
       description: locale === 'es' ? (p.description_es || p.description_en) : (p.description_en || p.description_es),
       price: productPrice, // Usar precio de la primera talla
       stock: p.stock,
@@ -90,7 +95,18 @@ export async function getProducts(locale: 'es' | 'en' = 'es') {
     } as Product;
   });
 
-  return products;
+  // Filtrar productos que no tienen slug válido (no se pueden mostrar sin slug)
+  const validProducts = products.filter(p => p.slug && p.slug.trim() !== '');
+
+  // Log warning si hay productos sin slug (solo en desarrollo)
+  if (process.env.NODE_ENV === 'development' && validProducts.length < products.length) {
+    const productsWithoutSlug = products.filter(p => !p.slug || p.slug.trim() === '');
+    console.warn(`[getProducts] ${products.length - validProducts.length} producto(s) activo(s) sin slug válido:`, 
+      productsWithoutSlug.map(p => ({ id: p.id, name: p.name }))
+    );
+  }
+
+  return validProducts;
 }
 
 /**
