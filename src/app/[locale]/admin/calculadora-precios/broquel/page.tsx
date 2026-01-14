@@ -764,22 +764,25 @@ export default function BroquelCalculatorPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="bg-white rounded-lg p-4 border border-purple-200">
-            <p className="text-sm font-mono text-gray-800 mb-3 break-words">
-              <span className="font-semibold text-purple-900">Precio Final = </span>
-              (((Costo Oro × (1 + Merma%) + M. Obra + Piedra) × PZ) × (1 + Utilidad) + (PZ × Com. Venta) + Envío) × (1 + IVA)
+            <p className="text-sm font-semibold text-purple-900 mb-3">Precio Final =</p>
+            <p className="text-xs font-mono text-gray-800 leading-relaxed bg-gray-50 p-3 rounded border break-words">
+              (((((Cotización × Kilataje / 24 × Oro) × (1 + Merma) + Mano de obra + Piedra)) × PZ) × (1 + Utilidad) + (PZ × Comisión de venta) + Envío) × (1 + IVA) × (1 + Stripe %) + Stripe fijo
             </p>
-            <div className="space-y-2 text-xs text-gray-600 border-t pt-3">
-              <p><span className="font-semibold">Costo Oro:</span> Cotización × (Kilataje / 24) × Oro(grs)</p>
-              <p><span className="font-semibold">Merma%:</span> Porcentaje de merma aplicado al costo del oro</p>
-              <p><span className="font-semibold">PZ:</span> Número de piezas del producto</p>
+
+            <div className="mt-4 space-y-2 text-xs text-gray-700 border-t pt-3">
+              <p className="font-semibold text-purple-900 mb-2">Desglose de componentes:</p>
+              <div className="space-y-1.5 ml-2">
+                <p><span className="font-semibold text-purple-800">Costo Oro:</span> Cotización × (Kilataje / 24) × Oro(grs)</p>
+                <p><span className="font-semibold text-purple-800">Costo Oro con Merma:</span> Costo Oro × (1 + Merma%)</p>
+                <p><span className="font-semibold text-purple-800">Subtotal Base:</span> (Costo Oro con Merma + Mano de Obra + Piedra) × PZ</p>
+                <p><span className="font-semibold text-purple-800">Costo Comisión:</span> PZ × Comisión de Venta</p>
+              </div>
             </div>
           </div>
 
-          <div className="bg-amber-50 rounded-lg p-3 border border-amber-200">
-            <p className="text-xs text-amber-800">
-              <span className="font-semibold">Nota importante:</span> Las comisiones de Stripe (
-              {(parameters.stripePercentage * 100).toFixed(2)}% + {formatMXN(parameters.stripeFixedFee)}
-              ) NO se incluyen en el precio base. Estas se aplicarán automáticamente al momento del pago en el checkout.
+          <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
+            <p className="text-xs text-purple-900">
+              <span className="font-semibold">Nota importante:</span> Las comisiones de Stripe ({(parameters.stripePercentage * 100).toFixed(2)}% + {formatMXN(parameters.stripeFixedFee)}) SÍ se incluyen en el precio final calculado. El cliente verá este precio final en el sitio web y NO habrá cargos adicionales en el checkout.
             </p>
           </div>
 
