@@ -428,51 +428,62 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
       </div>
 
       {/* Tabs de información */}
-      <Tabs defaultValue="specs" className="border-t border-border pt-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="specs">Especificaciones</TabsTrigger>
-          <TabsTrigger value="care">Cuidados</TabsTrigger>
-          <TabsTrigger value="shipping">Envío</TabsTrigger>
-        </TabsList>
-        <TabsContent value="specs" className="mt-6 space-y-3">
-          {Object.entries(product.specifications).map(([key, value]) => (
-            <div
-              key={key}
-              className="flex justify-between py-2 border-b border-border last:border-0"
-            >
-              <span className="font-medium text-sm">{key}</span>
-              <span className="text-sm text-muted-foreground">{value}</span>
-            </div>
-          ))}
-        </TabsContent>
-        <TabsContent value="care" className="mt-6 space-y-3 text-sm text-muted-foreground">
-          <ul className="list-disc list-inside space-y-2">
-            <li>Limpie con un paño suave y seco después de cada uso</li>
-            <li>Evite el contacto con productos químicos, perfumes y lociones</li>
-            <li>Guarde en un lugar seco, preferiblemente en su caja original</li>
-            <li>Para limpieza profunda, use agua tibia con jabón neutro</li>
-            <li>Evite usar su joyería mientras hace ejercicio o tareas pesadas</li>
-          </ul>
-        </TabsContent>
-        <TabsContent value="shipping" className="mt-6 space-y-3 text-sm text-muted-foreground">
-          <p>
-            <strong>Envío Nacional:</strong> Gratis a toda la República Mexicana.
-            Tiempo estimado de entrega: 3-5 días hábiles.
-          </p>
-          <p>
-            <strong>Seguimiento:</strong> Recibirás un número de rastreo una vez
-            que tu pedido sea enviado.
-          </p>
-          <p>
-            <strong>Empaque:</strong> Todos nuestros productos se envían en cajas
-            de regalo elegantes con certificado de autenticidad.
-          </p>
-          <p>
-            <strong>Seguro:</strong> Todos los envíos están asegurados contra
-            pérdida o daño.
-          </p>
-        </TabsContent>
-      </Tabs>
+      {(() => {
+        const hasSpecifications = product.specifications && Object.keys(product.specifications).length > 0;
+        const defaultTab = hasSpecifications ? "specs" : "care";
+        
+        return (
+          <Tabs defaultValue={defaultTab} className="border-t border-border pt-6">
+            <TabsList className={`grid w-full ${hasSpecifications ? 'grid-cols-3' : 'grid-cols-2'}`}>
+              {hasSpecifications && (
+                <TabsTrigger value="specs">Especificaciones</TabsTrigger>
+              )}
+              <TabsTrigger value="care">Cuidados</TabsTrigger>
+              <TabsTrigger value="shipping">Envío</TabsTrigger>
+            </TabsList>
+            {hasSpecifications && (
+              <TabsContent value="specs" className="mt-6 space-y-3">
+                {Object.entries(product.specifications).map(([key, value]) => (
+                  <div
+                    key={key}
+                    className="flex justify-between py-2 border-b border-border last:border-0"
+                  >
+                    <span className="font-medium text-sm">{key}</span>
+                    <span className="text-sm text-muted-foreground">{value}</span>
+                  </div>
+                ))}
+              </TabsContent>
+            )}
+            <TabsContent value="care" className="mt-6 space-y-3 text-sm text-muted-foreground">
+              <ul className="list-disc list-inside space-y-2">
+                <li>Limpie con un paño suave y seco después de cada uso</li>
+                <li>Evite el contacto con productos químicos, perfumes y lociones</li>
+                <li>Guarde en un lugar seco, preferiblemente en su caja original</li>
+                <li>Para limpieza profunda, use agua tibia con jabón neutro</li>
+                <li>Evite usar su joyería mientras hace ejercicio o tareas pesadas</li>
+              </ul>
+            </TabsContent>
+            <TabsContent value="shipping" className="mt-6 space-y-3 text-sm text-muted-foreground">
+              <p>
+                <strong>Envío Nacional:</strong> Gratis a toda la República Mexicana.
+                Tiempo estimado de entrega: 3-5 días hábiles.
+              </p>
+              <p>
+                <strong>Seguimiento:</strong> Recibirás un número de rastreo una vez
+                que tu pedido sea enviado.
+              </p>
+              <p>
+                <strong>Empaque:</strong> Todos nuestros productos se envían en cajas
+                de regalo elegantes con certificado de autenticidad.
+              </p>
+              <p>
+                <strong>Seguro:</strong> Todos los envíos están asegurados contra
+                pérdida o daño.
+              </p>
+            </TabsContent>
+          </Tabs>
+        );
+      })()}
     </div>
   );
 };
