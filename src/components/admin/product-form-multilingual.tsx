@@ -1030,6 +1030,39 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
         </MultilingualCard>
 
         <MultilingualCard title={t('productForm.availableSizesTitle')}>
+          {/* Mostrar precio base de la subcategoría */}
+          {formData.internal_subcategory_id && subcategoryBasePrice !== null && (
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm font-medium text-blue-900">
+                {loadingBasePrice ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Calculando precio base...
+                  </span>
+                ) : (
+                  <>
+                    {(() => {
+                      const selectedCategory = internalCategories.find(cat => cat.id === formData.internal_category_id);
+                      const isBroquel = selectedCategory?.name?.toLowerCase() === "broquel";
+                      const unit = isBroquel ? "pieza" : "gramo";
+                      return (
+                        <>
+                          <span className="text-blue-700">💰 Precio base de la subcategoría:</span>{' '}
+                          <span className="font-bold text-[#D4AF37]">
+                            {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(subcategoryBasePrice)}
+                          </span>
+                          <span className="text-blue-700"> por {unit}</span>
+                        </>
+                      );
+                    })()}
+                  </>
+                )}
+              </p>
+              <p className="text-xs text-blue-600 mt-1">
+                Los precios de las tallas se calcularán proporcionalmente según sus gramos
+              </p>
+            </div>
+          )}
           <div className="space-y-4">
             {formData.sizes.map((size, index) => (
               <div key={index} className="flex items-end gap-4 border rounded-lg p-4">
@@ -1071,37 +1104,15 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
                 <div className="flex-1">
                   <Label htmlFor={`price-${index}`} className="mb-2 block">Precio (MXN)</Label>
                   <div className="flex gap-2">
-                    <div className="flex-1">
-                      <Input
-                        id={`price-${index}`}
-                        type="number"
-                        value={size.price}
-                        onChange={(e) => updateSize(index, "price", parseFloat(e.target.value) || 0)}
-                        placeholder="0.00"
-                        step="0.01"
-                        className="w-full"
-                      />
-                      {/* Mostrar precio base de la subcategoría */}
-                      {formData.internal_subcategory_id && subcategoryBasePrice !== null && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {loadingBasePrice ? (
-                            <span className="flex items-center gap-1">
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                              Calculando precio base...
-                            </span>
-                          ) : (
-                            <>
-                              {(() => {
-                                const selectedCategory = internalCategories.find(cat => cat.id === formData.internal_category_id);
-                                const isBroquel = selectedCategory?.name?.toLowerCase() === "broquel";
-                                const unit = isBroquel ? "pieza" : "gramo";
-                                return `Precio base: ${new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(subcategoryBasePrice)} por ${unit}`;
-                              })()}
-                            </>
-                          )}
-                        </p>
-                      )}
-                    </div>
+                    <Input
+                      id={`price-${index}`}
+                      type="number"
+                      value={size.price}
+                      onChange={(e) => updateSize(index, "price", parseFloat(e.target.value) || 0)}
+                      placeholder="0.00"
+                      step="0.01"
+                      className="flex-1"
+                    />
                     <Button
                       type="button"
                       variant="outline"
