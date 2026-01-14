@@ -59,6 +59,8 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
   const [productBasePriceUSD, setProductBasePriceUSD] = useState<number | null>(null);
   const [productBaseGrams, setProductBaseGrams] = useState<number | null>(null);
   const [exchangeRate, setExchangeRate] = useState<number>(18.00); // Tasa de cambio por defecto (18 MXN = 1 USD)
+  const [subcategoryBasePrice, setSubcategoryBasePrice] = useState<number | null>(null);
+  const [loadingBasePrice, setLoadingBasePrice] = useState(false);
 
   const defaultData: ProductFormData = {
     name: { es: "", en: "" },
@@ -275,6 +277,44 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
 
     loadProduct();
   }, [productId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Calcular el precio base de la subcategoría seleccionada
+  useEffect(() => {
+    const calculateBasePrice = async () => {
+      // Solo calcular si hay categoría y subcategoría interna seleccionadas
+      if (!formData.internal_category_id || !formData.internal_subcategory_id) {
+        setSubcategoryBasePrice(null);
+        return;
+      }
+
+      // Obtener el nombre de la categoría interna
+      const selectedCategory = internalCategories.find(cat => cat.id === formData.internal_category_id);
+      if (!selectedCategory) {
+        setSubcategoryBasePrice(null);
+        return;
+      }
+
+      setLoadingBasePrice(true);
+
+      try {
+        // Calcular el precio base de la subcategoría (usando 1 gramo o 1 pieza como base)
+        const basePrice = await calculateDynamicProductPrice({
+          goldGrams: 1,
+          subcategoryId: formData.internal_subcategory_id,
+          categoryName: selectedCategory.name!,
+        });
+
+        setSubcategoryBasePrice(basePrice);
+      } catch (error) {
+        console.error("Error calculating base price:", error);
+        setSubcategoryBasePrice(null);
+      } finally {
+        setLoadingBasePrice(false);
+      }
+    };
+
+    calculateBasePrice();
+  }, [formData.internal_category_id, formData.internal_subcategory_id, internalCategories]);
 
   // Calcular automáticamente los precios cuando cambien los gramos usando la fórmula completa
   useEffect(() => {
@@ -1031,15 +1071,37 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
                 <div className="flex-1">
                   <Label htmlFor={`price-${index}`} className="mb-2 block">Precio (MXN)</Label>
                   <div className="flex gap-2">
-                    <Input
-                      id={`price-${index}`}
-                      type="number"
-                      value={size.price}
-                      onChange={(e) => updateSize(index, "price", parseFloat(e.target.value) || 0)}
-                      placeholder="0.00"
-                      step="0.01"
-                      className="flex-1"
-                    />
+                    <div className="flex-1">
+                      <Input
+                        id={`price-${index}`}
+                        type="number"
+                        value={size.price}
+                        onChange={(e) => updateSize(index, "price", parseFloat(e.target.value) || 0)}
+                        placeholder="0.00"
+                        step="0.01"
+                        className="w-full"
+                      />
+                      {/* Mostrar precio base de la subcategoría */}
+                      {formData.internal_subcategory_id && subcategoryBasePrice !== null && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {loadingBasePrice ? (
+                            <span className="flex items-center gap-1">
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                              Calculando precio base...
+                            </span>
+                          ) : (
+                            <>
+                              {(() => {
+                                const selectedCategory = internalCategories.find(cat => cat.id === formData.internal_category_id);
+                                const isBroquel = selectedCategory?.name?.toLowerCase() === "broquel";
+                                const unit = isBroquel ? "pieza" : "gramo";
+                                return `Precio base: ${new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(subcategoryBasePrice)} por ${unit}`;
+                              })()}
+                            </>
+                          )}
+                        </p>
+                      )}
+                    </div>
                     <Button
                       type="button"
                       variant="outline"
