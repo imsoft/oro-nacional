@@ -377,13 +377,14 @@ export default function BroquelCalculatorPage() {
       return;
     }
 
-    const baseGrams = calc.goldGrams;
+    // Para Broquel: baseGrams = goldGrams × pz (gramos totales de todas las piezas)
+    const baseGrams = calc.goldGrams * calc.pz;
     if (!baseGrams || baseGrams <= 0) {
       alert("Error: Los gramos base deben ser mayores a 0.");
       return;
     }
 
-    if (!confirm(`¿Estás seguro de aplicar el precio ${formatMXN(finalPrice)} (base: ${baseGrams} gr) a todos los productos con esta subcategoría?`)) {
+    if (!confirm(`¿Estás seguro de aplicar el precio ${formatMXN(finalPrice)} (base: ${calc.goldGrams} gr/pz × ${calc.pz} pz = ${baseGrams} gr) a todos los productos con esta subcategoría?`)) {
       return;
     }
 
@@ -441,7 +442,8 @@ export default function BroquelCalculatorPage() {
 
       // Iterar sobre todas las subcategorías calculadas
       for (const calc of calculatedSubcategories) {
-        const baseGrams = calc.goldGrams;
+        // Para Broquel: baseGrams = goldGrams × pz (gramos totales de todas las piezas)
+        const baseGrams = calc.goldGrams * calc.pz;
         if (!baseGrams || baseGrams <= 0) {
           failedSubcategories.push({
             name: calc.name,
@@ -454,7 +456,7 @@ export default function BroquelCalculatorPage() {
         try {
           // Obtener todos los productos con esta subcategoría
           const productIds = await getProductsByInternalSubcategory(calc.id);
-          
+
           if (productIds.length === 0) {
             continue; // No hay productos, continuar con la siguiente
           }

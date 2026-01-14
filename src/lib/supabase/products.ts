@@ -1124,7 +1124,7 @@ export async function updateMultipleProductPrices(
       // 1. Update base_price and base_grams in the product
       const { error: productError } = await supabase
         .from("products")
-        .update({ 
+        .update({
           base_price: update.price,
           base_grams: update.baseGrams
         })
@@ -1145,10 +1145,11 @@ export async function updateMultipleProductPrices(
       }
 
       // 3. Update all size prices proportionally based on weight
+      // Para Gramo: baseGrams = gramos base usados en el cálculo
+      // Para Broquel: baseGrams = gramos_por_pieza × número_de_piezas
+      // En ambos casos: precio_talla = (gramos_talla / baseGrams) × precio_base
       if (sizes && sizes.length > 0) {
         const sizeUpdates = sizes.map(size => {
-          // Si la talla tiene peso definido, calcular precio proporcional
-          // precio_talla = (weight_talla / baseGrams) × basePrice
           let calculatedPrice = update.price;
 
           if (size.weight && size.weight > 0 && update.baseGrams > 0) {

@@ -1041,25 +1041,23 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
                   </span>
                 ) : (
                   <>
-                    {(() => {
-                      const selectedCategory = internalCategories.find(cat => cat.id === formData.internal_category_id);
-                      const isBroquel = selectedCategory?.name?.toLowerCase() === "broquel";
-                      const unit = isBroquel ? "pieza" : "gramo";
-                      return (
-                        <>
-                          <span className="text-blue-700">💰 Precio base de la subcategoría:</span>{' '}
-                          <span className="font-bold text-[#D4AF37]">
-                            {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(subcategoryBasePrice)}
-                          </span>
-                          <span className="text-blue-700"> por {unit}</span>
-                        </>
-                      );
-                    })()}
+                    <>
+                      <span className="text-blue-700">💰 Precio base:</span>{' '}
+                      <span className="font-bold text-[#D4AF37]">
+                        {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(subcategoryBasePrice)}
+                      </span>
+                    </>
                   </>
                 )}
               </p>
               <p className="text-xs text-blue-600 mt-1">
-                Los precios de las tallas se calcularán proporcionalmente según sus gramos
+                {(() => {
+                  const selectedCategory = internalCategories.find(cat => cat.id === formData.internal_category_id);
+                  const isBroquel = selectedCategory?.name?.toLowerCase() === "broquel";
+                  return isBroquel
+                    ? "Los precios de las tallas se calcularán proporcionalmente según las piezas"
+                    : "Los precios de las tallas se calcularán proporcionalmente según sus gramos";
+                })()}
               </p>
             </div>
           )}
