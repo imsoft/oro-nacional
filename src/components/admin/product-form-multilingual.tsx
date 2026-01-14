@@ -1111,6 +1111,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
                       placeholder="0.00"
                       step="0.01"
                       className="flex-1"
+                      disabled
                     />
                     <Button
                       type="button"
@@ -1145,7 +1146,8 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
                     placeholder="0.00"
                     step="0.01"
                     className="flex-1"
-                    title="Se calcula automáticamente desde MXN. Puedes editarlo manualmente."
+                    disabled
+                    title="Se calcula automáticamente desde MXN."
                   />
                 </div>
                 <div className="flex-1">
