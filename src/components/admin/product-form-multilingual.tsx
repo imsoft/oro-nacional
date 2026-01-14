@@ -982,6 +982,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
             onExistingImagesChange={(images) => updateField("existing_images", images)}
             onNewImagesChange={(images) => updateField("images", images)}
             onDeleteImage={handleDeleteImage}
+            productName={formData.name[previewLocale] || 'Product'}
           />
         </MultilingualCard>
 

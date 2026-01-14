@@ -42,6 +42,9 @@ export const metadata: Metadata = {
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION,
+    other: {
+      'msvalidate.01': process.env.NEXT_PUBLIC_BING_VERIFICATION || '',
+    },
   },
   alternates: {
     canonical: '/',
@@ -79,8 +82,22 @@ export default function RootLayout({
   return (
     <html suppressHydrationWarning>
       <head>
+        {/* Favicon */}
         <link rel="icon" href="/favicon.png" sizes="32x32" type="image/png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+        {/* Preconnect para recursos críticos */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="preconnect" href="https://www.google-analytics.com" />
+
+        {/* DNS Prefetch para recursos externos */}
+        <link rel="dns-prefetch" href="https://vercel.live" />
+        <link rel="dns-prefetch" href="https://vitals.vercel-insights.com" />
+
+        {/* Preconnect para Supabase */}
+        <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://xrcbrkgihksnzkntupxe.supabase.co'} />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}

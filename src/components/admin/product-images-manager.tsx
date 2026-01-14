@@ -50,6 +50,7 @@ interface ProductImagesManagerProps {
   onExistingImagesChange: (images: ExistingImage[]) => void;
   onNewImagesChange: (images: File[]) => void;
   onDeleteImage: (imageId: string, index: number) => void;
+  productName?: string;
 }
 
 function SortableImageItem({
@@ -58,12 +59,14 @@ function SortableImageItem({
   onDelete,
   onSetPrimary,
   isNew = false,
+  productName,
 }: {
   image: ExistingImageWithId | NewImageItem;
   index: number;
   onDelete: () => void;
   onSetPrimary: () => void;
   isNew?: boolean;
+  productName?: string;
 }) {
   const t = useTranslations("admin");
 
@@ -102,7 +105,7 @@ function SortableImageItem({
       {/* Imagen */}
       <img
         src={imageUrl}
-        alt={`Imagen ${index + 1}`}
+        alt={productName ? `${productName} - Image ${index + 1}` : `Product image ${index + 1}`}
         className="w-full h-40 object-cover rounded"
       />
 
@@ -167,6 +170,7 @@ export function ProductImagesManager({
   onExistingImagesChange,
   onNewImagesChange,
   onDeleteImage,
+  productName,
 }: ProductImagesManagerProps) {
   const t = useTranslations("admin");
   const [newImagesWithMetadata, setNewImagesWithMetadata] = useState<NewImageItem[]>([]);
@@ -351,6 +355,7 @@ export function ProductImagesManager({
                           : handleDeleteExistingImage(image.id, actualIndex)
                       }
                       onSetPrimary={() => handleSetPrimary(image.id)}
+                      productName={productName}
                     />
                   );
                 })}

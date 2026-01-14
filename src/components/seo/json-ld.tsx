@@ -170,3 +170,110 @@ export function getLocalBusinessSchema() {
     ],
   };
 }
+
+// Blog Article Schema
+export function getBlogArticleSchema(article: {
+  title: string;
+  description: string;
+  image: string;
+  author: string;
+  datePublished: string;
+  dateModified?: string;
+  url: string;
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: article.title,
+    description: article.description,
+    image: article.image,
+    author: {
+      '@type': 'Person',
+      name: article.author,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Oro Nacional',
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://www.oronacional.com/logos/logo-oro-nacional.png',
+      },
+    },
+    datePublished: article.datePublished,
+    dateModified: article.dateModified || article.datePublished,
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': article.url,
+    },
+  };
+}
+
+// FAQ Schema
+export function getFAQSchema(faqs: Array<{ question: string; answer: string }>) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((faq) => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.answer,
+      },
+    })),
+  };
+}
+
+// Review Schema
+export function getReviewSchema(review: {
+  author: string;
+  datePublished: string;
+  reviewBody: string;
+  reviewRating: number;
+  itemReviewed: {
+    name: string;
+    type?: string;
+  };
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Review',
+    author: {
+      '@type': 'Person',
+      name: review.author,
+    },
+    datePublished: review.datePublished,
+    reviewBody: review.reviewBody,
+    reviewRating: {
+      '@type': 'Rating',
+      ratingValue: review.reviewRating,
+      bestRating: 5,
+      worstRating: 1,
+    },
+    itemReviewed: {
+      '@type': review.itemReviewed.type || 'Product',
+      name: review.itemReviewed.name,
+    },
+  };
+}
+
+// Collection/Category Schema
+export function getCollectionSchema(collection: {
+  name: string;
+  description: string;
+  url: string;
+  numberOfItems?: number;
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: collection.name,
+    description: collection.description,
+    url: collection.url,
+    ...(collection.numberOfItems !== undefined
+      ? {
+          numberOfItems: collection.numberOfItems,
+        }
+      : {}),
+  };
+}
