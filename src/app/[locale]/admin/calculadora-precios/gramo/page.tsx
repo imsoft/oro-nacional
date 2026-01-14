@@ -226,14 +226,14 @@ export default function PriceCalculatorPage() {
     }
     
     const newParameters = { ...parameters, [key]: numValue };
+    // Update state immediately for responsive UI
     setParameters(newParameters);
 
-    // Auto-save to database
+    // Auto-save to database asynchronously (don't block UI)
     setIsSavingParameters(true);
     try {
-      const updatedParams = await updatePricingParameters(newParameters);
-      // Update state with the response from database to ensure sync
-      setParameters(updatedParams);
+      await updatePricingParameters(newParameters);
+      // Don't update state after save - keep local state to prevent re-render and focus loss
     } catch (error) {
       console.error("Error saving pricing parameters:", error);
       // Revert on error
@@ -570,7 +570,6 @@ export default function PriceCalculatorPage() {
                       onChange={(e) =>
                         handleParameterChange("goldQuotation", e.target.value)
                       }
-                      key={`goldQuotation-${parameters.goldQuotation}`}
                     />
                   </div>
                   <div className="space-y-2">

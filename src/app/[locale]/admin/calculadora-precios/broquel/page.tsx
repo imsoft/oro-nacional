@@ -268,13 +268,13 @@ export default function BroquelCalculatorPage() {
     }
     
     const newParameters = { ...parameters, [key]: numValue };
+    // Update state immediately for responsive UI
     setParameters(newParameters);
 
-    // Auto-save to database
+    // Auto-save to database asynchronously (don't block UI)
     try {
-      const updatedParams = await updateBroquelPricingParameters(newParameters);
-      // Update state with the response from database to ensure sync
-      setParameters(updatedParams);
+      await updateBroquelPricingParameters(newParameters);
+      // Don't update state after save - keep local state to prevent re-render and focus loss
     } catch (error) {
       console.error("Error saving broquel pricing parameters:", error);
       // Revert on error
@@ -613,7 +613,6 @@ export default function BroquelCalculatorPage() {
                     onChange={(e) =>
                       handleParameterChange("quotation", e.target.value)
                     }
-                    key={`quotation-${parameters.quotation}`}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
