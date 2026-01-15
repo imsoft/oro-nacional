@@ -1055,56 +1055,122 @@ export default function BroquelCalculatorPage() {
                                     </HoverCardTrigger>
                                     <HoverCardContent className="w-96" align="end">
                                       <div className="space-y-3">
-                                        <h4 className="font-semibold text-sm border-b pb-2">Desglose del Cálculo - Método Broquel</h4>
-                                        <div className="space-y-2 text-xs">
-                                          <div className="flex justify-between items-center">
-                                            <span className="text-muted-foreground">1. Oro base ({calc.goldGrams}g × {calc.pz} pz):</span>
-                                            <span className="font-mono">{(calc.goldGrams * calc.pz).toFixed(3)}g total</span>
-                                          </div>
-                                          <div className="flex justify-between items-center">
-                                            <span className="text-muted-foreground">2. Factor kilataje ({calc.carats}k):</span>
-                                            <span className="font-mono">{(calc.carats / 24).toFixed(4)} × oro</span>
-                                          </div>
-                                          <div className="flex justify-between items-center">
-                                            <span className="text-muted-foreground">3. Merma aplicada ({calc.merma}%):</span>
-                                            <span className="font-mono">+{calc.merma}% al costo</span>
-                                          </div>
-                                          <div className="flex justify-between items-center">
-                                            <span className="text-muted-foreground">4. Cotización del oro:</span>
-                                            <span className="font-mono">{formatMXN(parameters?.quotation || 0)}/g</span>
-                                          </div>
-                                          <div className="flex justify-between items-center border-t pt-2">
-                                            <span className="text-muted-foreground">5. + Mano de Obra:</span>
-                                            <span className="font-mono">+{formatMXN(calc.laborCost)}</span>
-                                          </div>
-                                          <div className="flex justify-between items-center">
-                                            <span className="text-muted-foreground">6. + Piedra:</span>
-                                            <span className="font-mono">+{formatMXN(calc.stoneCost)}</span>
-                                          </div>
-                                          <div className="flex justify-between items-center">
-                                            <span className="text-muted-foreground">7. + Comisión Venta:</span>
-                                            <span className="font-mono">+{formatMXN(calc.salesCommission)}</span>
-                                          </div>
-                                          <div className="flex justify-between items-center">
-                                            <span className="text-muted-foreground">8. + Envío:</span>
-                                            <span className="font-mono">+{formatMXN(calc.shipping)}</span>
-                                          </div>
-                                          <div className="flex justify-between items-center border-t pt-2">
-                                            <span className="text-muted-foreground">9. + Utilidad ({parameters?.profitMargin || 0}%):</span>
-                                            <span className="font-mono font-semibold">{formatMXN(calc.subtotalWithProfit)}</span>
-                                          </div>
-                                          <div className="flex justify-between items-center">
-                                            <span className="text-muted-foreground">10. + IVA ({parameters?.vat || 0}%):</span>
-                                            <span className="font-mono font-semibold">{formatMXN(calc.subtotalWithVat)}</span>
-                                          </div>
-                                          <div className="flex justify-between items-center">
-                                            <span className="text-muted-foreground">11. + Stripe ({parameters?.stripePercentage || 0}%):</span>
-                                            <span className="font-mono font-semibold">{formatMXN(calc.subtotalWithStripe)}</span>
-                                          </div>
-                                          <div className="flex justify-between items-center border-t pt-2 bg-purple-50 -mx-2 px-2 py-2 rounded">
-                                            <span className="font-semibold">Precio Final:</span>
-                                            <span className="font-bold text-lg text-[#D4AF37]">{formatMXN(calc.finalPrice)}</span>
-                                          </div>
+                                        <h4 className="font-semibold text-sm border-b pb-2">📊 Cómo se calculó el precio paso a paso</h4>
+                                        <div className="space-y-3 text-xs">
+                                          {(() => {
+                                            // Calcular valores intermedios para el desglose
+                                            const goldCostPerPiece = (parameters?.quotation || 0) * (calc.carats / 24) * calc.goldGrams;
+                                            const mermaDecimal = calc.merma / 100;
+                                            const goldCostWithMermaPerPiece = goldCostPerPiece * (1 + mermaDecimal);
+                                            const subtotalBeforeProfitPerPiece = goldCostWithMermaPerPiece + calc.laborCost + calc.stoneCost;
+                                            const subtotalByPieces = subtotalBeforeProfitPerPiece * calc.pz;
+                                            const commissionCost = calc.pz * calc.salesCommission;
+                                            const subtotalWithCommission = calc.subtotalWithProfit + commissionCost;
+                                            const subtotalWithShipping = subtotalWithCommission + calc.shipping;
+                                            const stripePercentage = 0.036;
+                                            const stripeFixedFee = 3;
+
+                                            return (
+                                              <>
+                                                <div className="bg-blue-50 p-2 rounded border border-blue-200">
+                                                  <p className="font-semibold text-blue-900 mb-1">Paso 1: ¿Cuánto cuesta el oro por cada pieza?</p>
+                                                  <p className="text-gray-700">El precio del oro es {formatMXN(parameters?.quotation || 0)} por gramo</p>
+                                                  <p className="text-gray-700">Este producto es de {calc.carats} kilates (eso es {calc.carats}/24 = {(calc.carats / 24).toFixed(4)} del oro puro)</p>
+                                                  <p className="text-gray-700">Cada pieza tiene {calc.goldGrams} gramos de oro</p>
+                                                  <p className="font-mono font-semibold text-blue-900 mt-1">
+                                                    {formatMXN(parameters?.quotation || 0)} × ({calc.carats} ÷ 24) × {calc.goldGrams} = {formatMXN(goldCostPerPiece)}
+                                                  </p>
+                                                </div>
+
+                                                <div className="bg-amber-50 p-2 rounded border border-amber-200">
+                                                  <p className="font-semibold text-amber-900 mb-1">Paso 2: Agregamos la merma ({calc.merma}%)</p>
+                                                  <p className="text-gray-700">Cuando trabajamos el oro, siempre se pierde un poco (eso es la merma)</p>
+                                                  <p className="text-gray-700">Agregamos {calc.merma}% al costo del oro</p>
+                                                  <p className="font-mono font-semibold text-amber-900 mt-1">
+                                                    {formatMXN(goldCostPerPiece)} × {(1 + mermaDecimal).toFixed(2)} = {formatMXN(goldCostWithMermaPerPiece)}
+                                                  </p>
+                                                </div>
+
+                                                <div className="bg-green-50 p-2 rounded border border-green-200">
+                                                  <p className="font-semibold text-green-900 mb-1">Paso 3: Agregamos la mano de obra y las piedras (por pieza)</p>
+                                                  <p className="text-gray-700">Costo del oro con merma: {formatMXN(goldCostWithMermaPerPiece)}</p>
+                                                  <p className="text-gray-700">Mano de obra: {formatMXN(calc.laborCost)}</p>
+                                                  <p className="text-gray-700">Piedras: {formatMXN(calc.stoneCost)}</p>
+                                                  <p className="font-mono font-semibold text-green-900 mt-1">
+                                                    {formatMXN(goldCostWithMermaPerPiece)} + {formatMXN(calc.laborCost)} + {formatMXN(calc.stoneCost)} = {formatMXN(subtotalBeforeProfitPerPiece)}
+                                                  </p>
+                                                </div>
+
+                                                <div className="bg-purple-50 p-2 rounded border border-purple-200">
+                                                  <p className="font-semibold text-purple-900 mb-1">Paso 4: Multiplicamos por el número de piezas</p>
+                                                  <p className="text-gray-700">Cada pieza cuesta: {formatMXN(subtotalBeforeProfitPerPiece)}</p>
+                                                  <p className="text-gray-700">Este producto tiene {calc.pz} pieza{calc.pz !== 1 ? 's' : ''}</p>
+                                                  <p className="font-mono font-semibold text-purple-900 mt-1">
+                                                    {formatMXN(subtotalBeforeProfitPerPiece)} × {calc.pz} = {formatMXN(subtotalByPieces)}
+                                                  </p>
+                                                </div>
+
+                                                <div className="bg-yellow-50 p-2 rounded border border-yellow-200">
+                                                  <p className="font-semibold text-yellow-900 mb-1">Paso 5: Agregamos la ganancia ({(parameters?.profitMargin || 0) * 100}%)</p>
+                                                  <p className="text-gray-700">Tomamos el subtotal anterior y le agregamos {(parameters?.profitMargin || 0) * 100}% de ganancia</p>
+                                                  <p className="font-mono font-semibold text-yellow-900 mt-1">
+                                                    {formatMXN(subtotalByPieces)} × {(1 + (parameters?.profitMargin || 0)).toFixed(2)} = {formatMXN(calc.subtotalWithProfit)}
+                                                  </p>
+                                                </div>
+
+                                                <div className="bg-orange-50 p-2 rounded border border-orange-200">
+                                                  <p className="font-semibold text-orange-900 mb-1">Paso 6: Agregamos la comisión de venta</p>
+                                                  <p className="text-gray-700">Por cada pieza cobramos {formatMXN(calc.salesCommission)} de comisión</p>
+                                                  <p className="text-gray-700">Este producto tiene {calc.pz} pieza{calc.pz !== 1 ? 's' : ''}</p>
+                                                  <p className="font-mono font-semibold text-orange-900 mt-1">
+                                                    {calc.pz} × {formatMXN(calc.salesCommission)} = {formatMXN(commissionCost)}
+                                                  </p>
+                                                </div>
+
+                                                <div className="bg-pink-50 p-2 rounded border border-pink-200">
+                                                  <p className="font-semibold text-pink-900 mb-1">Paso 7: Sumamos la comisión al subtotal</p>
+                                                  <p className="text-gray-700">Subtotal con ganancia: {formatMXN(calc.subtotalWithProfit)}</p>
+                                                  <p className="text-gray-700">Comisión de venta: {formatMXN(commissionCost)}</p>
+                                                  <p className="font-mono font-semibold text-pink-900 mt-1">
+                                                    {formatMXN(calc.subtotalWithProfit)} + {formatMXN(commissionCost)} = {formatMXN(subtotalWithCommission)}
+                                                  </p>
+                                                </div>
+
+                                                <div className="bg-red-50 p-2 rounded border border-red-200">
+                                                  <p className="font-semibold text-red-900 mb-1">Paso 8: Agregamos el costo de envío</p>
+                                                  <p className="text-gray-700">Subtotal con comisión: {formatMXN(subtotalWithCommission)}</p>
+                                                  <p className="text-gray-700">Costo de envío: {formatMXN(calc.shipping)}</p>
+                                                  <p className="font-mono font-semibold text-red-900 mt-1">
+                                                    {formatMXN(subtotalWithCommission)} + {formatMXN(calc.shipping)} = {formatMXN(subtotalWithShipping)}
+                                                  </p>
+                                                </div>
+
+                                                <div className="bg-indigo-50 p-2 rounded border border-indigo-200">
+                                                  <p className="font-semibold text-indigo-900 mb-1">Paso 9: Agregamos el IVA ({(parameters?.vat || 0) * 100}%)</p>
+                                                  <p className="text-gray-700">El gobierno cobra {(parameters?.vat || 0) * 100}% de impuesto</p>
+                                                  <p className="text-gray-700">Multiplicamos el subtotal anterior por {(1 + (parameters?.vat || 0)).toFixed(2)}</p>
+                                                  <p className="font-mono font-semibold text-indigo-900 mt-1">
+                                                    {formatMXN(subtotalWithShipping)} × {(1 + (parameters?.vat || 0)).toFixed(2)} = {formatMXN(calc.subtotalWithVat)}
+                                                  </p>
+                                                </div>
+
+                                                <div className="bg-teal-50 p-2 rounded border border-teal-200">
+                                                  <p className="font-semibold text-teal-900 mb-1">Paso 10: Agregamos la comisión de Stripe</p>
+                                                  <p className="text-gray-700">Stripe cobra {(parameters?.stripePercentage || 0) * 100}% más {formatMXN(parameters?.stripeFixedFee || 0)} fijos</p>
+                                                  <p className="text-gray-700">Primero multiplicamos por {(1 + stripePercentage).toFixed(4)}</p>
+                                                  <p className="text-gray-700">Luego sumamos {formatMXN(stripeFixedFee)}</p>
+                                                  <p className="font-mono font-semibold text-teal-900 mt-1">
+                                                    ({formatMXN(calc.subtotalWithVat)} × {(1 + stripePercentage).toFixed(4)}) + {formatMXN(stripeFixedFee)} = {formatMXN(calc.finalPrice)}
+                                                  </p>
+                                                </div>
+
+                                                <div className="flex justify-between items-center border-t-2 border-purple-400 pt-3 bg-purple-50 -mx-2 px-2 py-2 rounded">
+                                                  <span className="font-bold text-base">💰 Precio Final que paga el cliente:</span>
+                                                  <span className="font-bold text-xl text-[#D4AF37]">{formatMXN(calc.finalPrice)}</span>
+                                                </div>
+                                              </>
+                                            );
+                                          })()}
                                         </div>
                                       </div>
                                     </HoverCardContent>

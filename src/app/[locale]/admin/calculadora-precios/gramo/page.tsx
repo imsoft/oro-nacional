@@ -987,43 +987,86 @@ export default function PriceCalculatorPage() {
                                     </HoverCardTrigger>
                                     <HoverCardContent className="w-96" align="end">
                                       <div className="space-y-3">
-                                        <h4 className="font-semibold text-sm border-b pb-2">Desglose del Cálculo - Método Gramo</h4>
-                                        <div className="space-y-2 text-xs">
-                                          <div className="flex justify-between items-center">
-                                            <span className="text-muted-foreground">1. Costo del Oro:</span>
-                                            <span className="font-mono">{formatMXN(parameters?.goldQuotation || 0)} × {calc.goldGrams}g × {calc.factor} = {formatMXN(calc.goldCost)}</span>
+                                        <h4 className="font-semibold text-sm border-b pb-2">📊 Cómo se calculó el precio paso a paso</h4>
+                                        <div className="space-y-3 text-xs">
+                                          <div className="bg-blue-50 p-2 rounded border border-blue-200">
+                                            <p className="font-semibold text-blue-900 mb-1">Paso 1: ¿Cuánto cuesta el oro?</p>
+                                            <p className="text-gray-700">El precio del oro por gramo es {formatMXN(parameters?.goldQuotation || 0)}</p>
+                                            <p className="text-gray-700">Este producto tiene {calc.goldGrams} gramos de oro</p>
+                                            <p className="text-gray-700">Y usamos un factor de {calc.factor} para calcular</p>
+                                            <p className="font-mono font-semibold text-blue-900 mt-1">
+                                              {formatMXN(parameters?.goldQuotation || 0)} × {calc.goldGrams} × {calc.factor} = {formatMXN(calc.goldCost)}
+                                            </p>
                                           </div>
-                                          <div className="flex justify-between items-center">
-                                            <span className="text-muted-foreground">2. Costo de Materiales:</span>
-                                            <span className="font-mono">{calc.goldGrams}g × ({formatMXN(calc.laborCost)} + {formatMXN(calc.stoneCost)}) = {formatMXN(calc.materialsCost)}</span>
+
+                                          <div className="bg-green-50 p-2 rounded border border-green-200">
+                                            <p className="font-semibold text-green-900 mb-1">Paso 2: ¿Cuánto cuesta hacer el producto?</p>
+                                            <p className="text-gray-700">La mano de obra cuesta {formatMXN(calc.laborCost)} por cada gramo</p>
+                                            <p className="text-gray-700">Las piedras cuestan {formatMXN(calc.stoneCost)} por cada gramo</p>
+                                            <p className="text-gray-700">Multiplicamos por los {calc.goldGrams} gramos del producto</p>
+                                            <p className="font-mono font-semibold text-green-900 mt-1">
+                                              {calc.goldGrams} × ({formatMXN(calc.laborCost)} + {formatMXN(calc.stoneCost)}) = {formatMXN(calc.materialsCost)}
+                                            </p>
                                           </div>
-                                          <div className="flex justify-between items-center border-t pt-2">
-                                            <span className="text-muted-foreground">3. Subtotal antes de utilidad:</span>
-                                            <span className="font-mono font-semibold">{formatMXN(calc.subtotalBeforeProfit)}</span>
+
+                                          <div className="bg-purple-50 p-2 rounded border border-purple-200">
+                                            <p className="font-semibold text-purple-900 mb-1">Paso 3: Sumamos todo antes de ganar dinero</p>
+                                            <p className="text-gray-700">Costo del oro: {formatMXN(calc.goldCost)}</p>
+                                            <p className="text-gray-700">Costo de materiales: {formatMXN(calc.materialsCost)}</p>
+                                            <p className="font-mono font-semibold text-purple-900 mt-1">
+                                              {formatMXN(calc.goldCost)} + {formatMXN(calc.materialsCost)} = {formatMXN(calc.subtotalBeforeProfit)}
+                                            </p>
                                           </div>
-                                          <div className="flex justify-between items-center">
-                                            <span className="text-muted-foreground">4. Subtotal con utilidad ({(parameters?.profitMargin || 0) * 100}%):</span>
-                                            <span className="font-mono font-semibold">{formatMXN(calc.subtotalWithProfit)}</span>
+
+                                          <div className="bg-yellow-50 p-2 rounded border border-yellow-200">
+                                            <p className="font-semibold text-yellow-900 mb-1">Paso 4: Agregamos la ganancia ({(parameters?.profitMargin || 0) * 100}%)</p>
+                                            <p className="text-gray-700">Tomamos el subtotal anterior y le agregamos {(parameters?.profitMargin || 0) * 100}% de ganancia</p>
+                                            <p className="font-mono font-semibold text-yellow-900 mt-1">
+                                              {formatMXN(calc.subtotalBeforeProfit)} × {(1 + (parameters?.profitMargin || 0)).toFixed(2)} = {formatMXN(calc.subtotalWithProfit)}
+                                            </p>
                                           </div>
-                                          <div className="flex justify-between items-center">
-                                            <span className="text-muted-foreground">5. Comisión de venta:</span>
-                                            <span className="font-mono">{calc.goldGrams}g × {formatMXN(calc.salesCommission)} = {formatMXN(calc.commissionCost)}</span>
+
+                                          <div className="bg-orange-50 p-2 rounded border border-orange-200">
+                                            <p className="font-semibold text-orange-900 mb-1">Paso 5: Agregamos la comisión de venta</p>
+                                            <p className="text-gray-700">Por cada gramo cobramos {formatMXN(calc.salesCommission)} de comisión</p>
+                                            <p className="text-gray-700">Este producto tiene {calc.goldGrams} gramos</p>
+                                            <p className="font-mono font-semibold text-orange-900 mt-1">
+                                              {calc.goldGrams} × {formatMXN(calc.salesCommission)} = {formatMXN(calc.commissionCost)}
+                                            </p>
                                           </div>
-                                          <div className="flex justify-between items-center">
-                                            <span className="text-muted-foreground">6. Subtotal con comisiones + envío:</span>
-                                            <span className="font-mono font-semibold">{formatMXN(calc.subtotalWithCommissions)}</span>
+
+                                          <div className="bg-pink-50 p-2 rounded border border-pink-200">
+                                            <p className="font-semibold text-pink-900 mb-1">Paso 6: Agregamos el envío y las comisiones</p>
+                                            <p className="text-gray-700">Subtotal con ganancia: {formatMXN(calc.subtotalWithProfit)}</p>
+                                            <p className="text-gray-700">Comisión de venta: {formatMXN(calc.commissionCost)}</p>
+                                            <p className="text-gray-700">Costo de envío: {formatMXN(calc.shippingCost)}</p>
+                                            <p className="font-mono font-semibold text-pink-900 mt-1">
+                                              {formatMXN(calc.subtotalWithProfit)} + {formatMXN(calc.commissionCost)} + {formatMXN(calc.shippingCost)} = {formatMXN(calc.subtotalWithCommissions)}
+                                            </p>
                                           </div>
-                                          <div className="flex justify-between items-center">
-                                            <span className="text-muted-foreground">7. Subtotal con IVA ({(parameters?.vat || 0) * 100}%):</span>
-                                            <span className="font-mono font-semibold">{formatMXN(calc.subtotalWithVat)}</span>
+
+                                          <div className="bg-indigo-50 p-2 rounded border border-indigo-200">
+                                            <p className="font-semibold text-indigo-900 mb-1">Paso 7: Agregamos el IVA ({(parameters?.vat || 0) * 100}%)</p>
+                                            <p className="text-gray-700">El gobierno cobra {(parameters?.vat || 0) * 100}% de impuesto</p>
+                                            <p className="text-gray-700">Multiplicamos el subtotal anterior por {(1 + (parameters?.vat || 0)).toFixed(2)}</p>
+                                            <p className="font-mono font-semibold text-indigo-900 mt-1">
+                                              {formatMXN(calc.subtotalWithCommissions)} × {(1 + (parameters?.vat || 0)).toFixed(2)} = {formatMXN(calc.subtotalWithVat)}
+                                            </p>
                                           </div>
-                                          <div className="flex justify-between items-center">
-                                            <span className="text-muted-foreground">8. Comisión Stripe ({(parameters?.stripePercentage || 0) * 100}% + {formatMXN(parameters?.stripeFixedFee || 0)}):</span>
-                                            <span className="font-mono font-semibold">{formatMXN(calc.finalPrice)}</span>
+
+                                          <div className="bg-teal-50 p-2 rounded border border-teal-200">
+                                            <p className="font-semibold text-teal-900 mb-1">Paso 8: Agregamos la comisión de Stripe</p>
+                                            <p className="text-gray-700">Stripe cobra {(parameters?.stripePercentage || 0) * 100}% más {formatMXN(parameters?.stripeFixedFee || 0)} fijos</p>
+                                            <p className="text-gray-700">Primero multiplicamos por {(1 + (parameters?.stripePercentage || 0)).toFixed(4)}</p>
+                                            <p className="text-gray-700">Luego sumamos {formatMXN(parameters?.stripeFixedFee || 0)}</p>
+                                            <p className="font-mono font-semibold text-teal-900 mt-1">
+                                              ({formatMXN(calc.subtotalWithVat)} × {(1 + (parameters?.stripePercentage || 0)).toFixed(4)}) + {formatMXN(parameters?.stripeFixedFee || 0)} = {formatMXN(calc.finalPrice)}
+                                            </p>
                                           </div>
-                                          <div className="flex justify-between items-center border-t pt-2 bg-amber-50 -mx-2 px-2 py-2 rounded">
-                                            <span className="font-semibold">💰 Precio Final:</span>
-                                            <span className="font-bold text-lg text-[#D4AF37]">{formatMXN(calc.finalPrice)}</span>
+
+                                          <div className="flex justify-between items-center border-t-2 border-amber-400 pt-3 bg-amber-50 -mx-2 px-2 py-2 rounded">
+                                            <span className="font-bold text-base">💰 Precio Final que paga el cliente:</span>
+                                            <span className="font-bold text-xl text-[#D4AF37]">{formatMXN(calc.finalPrice)}</span>
                                           </div>
                                         </div>
                                       </div>
