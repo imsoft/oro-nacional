@@ -112,24 +112,25 @@ Esta calculadora se usa para productos tipo broquel (por piezas).
 
 **Parámetros:**
 • Cotización: $2,650 MXN/gr
-• Utilidad: 30%
+• Utilidad: 15%
 • IVA: 16%
-• Gramos: 5 gr
+• Gramos: 29.9 gr
 • Factor: 0.442
-• Mano obra: $15/gr
-• Piedra: $0
+• Mano obra: $35/gr
+• Piedra: $0/gr
 • Comisión venta: $30/gr
 • Envío: $800
+• Stripe: 3.6% + $3 MXN
 
-**Cálculo:**
-1. Costo oro = $2,650 × 5 × 0.442 = $5,851.50
-2. Costo materiales = 5 × ($15 + $0) = $75
-3. Subtotal = $5,851.50 + $75 = $5,926.50
-4. Con utilidad = $5,926.50 × 1.30 = $7,704.45
-5. Comisión = 5 × $30 = $150
-6. Con comisiones = $7,704.45 + $150 + $800 = $8,654.45
-7. Con IVA = $8,654.45 × 1.16 = $10,039.16
-8. **Precio final = ($10,039.16 × 1.036) + $3 = $10,403.57**
+**Cálculo paso a paso:**
+1. Costo del oro = $2,650 × 29.9 × 0.442 = $35,021.87
+2. Costo de materiales = 29.9 × ($35 + $0) = $1,046.50
+3. Subtotal antes de utilidad = $35,021.87 + $1,046.50 = $36,068.37
+4. Subtotal con utilidad (15%) = $36,068.37 × 1.15 = $41,478.63
+5. Comisión de venta = 29.9 × $30 = $897.00
+6. Subtotal con comisiones + envío = $41,478.63 + $897.00 + $800 = $43,175.63
+7. Subtotal con IVA (16%) = $43,175.63 × 1.16 = $50,083.73
+8. **Precio final = ($50,083.73 × 1.036) + $3 = $51,889.74**
 
 ---
 

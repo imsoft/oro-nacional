@@ -991,42 +991,38 @@ export default function PriceCalculatorPage() {
                                         <div className="space-y-2 text-xs">
                                           <div className="flex justify-between items-center">
                                             <span className="text-muted-foreground">1. Costo del Oro:</span>
-                                            <span className="font-mono">{calc.goldGrams}g × {formatMXN(parameters?.goldQuotation || 0)} = {formatMXN(calc.goldCost)}</span>
+                                            <span className="font-mono">{formatMXN(parameters?.goldQuotation || 0)} × {calc.goldGrams}g × {calc.factor} = {formatMXN(calc.goldCost)}</span>
                                           </div>
                                           <div className="flex justify-between items-center">
-                                            <span className="text-muted-foreground">2. Materiales (Factor {calc.factor}):</span>
-                                            <span className="font-mono">{formatMXN(calc.goldCost)} × {calc.factor} = {formatMXN(calc.materialsCost)}</span>
-                                          </div>
-                                          <div className="flex justify-between items-center">
-                                            <span className="text-muted-foreground">3. + Mano de Obra:</span>
-                                            <span className="font-mono">{formatMXN(calc.materialsCost)} + {formatMXN(calc.laborCost)} = {formatMXN(calc.materialsCost + calc.laborCost)}</span>
-                                          </div>
-                                          <div className="flex justify-between items-center">
-                                            <span className="text-muted-foreground">4. + Piedra:</span>
-                                            <span className="font-mono">{formatMXN(calc.materialsCost + calc.laborCost)} + {formatMXN(calc.stoneCost)} = {formatMXN(calc.materialsCost + calc.laborCost + calc.stoneCost)}</span>
+                                            <span className="text-muted-foreground">2. Costo de Materiales:</span>
+                                            <span className="font-mono">{calc.goldGrams}g × ({formatMXN(calc.laborCost)} + {formatMXN(calc.stoneCost)}) = {formatMXN(calc.materialsCost)}</span>
                                           </div>
                                           <div className="flex justify-between items-center border-t pt-2">
-                                            <span className="text-muted-foreground">5. + Utilidad ({parameters?.profitMargin || 0}%):</span>
+                                            <span className="text-muted-foreground">3. Subtotal antes de utilidad:</span>
+                                            <span className="font-mono font-semibold">{formatMXN(calc.subtotalBeforeProfit)}</span>
+                                          </div>
+                                          <div className="flex justify-between items-center">
+                                            <span className="text-muted-foreground">4. Subtotal con utilidad ({(parameters?.profitMargin || 0) * 100}%):</span>
                                             <span className="font-mono font-semibold">{formatMXN(calc.subtotalWithProfit)}</span>
                                           </div>
                                           <div className="flex justify-between items-center">
-                                            <span className="text-muted-foreground">6. + Comisión ({calc.salesCommission}):</span>
-                                            <span className="font-mono">{formatMXN(calc.subtotalWithCommissions)}</span>
+                                            <span className="text-muted-foreground">5. Comisión de venta:</span>
+                                            <span className="font-mono">{calc.goldGrams}g × {formatMXN(calc.salesCommission)} = {formatMXN(calc.commissionCost)}</span>
                                           </div>
                                           <div className="flex justify-between items-center">
-                                            <span className="text-muted-foreground">7. + Envío:</span>
-                                            <span className="font-mono">{formatMXN(calc.subtotalWithCommissions)} + {formatMXN(calc.shippingCost)}</span>
+                                            <span className="text-muted-foreground">6. Subtotal con comisiones + envío:</span>
+                                            <span className="font-mono font-semibold">{formatMXN(calc.subtotalWithCommissions)}</span>
                                           </div>
                                           <div className="flex justify-between items-center">
-                                            <span className="text-muted-foreground">8. + IVA ({parameters?.vat || 0}%):</span>
+                                            <span className="text-muted-foreground">7. Subtotal con IVA ({(parameters?.vat || 0) * 100}%):</span>
                                             <span className="font-mono font-semibold">{formatMXN(calc.subtotalWithVat)}</span>
                                           </div>
                                           <div className="flex justify-between items-center">
-                                            <span className="text-muted-foreground">9. + Stripe ({parameters?.stripePercentage || 0}%):</span>
-                                            <span className="font-mono font-semibold">{formatMXN(calc.subtotalWithStripePercentage)}</span>
+                                            <span className="text-muted-foreground">8. Comisión Stripe ({(parameters?.stripePercentage || 0) * 100}% + {formatMXN(parameters?.stripeFixedFee || 0)}):</span>
+                                            <span className="font-mono font-semibold">{formatMXN(calc.finalPrice)}</span>
                                           </div>
                                           <div className="flex justify-between items-center border-t pt-2 bg-amber-50 -mx-2 px-2 py-2 rounded">
-                                            <span className="font-semibold">Precio Final:</span>
+                                            <span className="font-semibold">💰 Precio Final:</span>
                                             <span className="font-bold text-lg text-[#D4AF37]">{formatMXN(calc.finalPrice)}</span>
                                           </div>
                                         </div>
