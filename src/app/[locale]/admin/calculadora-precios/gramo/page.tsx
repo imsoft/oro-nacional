@@ -997,6 +997,9 @@ export default function PriceCalculatorPage() {
                                             <p className="font-mono font-semibold text-blue-900 mt-1">
                                               {formatMXN(parameters?.goldQuotation || 0)} × {calc.goldGrams} × {calc.factor} = {formatMXN(calc.goldCost)}
                                             </p>
+                                            <p className="text-xs text-blue-700 mt-2 italic border-t border-blue-200 pt-1">
+                                              📝 Fórmula: (Cotización × Oro × Factor)
+                                            </p>
                                           </div>
 
                                           <div className="bg-green-50 p-2 rounded border border-green-200">
@@ -1007,6 +1010,9 @@ export default function PriceCalculatorPage() {
                                             <p className="font-mono font-semibold text-green-900 mt-1">
                                               {calc.goldGrams} × ({formatMXN(calc.laborCost)} + {formatMXN(calc.stoneCost)}) = {formatMXN(calc.materialsCost)}
                                             </p>
+                                            <p className="text-xs text-green-700 mt-2 italic border-t border-green-200 pt-1">
+                                              📝 Fórmula: (Oro × (Mano de obra + Piedra))
+                                            </p>
                                           </div>
 
                                           <div className="bg-purple-50 p-2 rounded border border-purple-200">
@@ -1016,6 +1022,9 @@ export default function PriceCalculatorPage() {
                                             <p className="font-mono font-semibold text-purple-900 mt-1">
                                               {formatMXN(calc.goldCost)} + {formatMXN(calc.materialsCost)} = {formatMXN(calc.subtotalBeforeProfit)}
                                             </p>
+                                            <p className="text-xs text-purple-700 mt-2 italic border-t border-purple-200 pt-1">
+                                              📝 Fórmula: (Costo Oro + Costo Materiales)
+                                            </p>
                                           </div>
 
                                           <div className="bg-yellow-50 p-2 rounded border border-yellow-200">
@@ -1023,6 +1032,9 @@ export default function PriceCalculatorPage() {
                                             <p className="text-gray-700">Tomamos el subtotal anterior y le agregamos {(parameters?.profitMargin || 0) * 100}% de ganancia</p>
                                             <p className="font-mono font-semibold text-yellow-900 mt-1">
                                               {formatMXN(calc.subtotalBeforeProfit)} × {(1 + (parameters?.profitMargin || 0)).toFixed(2)} = {formatMXN(calc.subtotalWithProfit)}
+                                            </p>
+                                            <p className="text-xs text-yellow-700 mt-2 italic border-t border-yellow-200 pt-1">
+                                              📝 Fórmula: (Subtotal antes utilidad × (1 + Utilidad%))
                                             </p>
                                           </div>
 
@@ -1032,6 +1044,9 @@ export default function PriceCalculatorPage() {
                                             <p className="text-gray-700">Este producto tiene {calc.goldGrams} gramos</p>
                                             <p className="font-mono font-semibold text-orange-900 mt-1">
                                               {calc.goldGrams} × {formatMXN(calc.salesCommission)} = {formatMXN(calc.commissionCost)}
+                                            </p>
+                                            <p className="text-xs text-orange-700 mt-2 italic border-t border-orange-200 pt-1">
+                                              📝 Fórmula: (Oro × Comisión de venta)
                                             </p>
                                           </div>
 
@@ -1043,6 +1058,9 @@ export default function PriceCalculatorPage() {
                                             <p className="font-mono font-semibold text-pink-900 mt-1">
                                               {formatMXN(calc.subtotalWithProfit)} + {formatMXN(calc.commissionCost)} + {formatMXN(calc.shippingCost)} = {formatMXN(calc.subtotalWithCommissions)}
                                             </p>
+                                            <p className="text-xs text-pink-700 mt-2 italic border-t border-pink-200 pt-1">
+                                              📝 Fórmula: (Subtotal con utilidad + Comisión venta + Envío)
+                                            </p>
                                           </div>
 
                                           <div className="bg-indigo-50 p-2 rounded border border-indigo-200">
@@ -1051,6 +1069,9 @@ export default function PriceCalculatorPage() {
                                             <p className="text-gray-700">Multiplicamos el subtotal anterior por {(1 + (parameters?.vat || 0)).toFixed(2)}</p>
                                             <p className="font-mono font-semibold text-indigo-900 mt-1">
                                               {formatMXN(calc.subtotalWithCommissions)} × {(1 + (parameters?.vat || 0)).toFixed(2)} = {formatMXN(calc.subtotalWithVat)}
+                                            </p>
+                                            <p className="text-xs text-indigo-700 mt-2 italic border-t border-indigo-200 pt-1">
+                                              📝 Fórmula: (Subtotal con comisiones × (1 + IVA%))
                                             </p>
                                           </div>
 
@@ -1061,6 +1082,9 @@ export default function PriceCalculatorPage() {
                                             <p className="text-gray-700">Luego sumamos {formatMXN(parameters?.stripeFixedFee || 0)}</p>
                                             <p className="font-mono font-semibold text-teal-900 mt-1">
                                               ({formatMXN(calc.subtotalWithVat)} × {(1 + (parameters?.stripePercentage || 0)).toFixed(4)}) + {formatMXN(parameters?.stripeFixedFee || 0)} = {formatMXN(calc.finalPrice)}
+                                            </p>
+                                            <p className="text-xs text-teal-700 mt-2 italic border-t border-teal-200 pt-1">
+                                              📝 Fórmula: ((Subtotal con IVA × (1 + Stripe%)) + Stripe fijo)
                                             </p>
                                           </div>
 

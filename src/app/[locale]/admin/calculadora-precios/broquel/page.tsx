@@ -163,13 +163,13 @@ export default function BroquelCalculatorPage() {
         // Use saved data if available, otherwise use defaults
         const saved = savedPricingData.get(subcategory.id);
         broquelMap.set(subcategory.id, saved || defaults);
-      });
-      setProductBroquelData(broquelMap);
+    });
+    setProductBroquelData(broquelMap);
     } catch (error) {
       console.error("Error loading broquel data:", error);
       alert("Error al cargar los datos. Por favor recarga la página.");
     } finally {
-      setIsLoading(false);
+    setIsLoading(false);
     }
   };
 
@@ -466,9 +466,9 @@ export default function BroquelCalculatorPage() {
             id,
             price: calc.finalPrice,
             baseGrams: baseGrams,
-          }));
+      }));
 
-          const results = await updateMultipleProductPrices(priceUpdates);
+      const results = await updateMultipleProductPrices(priceUpdates);
           totalSuccessful += results.successful.length;
           totalFailed += results.failed.length;
 
@@ -520,7 +520,7 @@ export default function BroquelCalculatorPage() {
   const selectedSubcategory = selectedSubcategoryId
     ? calculatedSubcategories.find((p) => p.id === selectedSubcategoryId)
     : null;
-  
+
   const selectedSubcategoryOriginal = selectedSubcategoryId
     ? subcategories.find((s) => s.id === selectedSubcategoryId)
     : null;
@@ -845,7 +845,7 @@ export default function BroquelCalculatorPage() {
                 const products = subcategoryProducts.get(calc.id) || [];
                 const isLoadingProductsForThis = loadingProducts.has(calc.id);
 
-                return (
+                    return (
                   <AccordionItem key={calc.id} value={calc.id}>
                     <AccordionTrigger
                       className="hover:no-underline"
@@ -900,100 +900,100 @@ export default function BroquelCalculatorPage() {
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div className="space-y-1">
                               <Label htmlFor={`pz-${calc.id}`} className="text-xs">PZ (Piezas)</Label>
-                              <Input
+                          <Input
                                 id={`pz-${calc.id}`}
-                                type="number"
-                                step="0.01"
-                                value={calc.pz}
+                            type="number"
+                            step="0.01"
+                            value={calc.pz}
                                 onChange={(e) => handleSubcategoryDataChange(calc.id, "pz", e.target.value)}
                                 className="h-8"
                               />
                             </div>
                             <div className="space-y-1">
                               <Label htmlFor={`goldGrams-${calc.id}`} className="text-xs">Oro (grs)</Label>
-                              <Input
+                          <Input
                                 id={`goldGrams-${calc.id}`}
-                                type="number"
-                                step="0.001"
-                                value={calc.goldGrams}
+                            type="number"
+                            step="0.001"
+                            value={calc.goldGrams}
                                 onChange={(e) => handleSubcategoryDataChange(calc.id, "goldGrams", e.target.value)}
                                 className="h-8"
                               />
                             </div>
                             <div className="space-y-1">
                               <Label htmlFor={`carats-${calc.id}`} className="text-xs">Kilataje</Label>
-                              <Input
+                          <Input
                                 id={`carats-${calc.id}`}
-                                type="number"
-                                step="1"
-                                value={calc.carats}
+                            type="number"
+                            step="1"
+                            value={calc.carats}
                                 onChange={(e) => handleSubcategoryDataChange(calc.id, "carats", e.target.value)}
-                                disabled={!isUnlocked}
+                            disabled={!isUnlocked}
                                 className="h-8"
-                              />
+                          />
                             </div>
                             <div className="space-y-1">
                               <Label htmlFor={`merma-${calc.id}`} className="text-xs">Merma %</Label>
-                              <Input
+                          <Input
                                 id={`merma-${calc.id}`}
-                                type="number"
-                                step="0.01"
-                                value={calc.merma}
+                            type="number"
+                            step="0.01"
+                            value={calc.merma}
                                 onChange={(e) => handleSubcategoryDataChange(calc.id, "merma", e.target.value)}
-                                disabled={!isUnlocked}
+                            disabled={!isUnlocked}
                                 className="h-8"
-                              />
+                          />
                             </div>
                             <div className="space-y-1">
                               <Label htmlFor={`laborCost-${calc.id}`} className="text-xs">Mano de Obra</Label>
-                              <Input
+                          <Input
                                 id={`laborCost-${calc.id}`}
-                                type="number"
-                                step="0.01"
-                                value={calc.laborCost}
+                            type="number"
+                            step="0.01"
+                            value={calc.laborCost}
                                 onChange={(e) => handleSubcategoryDataChange(calc.id, "laborCost", e.target.value)}
-                                disabled={!isUnlocked}
+                            disabled={!isUnlocked}
                                 className="h-8"
-                              />
+                          />
                             </div>
                             <div className="space-y-1">
                               <Label htmlFor={`stoneCost-${calc.id}`} className="text-xs">Piedra</Label>
-                              <Input
+                          <Input
                                 id={`stoneCost-${calc.id}`}
-                                type="number"
-                                step="0.01"
-                                value={calc.stoneCost}
+                            type="number"
+                            step="0.01"
+                            value={calc.stoneCost}
                                 onChange={(e) => handleSubcategoryDataChange(calc.id, "stoneCost", e.target.value)}
-                                disabled={!isUnlocked}
+                            disabled={!isUnlocked}
                                 className="h-8"
-                              />
+                          />
                             </div>
                             <div className="space-y-1">
                               <Label htmlFor={`salesCommission-${calc.id}`} className="text-xs">Comisión Venta</Label>
-                              <Input
+                          <Input
                                 id={`salesCommission-${calc.id}`}
-                                type="number"
-                                step="0.01"
-                                value={calc.salesCommission}
+                            type="number"
+                            step="0.01"
+                            value={calc.salesCommission}
                                 onChange={(e) => handleSubcategoryDataChange(calc.id, "salesCommission", e.target.value)}
-                                disabled={!isUnlocked}
+                            disabled={!isUnlocked}
                                 className="h-8"
-                              />
+                          />
                             </div>
                             <div className="space-y-1">
                               <Label htmlFor={`shipping-${calc.id}`} className="text-xs">Envío</Label>
-                              <Input
+                          <Input
                                 id={`shipping-${calc.id}`}
-                                type="number"
-                                step="0.01"
-                                value={calc.shipping}
+                            type="number"
+                            step="0.01"
+                            value={calc.shipping}
                                 onChange={(e) => handleSubcategoryDataChange(calc.id, "shipping", e.target.value)}
-                                disabled={!isUnlocked}
+                            disabled={!isUnlocked}
                                 className="h-8"
                               />
                             </div>
-                          </div>
-                        </div>
+                            </div>
+                              </div>
 
                         {/* Resultados de cálculo */}
                         <div className="bg-blue-50/50 rounded-lg p-4 border border-blue-200">
@@ -1002,7 +1002,7 @@ export default function BroquelCalculatorPage() {
                             <div>
                               <p className="text-xs text-muted-foreground">+ Utilidad</p>
                               <p className="font-semibold">{formatMXN(calc.subtotalWithProfit)}</p>
-                            </div>
+                          </div>
                             <div>
                               <p className="text-xs text-muted-foreground">+ IVA</p>
                               <p className="font-semibold">{formatMXN(calc.subtotalWithVat)}</p>
@@ -1051,7 +1051,7 @@ export default function BroquelCalculatorPage() {
                                     <HoverCardTrigger asChild>
                                       <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
                                         <Info className="h-4 w-4" />
-                                      </Button>
+                          </Button>
                                     </HoverCardTrigger>
                                     <HoverCardContent className="w-96" align="end">
                                       <div className="space-y-3">
@@ -1080,6 +1080,9 @@ export default function BroquelCalculatorPage() {
                                                   <p className="font-mono font-semibold text-blue-900 mt-1">
                                                     {formatMXN(parameters?.quotation || 0)} × ({calc.carats} ÷ 24) × {calc.goldGrams} = {formatMXN(goldCostPerPiece)}
                                                   </p>
+                                                  <p className="text-xs text-blue-700 mt-2 italic border-t border-blue-200 pt-1">
+                                                    📝 Fórmula: (Cotización × (Kilataje ÷ 24) × Oro(gr))
+                                                  </p>
                                                 </div>
 
                                                 <div className="bg-amber-50 p-2 rounded border border-amber-200">
@@ -1088,6 +1091,9 @@ export default function BroquelCalculatorPage() {
                                                   <p className="text-gray-700">Agregamos {calc.merma}% al costo del oro</p>
                                                   <p className="font-mono font-semibold text-amber-900 mt-1">
                                                     {formatMXN(goldCostPerPiece)} × {(1 + mermaDecimal).toFixed(2)} = {formatMXN(goldCostWithMermaPerPiece)}
+                                                  </p>
+                                                  <p className="text-xs text-amber-700 mt-2 italic border-t border-amber-200 pt-1">
+                                                    📝 Fórmula: (Costo oro × (1 + Merma%))
                                                   </p>
                                                 </div>
 
@@ -1099,6 +1105,9 @@ export default function BroquelCalculatorPage() {
                                                   <p className="font-mono font-semibold text-green-900 mt-1">
                                                     {formatMXN(goldCostWithMermaPerPiece)} + {formatMXN(calc.laborCost)} + {formatMXN(calc.stoneCost)} = {formatMXN(subtotalBeforeProfitPerPiece)}
                                                   </p>
+                                                  <p className="text-xs text-green-700 mt-2 italic border-t border-green-200 pt-1">
+                                                    📝 Fórmula: (Costo oro con merma + Mano de obra + Piedra)
+                                                  </p>
                                                 </div>
 
                                                 <div className="bg-purple-50 p-2 rounded border border-purple-200">
@@ -1108,6 +1117,9 @@ export default function BroquelCalculatorPage() {
                                                   <p className="font-mono font-semibold text-purple-900 mt-1">
                                                     {formatMXN(subtotalBeforeProfitPerPiece)} × {calc.pz} = {formatMXN(subtotalByPieces)}
                                                   </p>
+                                                  <p className="text-xs text-purple-700 mt-2 italic border-t border-purple-200 pt-1">
+                                                    📝 Fórmula: (Subtotal por pieza × Piezas)
+                                                  </p>
                                                 </div>
 
                                                 <div className="bg-yellow-50 p-2 rounded border border-yellow-200">
@@ -1115,6 +1127,9 @@ export default function BroquelCalculatorPage() {
                                                   <p className="text-gray-700">Tomamos el subtotal anterior y le agregamos {(parameters?.profitMargin || 0) * 100}% de ganancia</p>
                                                   <p className="font-mono font-semibold text-yellow-900 mt-1">
                                                     {formatMXN(subtotalByPieces)} × {(1 + (parameters?.profitMargin || 0)).toFixed(2)} = {formatMXN(calc.subtotalWithProfit)}
+                                                  </p>
+                                                  <p className="text-xs text-yellow-700 mt-2 italic border-t border-yellow-200 pt-1">
+                                                    📝 Fórmula: (Subtotal por piezas × (1 + Utilidad%))
                                                   </p>
                                                 </div>
 
@@ -1125,6 +1140,9 @@ export default function BroquelCalculatorPage() {
                                                   <p className="font-mono font-semibold text-orange-900 mt-1">
                                                     {calc.pz} × {formatMXN(calc.salesCommission)} = {formatMXN(commissionCost)}
                                                   </p>
+                                                  <p className="text-xs text-orange-700 mt-2 italic border-t border-orange-200 pt-1">
+                                                    📝 Fórmula: (Piezas × Comisión de venta)
+                                                  </p>
                                                 </div>
 
                                                 <div className="bg-pink-50 p-2 rounded border border-pink-200">
@@ -1133,6 +1151,9 @@ export default function BroquelCalculatorPage() {
                                                   <p className="text-gray-700">Comisión de venta: {formatMXN(commissionCost)}</p>
                                                   <p className="font-mono font-semibold text-pink-900 mt-1">
                                                     {formatMXN(calc.subtotalWithProfit)} + {formatMXN(commissionCost)} = {formatMXN(subtotalWithCommission)}
+                                                  </p>
+                                                  <p className="text-xs text-pink-700 mt-2 italic border-t border-pink-200 pt-1">
+                                                    📝 Fórmula: (Subtotal con utilidad + Comisión de venta)
                                                   </p>
                                                 </div>
 
@@ -1143,6 +1164,9 @@ export default function BroquelCalculatorPage() {
                                                   <p className="font-mono font-semibold text-red-900 mt-1">
                                                     {formatMXN(subtotalWithCommission)} + {formatMXN(calc.shipping)} = {formatMXN(subtotalWithShipping)}
                                                   </p>
+                                                  <p className="text-xs text-red-700 mt-2 italic border-t border-red-200 pt-1">
+                                                    📝 Fórmula: (Subtotal con comisión + Envío)
+                                                  </p>
                                                 </div>
 
                                                 <div className="bg-indigo-50 p-2 rounded border border-indigo-200">
@@ -1151,6 +1175,9 @@ export default function BroquelCalculatorPage() {
                                                   <p className="text-gray-700">Multiplicamos el subtotal anterior por {(1 + (parameters?.vat || 0)).toFixed(2)}</p>
                                                   <p className="font-mono font-semibold text-indigo-900 mt-1">
                                                     {formatMXN(subtotalWithShipping)} × {(1 + (parameters?.vat || 0)).toFixed(2)} = {formatMXN(calc.subtotalWithVat)}
+                                                  </p>
+                                                  <p className="text-xs text-indigo-700 mt-2 italic border-t border-indigo-200 pt-1">
+                                                    📝 Fórmula: (Subtotal con envío × (1 + IVA%))
                                                   </p>
                                                 </div>
 
@@ -1161,6 +1188,9 @@ export default function BroquelCalculatorPage() {
                                                   <p className="text-gray-700">Luego sumamos {formatMXN(stripeFixedFee)}</p>
                                                   <p className="font-mono font-semibold text-teal-900 mt-1">
                                                     ({formatMXN(calc.subtotalWithVat)} × {(1 + stripePercentage).toFixed(4)}) + {formatMXN(stripeFixedFee)} = {formatMXN(calc.finalPrice)}
+                                                  </p>
+                                                  <p className="text-xs text-teal-700 mt-2 italic border-t border-teal-200 pt-1">
+                                                    📝 Fórmula: ((Subtotal con IVA × (1 + Stripe%)) + Stripe fijo)
                                                   </p>
                                                 </div>
 
@@ -1179,7 +1209,7 @@ export default function BroquelCalculatorPage() {
                               ))}
                             </div>
                           )}
-                        </div>
+          </div>
                       </div>
                     </AccordionContent>
                   </AccordionItem>
