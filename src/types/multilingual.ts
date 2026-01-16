@@ -128,7 +128,7 @@ export interface CreateMultilingualProductData {
   name: MultilingualText;
   description: MultilingualContent;
   material: MultilingualText;
-  category_id: string;
+  category_id?: string; // Opcional: puede ser string vacío o undefined, se convertirá a null en el backend
   price: number;
   stock: number;
   weight?: number;

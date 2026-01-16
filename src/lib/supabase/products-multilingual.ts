@@ -465,7 +465,7 @@ export async function createProduct(
         description_en: productData.description.en || productData.description.es, // Usar español como fallback
         material_es: productData.material.es,
         material_en: productData.material.en || productData.material.es, // Usar español como fallback
-        category_id: productData.category_id && productData.category_id.trim() !== "" ? productData.category_id : null, // Convertir vacío a null
+        category_id: (productData.category_id && typeof productData.category_id === 'string' && productData.category_id.trim() !== "") ? productData.category_id : null, // Convertir vacío, undefined o null a null
         price: productData.price,
         stock: 0, // Ya no se usa, pero se mantiene para compatibilidad
         weight: productData.weight,
@@ -614,7 +614,14 @@ export async function updateProduct(
 
     // Convertir category_id vacío a null
     if (updates.category_id !== undefined) {
-      dataToUpdate.category_id = updates.category_id && updates.category_id.trim() !== "" ? updates.category_id : null;
+      // Si category_id es undefined, null, o string vacío, establecer como null
+      const categoryId = updates.category_id;
+      dataToUpdate.category_id = (categoryId && typeof categoryId === 'string' && categoryId.trim() !== "") ? categoryId : null;
+      console.log("🔄 Updating category_id:", {
+        original: updates.category_id,
+        processed: dataToUpdate.category_id,
+        type: typeof updates.category_id
+      });
     }
     if (updates.price !== undefined) dataToUpdate.price = updates.price;
     // stock ya no se actualiza, se mantiene a nivel de tallas

@@ -445,11 +445,14 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
         });
       }
 
+      // Preparar category_id: si está vacío o es undefined, usar string vacío (se convertirá a null en el backend)
+      const categoryId = formData.category_id && formData.category_id.trim() !== "" ? formData.category_id : "";
+
       const productData = {
         name: formData.name,
         description: formData.description,
         material: formData.material,
-        category_id: formData.category_id,
+        category_id: categoryId, // Siempre incluir category_id, incluso si está vacío
         price: 0, // Ya no se usa, pero se mantiene para compatibilidad
         stock: 0, // Ya no se usa, pero se mantiene para compatibilidad
         is_active: formData.is_active,
@@ -470,6 +473,15 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
         base_price_usd: productBasePriceUSD ?? (productBasePrice && exchangeRate > 0 ? Math.round((productBasePrice / exchangeRate) * 100) / 100 : null),
         images: formData.images
       };
+
+      // Log para depuración
+      console.log("📦 Product data to save:", {
+        category_id: productData.category_id,
+        category_id_type: typeof productData.category_id,
+        category_id_length: productData.category_id?.length,
+        formData_category_id: formData.category_id,
+        categoryId_processed: categoryId,
+      });
 
       // Validar que productId sea un UUID válido si existe
       let savedProductId: string;
