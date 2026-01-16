@@ -463,7 +463,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
           size: size.size,
           stock: size.stock,
           price: size.price,
-          price_usd: size.price_usd ?? null,
+          price_usd: size.price_usd ?? (size.price > 0 && exchangeRate > 0 ? Math.round((size.price / exchangeRate) * 100) / 100 : null), // Si no hay precio USD, calcularlo
           weight: size.weight || undefined,
           display_order: size.display_order ?? index
         })),
@@ -649,16 +649,26 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
       });
 
       if (calculatedPrice !== null) {
-        // Actualizar precio MXN y calcular automáticamente el USD
+        // Actualizar precio MXN y SIEMPRE recalcular el precio USD basado en el nuevo precio MXN
         const newSizes = [...formData.sizes];
+        // Calcular precio USD basado en el nuevo precio MXN calculado
+        const calculatedPriceUSD = exchangeRate > 0 ? Math.round((calculatedPrice / exchangeRate) * 100) / 100 : null;
+        
+        console.log('Calculando precio USD:', {
+          precioMXN: calculatedPrice,
+          exchangeRate,
+          precioUSD: calculatedPriceUSD,
+          sizeIndex: index
+        });
+        
         newSizes[index] = {
           ...newSizes[index],
           price: calculatedPrice,
-          price_usd: newSizes[index].price_usd ?? (exchangeRate > 0 ? Math.round((calculatedPrice / exchangeRate) * 100) / 100 : null)
+          price_usd: calculatedPriceUSD // Siempre actualizar el precio USD cuando se calcula desde la calculadora
         };
         updateField("sizes", newSizes);
         toast.success("Precio calculado", {
-          description: `El precio ha sido calculado exitosamente: $${calculatedPrice.toLocaleString('es-MX', { minimumFractionDigits: 2 })}`
+          description: `El precio ha sido calculado exitosamente: $${calculatedPrice.toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN${calculatedPriceUSD ? ` ($${calculatedPriceUSD.toFixed(2)} USD)` : ' (USD no disponible - verifica tasa de cambio)'}`
         });
       } else {
         toast.error("Error en configuración", {
