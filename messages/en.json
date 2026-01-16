@@ -660,6 +660,8 @@
     "noProductsCategory": "No products available in this category",
     "noProductsFound": "No products found",
     "adjustFilters": "Try adjusting filters or search",
+    "product": "product",
+    "products": "products",
     "filters": "Filters",
     "viewMode": "View",
     "searchPlaceholder": "Search rings, necklaces, earrings...",

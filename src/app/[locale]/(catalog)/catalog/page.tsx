@@ -68,8 +68,8 @@ const CatalogPage = ({ params }: { params: { locale: 'es' | 'en' } }) => {
     setIsLoading(false);
   };
 
-  // Filtrar y ordenar productos
-  const filteredProducts = useMemo(() => {
+  // Filtrar, ordenar y agrupar productos por categoría
+  const productsByCategory = useMemo(() => {
     let filtered = products.map((product) => {
       const primaryImage = product.images?.find((img) => img.is_primary)?.image_url;
       return {
@@ -81,6 +81,7 @@ const CatalogPage = ({ params }: { params: { locale: 'es' | 'en' } }) => {
         image: primaryImage || "https://via.placeholder.com/600x600?text=Sin+Imagen",
         category: product.category?.name || "Sin categoría",
         categorySlug: product.category?.slug || "",
+        categoryId: product.category?.id || "",
         material: product.material || "",
         slug: product.slug,
       };
@@ -111,36 +112,69 @@ const CatalogPage = ({ params }: { params: { locale: 'es' | 'en' } }) => {
         product.price <= filters.priceRange[1]
     );
 
-    // Ordenar productos
-    switch (sortBy) {
-      case "price-asc":
-        filtered.sort((a, b) => a.price - b.price);
-        break;
-      case "price-desc":
-        filtered.sort((a, b) => b.price - a.price);
-        break;
-      case "name":
-        filtered.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case "newest":
-        // Los productos ya vienen ordenados por fecha de creación (más recientes primero)
-        break;
-      case "featured":
-      default:
-        // Mantener orden original (destacados primero)
-        break;
-    }
+    // Agrupar productos por categoría
+    const grouped = filtered.reduce((acc, product) => {
+      const categoryName = product.category || "Sin categoría";
+      const categorySlug = product.categorySlug || "sin-categoria";
+      const categoryId = product.categoryId || "sin-categoria";
 
-    return filtered.map((product) => ({
-      id: product.id,
-      name: product.name,
-      description: product.description,
-      price: product.priceFormatted,
-      image: product.image,
-      category: product.category,
-      material: product.material,
-      slug: product.slug,
-    }));
+      if (!acc[categoryId]) {
+        acc[categoryId] = {
+          id: categoryId,
+          name: categoryName,
+          slug: categorySlug,
+          products: [],
+        };
+      }
+
+      acc[categoryId].products.push({
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        price: product.priceFormatted,
+        priceValue: product.price, // Guardar el valor numérico para ordenar
+        image: product.image,
+        category: product.category,
+        material: product.material,
+        slug: product.slug,
+      });
+
+      return acc;
+    }, {} as Record<string, { id: string; name: string; slug: string; products: Array<{
+      id: string;
+      name: string;
+      description: string;
+      price: string;
+      priceValue: number;
+      image: string;
+      category: string;
+      material: string;
+      slug: string;
+    }> }>);
+
+    // Ordenar productos dentro de cada categoría
+    Object.values(grouped).forEach((category) => {
+      category.products.sort((a, b) => {
+        switch (sortBy) {
+          case "price-asc":
+            return a.priceValue - b.priceValue;
+          case "price-desc":
+            return b.priceValue - a.priceValue;
+          case "name":
+            return a.name.localeCompare(b.name);
+          case "newest":
+            // Los productos ya vienen ordenados por fecha de creación (más recientes primero)
+            return 0;
+          case "featured":
+          default:
+            // Mantener orden original (destacados primero)
+            return 0;
+        }
+      });
+    });
+
+    // Ordenar categorías alfabéticamente
+    return Object.values(grouped).sort((a, b) => a.name.localeCompare(b.name));
   }, [products, filters, searchTerm, sortBy]);
 
   if (isLoading) {
@@ -163,7 +197,7 @@ const CatalogPage = ({ params }: { params: { locale: 'es' | 'en' } }) => {
         <CatalogHeader
           viewMode={viewMode}
           onViewModeChange={setViewMode}
-          totalProducts={filteredProducts.length}
+          totalProducts={productsByCategory.reduce((sum, cat) => sum + cat.products.length, 0)}
           onToggleMobileFilters={() => setMobileFiltersOpen(true)}
           onSearch={setSearchTerm}
           onSort={setSortBy}
@@ -193,9 +227,9 @@ const CatalogPage = ({ params }: { params: { locale: 'es' | 'en' } }) => {
             </SheetContent>
           </Sheet>
 
-          {/* Grid de productos */}
+          {/* Productos agrupados por categoría */}
           <div className="flex-1">
-            {filteredProducts.length === 0 ? (
+            {productsByCategory.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-muted-foreground">
                   {t("noProductsFound")}
@@ -205,7 +239,21 @@ const CatalogPage = ({ params }: { params: { locale: 'es' | 'en' } }) => {
                 </p>
               </div>
             ) : (
-              <ProductsGrid products={filteredProducts} viewMode={viewMode} />
+              <div className="space-y-12">
+                {productsByCategory.map((category) => (
+                  <div key={category.id} className="space-y-6">
+                    <div className="border-b border-border pb-4">
+                      <h2 className="text-2xl font-bold text-foreground">
+                        {category.name}
+                      </h2>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {category.products.length} {category.products.length === 1 ? t("product") : t("products")}
+                      </p>
+                    </div>
+                    <ProductsGrid products={category.products} viewMode={viewMode} />
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         </div>

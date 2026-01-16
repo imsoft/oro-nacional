@@ -650,6 +650,8 @@
     "noProductsCategory": "No hay productos disponibles en esta categoría",
     "noProductsFound": "No se encontraron productos",
     "adjustFilters": "Intenta ajustar los filtros o la búsqueda",
+    "product": "producto",
+    "products": "productos",
     "filters": "Filtros",
     "viewMode": "Vista",
     "searchPlaceholder": "Buscar anillos, collares, aretes...",
