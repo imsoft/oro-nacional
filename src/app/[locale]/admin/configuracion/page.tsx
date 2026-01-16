@@ -144,13 +144,17 @@ export default function AdminSettings() {
           ? 'Configuración guardada exitosamente'
           : 'Settings saved successfully';
         
-        // Si se actualizaron precios, agregar información
+        // Si se actualizaron precios, agregar información detallada
         if (result.pricesUpdated) {
           const { products, sizes } = result.pricesUpdated;
           if (products > 0 || sizes > 0) {
             message += `\n\n${locale === 'es' 
-              ? `✅ Se actualizaron automáticamente los precios USD:\n- ${products} producto(s)\n- ${sizes} talla(s)`
-              : `✅ USD prices automatically updated:\n- ${products} product(s)\n- ${sizes} size(s)`}`;
+              ? `✅ Se actualizaron automáticamente los precios USD según la nueva tasa de cambio:\n- ${products} producto(s) actualizado(s)\n- ${sizes} talla(s) actualizada(s)\n\nTodos los precios USD ahora reflejan el precio final en MXN convertido a la nueva tasa de cambio.`
+              : `✅ USD prices automatically updated with new exchange rate:\n- ${products} product(s) updated\n- ${sizes} size(s) updated\n\nAll USD prices now reflect the final MXN price converted to the new exchange rate.`}`;
+          } else {
+            message += `\n\n${locale === 'es' 
+              ? '⚠️ No se encontraron productos o tallas con precios para actualizar.'
+              : '⚠️ No products or sizes with prices found to update.'}`;
           }
         }
         
@@ -360,6 +364,11 @@ export default function AdminSettings() {
               <p className="text-xs text-muted-foreground">
                 Ingresa cuántos pesos mexicanos equivalen a 1 dólar (ej: 18 significa 18 MXN = 1 USD)
               </p>
+              <div className="mt-2 p-3 rounded-lg bg-blue-50 border border-blue-200">
+                <p className="text-xs text-blue-900 font-medium">
+                  💡 Al cambiar la tasa de cambio y guardar, se actualizarán automáticamente todos los precios USD de todos los productos y sus tallas según el precio final en MXN.
+                </p>
+              </div>
             </div>
           </div>
         </div>

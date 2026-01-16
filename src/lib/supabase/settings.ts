@@ -264,10 +264,13 @@ export async function updateStoreSettings(
     }
 
     // Check if exchange_rate is being updated
+    // Comparar valores numéricos para detectar cambios correctamente
+    const oldRate = existingSettings.exchange_rate ? parseFloat(String(existingSettings.exchange_rate)) : null;
+    const newRate = settings.exchange_rate ? parseFloat(String(settings.exchange_rate)) : null;
     const exchangeRateChanged = 
-      settings.exchange_rate !== undefined && 
-      settings.exchange_rate !== null &&
-      existingSettings.exchange_rate !== settings.exchange_rate;
+      newRate !== null && 
+      newRate > 0 &&
+      (oldRate === null || Math.abs(oldRate - newRate) > 0.001); // Tolerancia para comparación de decimales
 
     // Update the settings
     const { error: updateError } = await supabase
@@ -285,15 +288,16 @@ export async function updateStoreSettings(
 
     // If exchange_rate changed, update all USD prices
     let pricesUpdated: { products: number; sizes: number } | undefined;
-    if (exchangeRateChanged && settings.exchange_rate) {
+    if (exchangeRateChanged && newRate) {
+      console.log(`🔄 Exchange rate changed from ${oldRate} to ${newRate}. Updating all USD prices...`);
       try {
         const { data, error: rpcError } = await supabase.rpc('update_all_usd_prices', {
-          new_exchange_rate: settings.exchange_rate,
+          new_exchange_rate: newRate,
           update_all: true, // Actualizar todos los precios, no solo los NULL
         });
 
         if (rpcError) {
-          console.error("Error updating USD prices:", rpcError);
+          console.error("❌ Error updating USD prices:", rpcError);
           // No fallar la actualización de settings si falla la actualización de precios
           // pero loguear el error
         } else if (data && data.length > 0) {
@@ -301,12 +305,16 @@ export async function updateStoreSettings(
             products: data[0].products_updated || 0,
             sizes: data[0].sizes_updated || 0,
           };
-          console.log(`✅ Updated ${pricesUpdated.products} products and ${pricesUpdated.sizes} sizes with new exchange rate`);
+          console.log(`✅ Updated ${pricesUpdated.products} products and ${pricesUpdated.sizes} sizes with new exchange rate (${newRate})`);
+        } else {
+          console.warn("⚠️ No data returned from update_all_usd_prices function");
         }
       } catch (rpcError) {
-        console.error("Error calling update_all_usd_prices:", rpcError);
+        console.error("❌ Error calling update_all_usd_prices:", rpcError);
         // No fallar la actualización de settings si falla la actualización de precios
       }
+    } else {
+      console.log(`ℹ️ Exchange rate not changed (${oldRate} → ${newRate})`);
     }
 
     return { success: true, pricesUpdated };
