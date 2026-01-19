@@ -31,7 +31,7 @@ const CatalogPage = ({ params }: { params: { locale: 'es' | 'en' } }) => {
 
   const [filters, setFilters] = useState<CatalogFiltersState>({
     categories: categoryFromUrl ? [categoryFromUrl] : [],
-    priceRange: [0, 50000],
+    priceRange: [0, 500000], // Rango amplio para incluir todos los productos
   });
 
   useEffect(() => {

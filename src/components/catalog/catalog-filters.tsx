@@ -47,7 +47,7 @@ const CatalogFilters = ({ filters, onFiltersChange, categories }: CatalogFilters
   const handleClearFilters = () => {
     onFiltersChange({
       categories: [],
-      priceRange: [0, 50000],
+      priceRange: [0, 500000],
     });
   };
 
@@ -95,8 +95,8 @@ const CatalogFilters = ({ filters, onFiltersChange, categories }: CatalogFilters
           <Slider
             value={filters.priceRange}
             onValueChange={handlePriceRangeChange}
-            max={50000}
-            step={1000}
+            max={500000}
+            step={5000}
             className="w-full"
           />
           <div className="flex items-center justify-between text-sm text-muted-foreground">
