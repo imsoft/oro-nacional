@@ -28,7 +28,7 @@ interface ProductInfoProps {
       price: number;
       price_usd?: number | null;
       stock: number;
-      weight?: number; // Gramos de oro
+      weight?: number; // Gramos de oro o piezas según categoría
     }> | string[];
     basePriceUSD?: number | null;
     weight?: number;
@@ -41,7 +41,12 @@ interface ProductInfoProps {
 
 const ProductInfo = ({ product }: ProductInfoProps) => {
   const { currency, convertPrice, formatPrice } = useCurrency();
-  
+
+  // Unidad según categoría interna: Gramo → gramos, Broquel (y similares) → pares
+  const categoryName = product.internalCategory?.name?.toLowerCase() ?? "";
+  const isByPairs = categoryName === "broquel" || categoryName === "broqueles";
+  const unitLabel = isByPairs ? "pares" : "gramos";
+
   // Determinar si sizes es un array de objetos o strings
   const sizesArray = product.sizes || [];
   const isSizesWithPrice = sizesArray.length > 0 && typeof sizesArray[0] === 'object';
@@ -225,6 +230,12 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
 
                 return normalizedSizes.map((sizeObj) => {
                   const isOutOfStock = sizeObj.stock === 0;
+                  const weight = sizeObj.weight;
+                  const weightText = weight !== undefined && weight !== null && weight > 0
+                    ? isByPairs
+                      ? `${weight} ${weight === 1 ? "par" : "pares"}`
+                      : `${weight} ${unitLabel}`
+                    : null;
 
                   return (
                     <div key={sizeObj.size}>
@@ -243,6 +254,9 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
                         }`}
                       >
                         <span>{sizeObj.size}</span>
+                        {weightText && (
+                          <span className="text-xs font-normal text-muted-foreground mt-0.5">{weightText}</span>
+                        )}
                       </Label>
                     </div>
                   );
@@ -443,15 +457,27 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
             </TabsList>
             {hasSpecifications && (
               <TabsContent value="specs" className="mt-6 space-y-3">
-                {Object.entries(product.specifications).map(([key, value]) => (
-                  <div
-                    key={key}
-                    className="flex justify-between py-2 border-b border-border last:border-0"
-                  >
-                    <span className="font-medium text-sm">{key}</span>
-                    <span className="text-sm text-muted-foreground">{value}</span>
-                  </div>
-                ))}
+                {Object.entries(product.specifications).map(([key, value]) => {
+                  const keyLower = key.toLowerCase();
+                  const isWeightOrPieces = /peso|gramo|pieza|par|cantidad/.test(keyLower);
+                  const displayValue = isWeightOrPieces && value.trim() !== ""
+                    ? (() => {
+                        const num = parseFloat(value.replace(",", "."));
+                        if (isNaN(num)) return value;
+                        if (isByPairs) return `${num} ${num === 1 ? "par" : "pares"}`;
+                        return `${num} ${unitLabel}`;
+                      })()
+                    : value;
+                  return (
+                    <div
+                      key={key}
+                      className="flex justify-between py-2 border-b border-border last:border-0"
+                    >
+                      <span className="font-medium text-sm">{key}</span>
+                      <span className="text-sm text-muted-foreground">{displayValue}</span>
+                    </div>
+                  );
+                })}
               </TabsContent>
             )}
             <TabsContent value="care" className="mt-6 space-y-3 text-sm text-muted-foreground">

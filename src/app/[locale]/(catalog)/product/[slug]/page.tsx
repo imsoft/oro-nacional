@@ -141,6 +141,7 @@ export default function ProductPage({ params }: ProductPageProps) {
     sizes: productSizes,
     stock: undefined, // Stock ya no se usa a nivel de producto
     slug: product.slug,
+    internalCategory: (product as { internalCategory?: { id: string; name: string } | null }).internalCategory ?? null,
   };
 
   // Transform related products for compatibility
