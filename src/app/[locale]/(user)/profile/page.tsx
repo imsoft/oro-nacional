@@ -11,6 +11,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Lock, MapPin, Mail, Phone, Save, Loader2, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import Navbar from "@/components/shared/navbar";
+import Footer from "@/components/shared/footer";
 import {
   getUserProfile,
   getDefaultAddress,
@@ -197,18 +199,24 @@ const ProfilePage = () => {
 
   if (isLoadingData) {
     return (
-      <div className="min-h-screen bg-background py-12 pt-32">
-        <div className="mx-auto max-w-4xl px-6 lg:px-8">
-          <div className="flex justify-center items-center min-h-[400px]">
-            <Loader2 className="h-12 w-12 animate-spin text-[#D4AF37]" />
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="py-12 pt-32">
+          <div className="mx-auto max-w-4xl px-6 lg:px-8">
+            <div className="flex justify-center items-center min-h-[400px]">
+              <Loader2 className="h-12 w-12 animate-spin text-[#D4AF37]" />
+            </div>
           </div>
         </div>
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background py-12 pt-32">
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <div className="py-12 pt-32">
       <div className="mx-auto max-w-4xl px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-semibold text-foreground">{t('title')}</h1>
@@ -515,6 +523,8 @@ const ProfilePage = () => {
           </TabsContent>
         </Tabs>
       </div>
+      </div>
+      <Footer />
     </div>
   );
 };
