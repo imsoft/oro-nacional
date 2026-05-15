@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter, Link } from "@/i18n/routing";
 import { useTranslations } from 'next-intl';
-import { Mail, Lock, User, AlertCircle, Loader2, CheckCircle2, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, User, AlertCircle, Loader2, CheckCircle2, Eye, EyeOff, Send } from "lucide-react";
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,10 @@ const RegisterPage = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState("");
+  const [isResending, setIsResending] = useState(false);
+  const [resendMessage, setResendMessage] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,12 +68,38 @@ const RegisterPage = () => {
     const result = await register(name, email, password);
 
     if (result.success) {
-      router.push("/");
+      if (result.requiresEmailConfirmation) {
+        setRegisteredEmail(email);
+        setEmailSent(true);
+      } else {
+        router.push("/");
+      }
     } else {
       setError(result.error || t('registerError'));
     }
 
     setIsLoading(false);
+  };
+
+  const handleResend = async () => {
+    setIsResending(true);
+    setResendMessage("");
+    try {
+      const res = await fetch("/api/email/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: registeredEmail, name }),
+      });
+      if (res.ok) {
+        setResendMessage("Correo reenviado. Revisa tu bandeja de entrada.");
+      } else {
+        setResendMessage("No se pudo reenviar. Intenta de nuevo.");
+      }
+    } catch {
+      setResendMessage("No se pudo reenviar. Intenta de nuevo.");
+    } finally {
+      setIsResending(false);
+    }
   };
 
   // Validación de fortaleza de contraseña
@@ -89,6 +119,74 @@ const RegisterPage = () => {
   };
 
   const passwordStrength = getPasswordStrength();
+
+  if (emailSent) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center px-6 py-12 pt-32">
+          <div className="w-full max-w-md text-center">
+            <div className="flex justify-center mb-6">
+              <div className="rounded-full bg-[#D4AF37]/10 p-6">
+                <Mail className="h-12 w-12 text-[#D4AF37]" />
+              </div>
+            </div>
+            <h1 className="text-3xl font-semibold text-foreground mb-3">
+              Revisa tu correo
+            </h1>
+            <p className="text-muted-foreground mb-2">
+              Enviamos un enlace de confirmación a:
+            </p>
+            <p className="text-foreground font-semibold text-lg mb-6">
+              {registeredEmail}
+            </p>
+            <div className="rounded-2xl bg-card p-8 shadow-lg text-left mb-6">
+              <div className="flex items-start gap-3 mb-4">
+                <CheckCircle2 className="h-5 w-5 text-[#D4AF37] mt-0.5 shrink-0" />
+                <p className="text-sm text-muted-foreground">
+                  Haz clic en el enlace del correo para activar tu cuenta.
+                </p>
+              </div>
+              <div className="flex items-start gap-3 mb-4">
+                <CheckCircle2 className="h-5 w-5 text-[#D4AF37] mt-0.5 shrink-0" />
+                <p className="text-sm text-muted-foreground">
+                  Si no lo ves, revisa tu carpeta de <strong>Spam</strong> o <strong>Correo no deseado</strong>.
+                </p>
+              </div>
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="h-5 w-5 text-[#D4AF37] mt-0.5 shrink-0" />
+                <p className="text-sm text-muted-foreground">
+                  El enlace expira en 24 horas.
+                </p>
+              </div>
+            </div>
+
+            {resendMessage && (
+              <p className="text-sm text-green-600 mb-4">{resendMessage}</p>
+            )}
+
+            <Button
+              onClick={handleResend}
+              disabled={isResending}
+              variant="outline"
+              className="w-full border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white mb-4"
+            >
+              {isResending ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Reenviando...</>
+              ) : (
+                <><Send className="mr-2 h-4 w-4" />Reenviar correo de confirmación</>
+              )}
+            </Button>
+
+            <Button asChild variant="ghost" className="w-full text-muted-foreground">
+              <Link href="/login">Ir al inicio de sesión</Link>
+            </Button>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -218,7 +316,7 @@ const RegisterPage = () => {
               {/* Error message */}
               {error && (
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 border border-red-200">
-                  <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
+                  <AlertCircle className="h-5 w-5 text-red-600 shrink-0" />
                   <p className="text-sm text-red-600">{error}</p>
                 </div>
               )}

@@ -16,8 +16,8 @@ interface AuthStore {
   isAuthenticated: boolean;
   isAdmin: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  register: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string; emailNotConfirmed?: boolean }>;
+  register: (name: string, email: string, password: string) => Promise<{ success: boolean; requiresEmailConfirmation?: boolean; error?: string }>;
   logout: () => Promise<void>;
   checkSession: () => Promise<void>;
 }
@@ -123,10 +123,13 @@ export const useAuthStore = create<AuthStore>()(
           });
 
           if (error) {
+            if (error.message === "Email not confirmed") {
+              return { success: false, emailNotConfirmed: true, error: "Debes confirmar tu correo electrónico antes de iniciar sesión." };
+            }
             return {
               success: false,
               error: error.message === "Invalid login credentials"
-                ? "Credenciales incorrectas"
+                ? "Correo o contraseña incorrectos"
                 : error.message,
             };
           }
@@ -211,6 +214,19 @@ export const useAuthStore = create<AuthStore>()(
 
           if (!data.user) {
             return { success: false, error: "Error al registrar usuario" };
+          }
+
+          // Supabase devuelve session=null cuando se requiere confirmación de email
+          if (!data.session) {
+            // Enviar email branded via nuestra API (no bloquea el flujo si falla)
+            if (typeof window !== 'undefined') {
+              fetch('/api/email/resend-verification', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, name }),
+              }).catch(() => {});
+            }
+            return { success: true, requiresEmailConfirmation: true };
           }
 
           // Esperar un momento para que el trigger cree el perfil

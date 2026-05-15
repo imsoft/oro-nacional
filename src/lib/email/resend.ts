@@ -4,6 +4,7 @@ import { ContactFormEmail } from '../../../emails/contact-form-email';
 import { ContactConfirmationEmail } from '../../../emails/contact-confirmation-email';
 import { OrderConfirmationEmail } from '../../../emails/order-confirmation-email';
 import { OrderNotificationEmail } from '../../../emails/order-notification-email';
+import { EmailConfirmation } from '../../../emails/email-confirmation';
 import type { ContactMessage } from '@/types/contact';
 import type { Order } from '@/types/order';
 
@@ -217,6 +218,53 @@ export async function sendOrderConfirmationEmail(
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
     };
+  }
+}
+
+/**
+ * Enviar correo de confirmación de cuenta al usuario recién registrado
+ */
+export async function sendEmailConfirmation(
+  name: string,
+  email: string,
+  confirmationUrl: string,
+  locale: 'es' | 'en' = 'es'
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!process.env.RESEND_API_KEY) {
+      console.log('📧 [DEV] Email confirmation would be sent:', { to: email, confirmationUrl });
+      return { success: true };
+    }
+
+    const resend = getResend();
+    if (!resend) {
+      return { success: false, error: 'Resend API key not configured' };
+    }
+
+    const emailHtml = await render(
+      EmailConfirmation({ customerName: name, confirmationUrl, locale })
+    );
+
+    const subject = locale === 'es'
+      ? 'Confirma tu cuenta - Oro Nacional'
+      : 'Confirm your account - Oro Nacional';
+
+    const { error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: email,
+      subject,
+      html: emailHtml,
+    });
+
+    if (error) {
+      console.error('Error sending email confirmation:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error sending email confirmation:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
 

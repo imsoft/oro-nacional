@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter, Link } from "@/i18n/routing";
 import { useTranslations } from 'next-intl';
-import { Mail, Lock, AlertCircle, Loader2, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, AlertCircle, Loader2, Eye, EyeOff, Send } from "lucide-react";
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,9 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [emailNotConfirmed, setEmailNotConfirmed] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [resendMessage, setResendMessage] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,10 +48,34 @@ const LoginPage = () => {
     if (result.success) {
       router.push("/");
     } else {
+      if (result.emailNotConfirmed) {
+        setEmailNotConfirmed(true);
+      }
       setError(result.error || t('loginError'));
     }
 
     setIsLoading(false);
+  };
+
+  const handleResend = async () => {
+    setIsResending(true);
+    setResendMessage("");
+    try {
+      const res = await fetch("/api/email/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (res.ok) {
+        setResendMessage("Correo reenviado. Revisa tu bandeja de entrada.");
+      } else {
+        setResendMessage("No se pudo reenviar. Intenta de nuevo.");
+      }
+    } catch {
+      setResendMessage("No se pudo reenviar. Intenta de nuevo.");
+    } finally {
+      setIsResending(false);
+    }
   };
 
   return (
@@ -118,9 +145,33 @@ const LoginPage = () => {
 
               {/* Error message */}
               {error && (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 border border-red-200">
-                  <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
-                  <p className="text-sm text-red-600">{error}</p>
+                <div className="rounded-lg bg-red-50 border border-red-200 p-3 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-5 w-5 text-red-600 shrink-0" />
+                    <p className="text-sm text-red-600">{error}</p>
+                  </div>
+                  {emailNotConfirmed && (
+                    <div className="pt-1">
+                      {resendMessage ? (
+                        <p className="text-sm text-green-700">{resendMessage}</p>
+                      ) : (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleResend}
+                          disabled={isResending}
+                          className="h-auto p-0 text-sm text-[#D4AF37] hover:text-[#B8941E] font-medium"
+                        >
+                          {isResending ? (
+                            <><Loader2 className="mr-1 h-3 w-3 animate-spin" />Reenviando...</>
+                          ) : (
+                            <><Send className="mr-1 h-3 w-3" />Reenviar correo de confirmación</>
+                          )}
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
