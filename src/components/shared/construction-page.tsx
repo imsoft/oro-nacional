@@ -1,4 +1,5 @@
-import { Clock, Mail, Phone, MapPin, Instagram, Facebook, Gem } from 'lucide-react';
+import { Clock, Mail, Phone, MapPin, Gem } from 'lucide-react';
+import { FacebookIcon, InstagramIcon } from '@/components/icons/social-brand-icons';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
@@ -112,7 +113,7 @@ const ConstructionPage = () => {
                             className="w-full justify-start border-border text-muted-foreground hover:bg-[#D4AF37]/10 hover:text-[#D4AF37] hover:border-[#D4AF37]/50 transition-all"
                             onClick={() => window.open('https://www.instagram.com/nacionaloro/', '_blank')}
                           >
-                            <Instagram className="w-5 h-5 mr-3" />
+                            <InstagramIcon className="w-5 h-5 mr-3" />
                             @nacionaloro
                           </Button>
                           
@@ -121,7 +122,7 @@ const ConstructionPage = () => {
                             className="w-full justify-start border-border text-muted-foreground hover:bg-[#D4AF37]/10 hover:text-[#D4AF37] hover:border-[#D4AF37]/50 transition-all"
                             onClick={() => window.open('https://www.facebook.com/profile.php?id=61579417826319', '_blank')}
                           >
-                            <Facebook className="w-5 h-5 mr-3" />
+                            <FacebookIcon className="w-5 h-5 mr-3" />
                             Oro Nacional
                           </Button>
                         </div>

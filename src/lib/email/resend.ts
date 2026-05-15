@@ -1,5 +1,5 @@
 import { Resend } from 'resend';
-import { render } from '@react-email/render';
+import { render } from 'react-email';
 import { ContactFormEmail } from '../../../emails/contact-form-email';
 import { ContactConfirmationEmail } from '../../../emails/contact-confirmation-email';
 import { OrderConfirmationEmail } from '../../../emails/order-confirmation-email';

@@ -146,7 +146,7 @@ El color principal de Oro Nacional (`#D4AF37`) está definido en cada plantilla.
 ### Agregar Nuevas Plantillas
 
 1. Crea un nuevo archivo en `emails/`
-2. Usa React Email components de `@react-email/components`
+2. Usa React Email components importados desde el paquete `react-email`
 3. Agrega la función de envío en `src/lib/email/resend.ts`
 4. Crea una API route si es necesario
 

@@ -1,7 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Mail, Phone, MapPin, Clock, Facebook, Instagram } from "lucide-react";
+import { Mail, Phone, MapPin, Clock } from "lucide-react";
+import { FacebookIcon, InstagramIcon } from "@/components/icons/social-brand-icons";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { getStoreSettings, type StoreSettings } from "@/lib/supabase/settings";
@@ -113,7 +114,7 @@ const ContactInfo = () => {
             rel="noopener noreferrer"
             className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors group"
           >
-            <Facebook className="h-5 w-5 text-blue-600" />
+            <FacebookIcon className="h-5 w-5 text-blue-600" />
             <div className="flex-1">
               <p className="text-sm font-medium text-foreground group-hover:text-[#D4AF37] transition-colors">
                 {t('facebook')}
@@ -128,7 +129,7 @@ const ContactInfo = () => {
             rel="noopener noreferrer"
             className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors group"
           >
-            <Instagram className="h-5 w-5 text-pink-600" />
+            <InstagramIcon className="h-5 w-5 text-pink-600" />
             <div className="flex-1">
               <p className="text-sm font-medium text-foreground group-hover:text-[#D4AF37] transition-colors">
                 {t('instagram')}

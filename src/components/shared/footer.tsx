@@ -3,7 +3,8 @@
 import { Link } from "@/i18n/routing";
 import Image from "next/image";
 import { useTranslations, useLocale } from "next-intl";
-import { Facebook, Instagram, Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone, MapPin } from "lucide-react";
+import { FacebookIcon, InstagramIcon } from "@/components/icons/social-brand-icons";
 import { useState, useEffect } from "react";
 import { getStoreSettings, type StoreSettings } from "@/lib/supabase/settings";
 import { getCategories } from "@/lib/supabase/products-multilingual";
@@ -114,7 +115,7 @@ const Footer = () => {
                 aria-label={t("social.facebook")}
               >
                 <span className="sr-only">{t("social.facebook")}</span>
-                <Facebook className="h-6 w-6" />
+                <FacebookIcon className="h-6 w-6" />
               </Link>
               <Link
                 href="https://www.instagram.com/nacionaloro/"
@@ -124,7 +125,7 @@ const Footer = () => {
                 aria-label={t("social.instagram")}
               >
                 <span className="sr-only">{t("social.instagram")}</span>
-                <Instagram className="h-6 w-6" />
+                <InstagramIcon className="h-6 w-6" />
               </Link>
             </div>
             <div className="space-y-2">

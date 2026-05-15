@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { Plus, Pencil, Trash2, Search, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Loader2, GripVertical, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -16,8 +16,26 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import {
   getAllProductCategories,
   deleteProductCategory,
+  updateCategoriesOrder,
 } from "@/lib/supabase/products-multilingual";
 import { Link } from "@/i18n/routing";
 import { toast } from "sonner";
@@ -37,8 +55,108 @@ interface ProductCategoryListItem {
     en: string;
   };
   image_url?: string;
+  display_order: number | null;
+  is_featured?: boolean;
   created_at: string;
   updated_at: string;
+}
+
+function SortableCategoryRow({
+  category,
+  onEditClick,
+  onDeleteClick,
+  isDragDisabled,
+}: {
+  category: ProductCategoryListItem;
+  onEditClick: () => void;
+  onDeleteClick: () => void;
+  isDragDisabled: boolean;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: category.id, disabled: isDragDisabled });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    position: isDragging ? ("relative" as const) : undefined,
+    zIndex: isDragging ? 10 : undefined,
+  };
+
+  return (
+    <tr
+      ref={setNodeRef}
+      style={style}
+      className={`hover:bg-muted/50 ${isDragging ? "bg-muted shadow-lg" : ""}`}
+    >
+      <td className="px-3 py-4 w-10">
+        {!isDragDisabled && (
+          <div
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground transition-colors p-1 rounded"
+            title="Arrastrar para reordenar"
+          >
+            <GripVertical className="h-5 w-5" />
+          </div>
+        )}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div>
+          <div className="text-sm font-medium text-foreground">
+            {category.name.es}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            {category.name.en}
+          </div>
+        </div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div>
+          <div className="text-sm text-muted-foreground">
+            {category.slug.es}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            {category.slug.en}
+          </div>
+        </div>
+      </td>
+      <td className="px-6 py-4">
+        <div className="text-sm text-muted-foreground max-w-md truncate">
+          {category.description?.es || "Sin descripción"}
+        </div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+        <div className="flex items-center justify-end gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+            onClick={onEditClick}
+            asChild
+          >
+            <Link href={`/admin/productos/categorias/${category.id}/editar`}>
+              <Pencil className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+            onClick={onDeleteClick}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </td>
+    </tr>
+  );
 }
 
 export default function ProductCategoriesAdmin() {
@@ -50,6 +168,15 @@ export default function ProductCategoriesAdmin() {
   const [categoryToDelete, setCategoryToDelete] = useState<ProductCategoryListItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
+  const [hasUnsavedOrder, setHasUnsavedOrder] = useState(false);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
     loadCategories();
@@ -67,6 +194,40 @@ export default function ProductCategoriesAdmin() {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    setCategories((prev) => {
+      const oldIndex = prev.findIndex((c) => c.id === active.id);
+      const newIndex = prev.findIndex((c) => c.id === over.id);
+      return arrayMove(prev, oldIndex, newIndex);
+    });
+    setHasUnsavedOrder(true);
+  };
+
+  const handleSaveOrder = async () => {
+    setIsSavingOrder(true);
+    try {
+      const orders = categories.map((c, index) => ({
+        id: c.id,
+        display_order: index,
+      }));
+      await updateCategoriesOrder(orders);
+      setHasUnsavedOrder(false);
+      toast.success("Orden guardado", {
+        description: "El orden de las categorías se guardó correctamente."
+      });
+    } catch (err) {
+      console.error("Error saving order:", err);
+      toast.error("Error al guardar el orden", {
+        description: "No se pudo guardar el nuevo orden. Intenta de nuevo."
+      });
+    } finally {
+      setIsSavingOrder(false);
     }
   };
 
@@ -111,15 +272,19 @@ export default function ProductCategoriesAdmin() {
     }
   };
 
-  const filteredCategories = categories.filter((category) => {
-    const search = searchTerm.toLowerCase();
-    return (
-      category.name.es.toLowerCase().includes(search) ||
-      category.name.en.toLowerCase().includes(search) ||
-      category.slug.es.toLowerCase().includes(search) ||
-      category.slug.en.toLowerCase().includes(search)
-    );
-  });
+  const isSearching = searchTerm.trim().length > 0;
+
+  const filteredCategories = isSearching
+    ? categories.filter((category) => {
+        const search = searchTerm.toLowerCase();
+        return (
+          category.name.es.toLowerCase().includes(search) ||
+          category.name.en.toLowerCase().includes(search) ||
+          category.slug.es.toLowerCase().includes(search) ||
+          category.slug.en.toLowerCase().includes(search)
+        );
+      })
+    : categories;
 
   if (isLoading) {
     return (
@@ -137,15 +302,36 @@ export default function ProductCategoriesAdmin() {
           <h1 className="text-3xl font-bold text-foreground">{t("title")}</h1>
           <p className="mt-2 text-muted-foreground">{t("subtitle")}</p>
         </div>
-        <Button
-          className="bg-[#D4AF37] hover:bg-[#B8941E] text-white"
-          asChild
-        >
-          <Link href="/admin/productos/categorias/nuevo">
-            <Plus className="mr-2 h-5 w-5" />
-            {t("newCategory")}
-          </Link>
-        </Button>
+        <div className="flex items-center gap-3">
+          {hasUnsavedOrder && !isSearching && (
+            <Button
+              onClick={handleSaveOrder}
+              disabled={isSavingOrder}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              {isSavingOrder ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Guardando...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Guardar orden
+                </>
+              )}
+            </Button>
+          )}
+          <Button
+            className="bg-[#D4AF37] hover:bg-[#B8941E] text-white"
+            asChild
+          >
+            <Link href="/admin/productos/categorias/nuevo">
+              <Plus className="mr-2 h-5 w-5" />
+              {t("newCategory")}
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Search */}
@@ -159,6 +345,16 @@ export default function ProductCategoriesAdmin() {
             className="pl-10"
           />
         </div>
+        {!isSearching && categories.length > 1 && (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Arrastra las filas para cambiar el orden en que se muestran las categorías a los clientes.
+          </p>
+        )}
+        {isSearching && (
+          <p className="mt-2 text-xs text-amber-600">
+            El reordenamiento está desactivado mientras buscas. Borra la búsqueda para poder arrastrar.
+          </p>
+        )}
       </div>
 
       {/* Categories Table */}
@@ -167,6 +363,7 @@ export default function ProductCategoriesAdmin() {
           <table className="min-w-full divide-y divide-border">
             <thead className="bg-muted">
               <tr>
+                <th className="px-3 py-3 w-10" />
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   {t("nameColumn")}
                 </th>
@@ -181,69 +378,38 @@ export default function ProductCategoriesAdmin() {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-card divide-y divide-border">
-              {filteredCategories.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center text-muted-foreground">
-                    {searchTerm
-                      ? t("noCategoriesFound")
-                      : t("noCategories")}
-                  </td>
-                </tr>
-              ) : (
-                filteredCategories.map((category) => (
-                  <tr key={category.id} className="hover:bg-muted/50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-foreground">
-                          {category.name.es}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {category.name.en}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm text-muted-foreground">
-                          {category.slug.es}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {category.slug.en}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-muted-foreground max-w-md truncate">
-                        {category.description?.es || t("noDescription")}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                          asChild
-                        >
-                          <Link href={`/admin/productos/categorias/${category.id}/editar`}>
-                            <Pencil className="h-4 w-4" />
-                          </Link>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
-                          onClick={() => handleDeleteClick(category)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={categories.map((c) => c.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <tbody className="bg-card divide-y divide-border">
+                  {filteredCategories.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
+                        {searchTerm
+                          ? t("noCategoriesFound")
+                          : t("noCategories")}
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredCategories.map((category) => (
+                      <SortableCategoryRow
+                        key={category.id}
+                        category={category}
+                        isDragDisabled={isSearching}
+                        onEditClick={() => {}}
+                        onDeleteClick={() => handleDeleteClick(category)}
+                      />
+                    ))
+                  )}
+                </tbody>
+              </SortableContext>
+            </DndContext>
           </table>
         </div>
       </div>
@@ -315,4 +481,3 @@ export default function ProductCategoriesAdmin() {
     </div>
   );
 }
-

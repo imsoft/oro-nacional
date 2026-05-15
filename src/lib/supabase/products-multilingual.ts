@@ -791,9 +791,12 @@ export async function getAllProductCategories() {
       description_es,
       description_en,
       image_url,
+      display_order,
+      is_featured,
       created_at,
       updated_at
     `)
+    .order("display_order", { ascending: true, nullsFirst: false })
     .order("name_es", { ascending: true });
 
   if (error) {
@@ -816,9 +819,32 @@ export async function getAllProductCategories() {
       en: (category.description_en as string) || '',
     } : undefined,
     image_url: category.image_url as string | undefined,
+    display_order: category.display_order as number | null,
+    is_featured: category.is_featured as boolean | undefined,
     created_at: category.created_at as string,
     updated_at: category.updated_at as string,
   }));
+}
+
+/**
+ * Actualizar el orden de visualización de las categorías
+ */
+export async function updateCategoriesOrder(
+  orders: { id: string; display_order: number }[]
+) {
+  const updates = orders.map(({ id, display_order }) =>
+    supabase
+      .from("product_categories")
+      .update({ display_order })
+      .eq("id", id)
+  );
+
+  const results = await Promise.all(updates);
+  const firstError = results.find((r) => r.error)?.error;
+  if (firstError) {
+    console.error("Error updating categories order:", firstError);
+    throw firstError;
+  }
 }
 
 /**
