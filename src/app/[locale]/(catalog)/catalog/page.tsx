@@ -173,8 +173,16 @@ const CatalogPage = ({ params }: { params: { locale: 'es' | 'en' } }) => {
       });
     });
 
-    // Ordenar categorías alfabéticamente
-    return Object.values(grouped).sort((a, b) => a.name.localeCompare(b.name));
+    // Ordenar categorías según el display_order definido en el admin
+    const categoryOrder = categories.map((c) => c.id);
+    return Object.values(grouped).sort((a, b) => {
+      const idxA = categoryOrder.indexOf(a.id);
+      const idxB = categoryOrder.indexOf(b.id);
+      if (idxA === -1 && idxB === -1) return a.name.localeCompare(b.name);
+      if (idxA === -1) return 1;
+      if (idxB === -1) return -1;
+      return idxA - idxB;
+    });
   }, [products, filters, searchTerm, sortBy]);
 
   if (isLoading) {

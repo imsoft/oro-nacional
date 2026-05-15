@@ -331,9 +331,11 @@ export async function getCategories(locale: Locale = 'es') {
       description_es,
       description_en,
       image_url,
+      display_order,
       created_at,
       updated_at
     `)
+    .order("display_order", { ascending: true, nullsFirst: false })
     .order("name_es", { ascending: true });
 
   if (error) {
