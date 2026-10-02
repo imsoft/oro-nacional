@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { use, useState, useEffect } from "react";
 import { Calendar, Clock, User, ArrowLeft, Tag, Loader2, BookOpen } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import Image from "next/image";
@@ -12,8 +12,9 @@ import type { BlogPostDetail, BlogPostCard } from "@/types/blog";
 export default function BlogPostPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
+  const { slug } = use(params);
   const [post, setPost] = useState<BlogPostDetail | null>(null);
   const [relatedPosts, setRelatedPosts] = useState<BlogPostCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -21,12 +22,12 @@ export default function BlogPostPage({
   useEffect(() => {
     loadPost();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.slug]);
+  }, [slug]);
 
   const loadPost = async () => {
     setIsLoading(true);
     try {
-      const postData = await getBlogPostBySlug(params.slug);
+      const postData = await getBlogPostBySlug(slug);
 
       if (!postData) {
         setIsLoading(false);
@@ -57,7 +58,7 @@ export default function BlogPostPage({
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="flex items-center justify-center py-20">
+        <div className="flex items-center justify-center min-h-[60vh] pt-32">
           <Loader2 className="h-8 w-8 animate-spin text-[#D4AF37]" />
         </div>
         <Footer />
@@ -70,7 +71,7 @@ export default function BlogPostPage({
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="flex flex-col items-center justify-center py-20 px-6">
+        <div className="flex flex-col items-center justify-center pt-32 pb-20 px-6">
           <h1 className="text-2xl font-bold text-foreground mb-4">Post no encontrado</h1>
           <p className="text-muted-foreground mb-6">El artículo que buscas no existe o ha sido eliminado.</p>
           <Link
@@ -91,7 +92,7 @@ export default function BlogPostPage({
       <Navbar />
 
       {/* Volver al blog */}
-      <div className="bg-muted/30 border-b border-border">
+      <div className="bg-muted/30 border-b border-border pt-24">
         <div className="mx-auto max-w-4xl px-6 lg:px-8 py-4">
           <Link
             href="/blog"

@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   // Default metadata
   const defaultMetadata: Metadata = {
@@ -16,7 +16,8 @@ export async function generateMetadata({
   };
 
   try {
-    const post = await getBlogPostBySlug(params.slug);
+    const { slug } = await params;
+    const post = await getBlogPostBySlug(slug);
 
     if (!post) {
       return defaultMetadata;
