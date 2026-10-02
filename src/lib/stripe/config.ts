@@ -7,7 +7,7 @@ export function getStripe(): Stripe | null {
     return null;
   }
   return new Stripe(secretKey, {
-    apiVersion: '2026-04-22.dahlia',
+    apiVersion: '2026-08-26.dahlia',
   });
 }
 
