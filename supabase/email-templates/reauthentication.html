@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Código de verificación · Verification code</title>
+</head>
+<!--
+  Plantilla de Supabase Auth (Dashboard → Authentication → Email Templates).
+  Bilingüe: Supabase permite una sola versión por plantilla, así que el texto
+  va en español y debajo en inglés. Mismo diseño que los correos de la app
+  (emails/components/email-layout.tsx).
+-->
+<body style="margin:0;padding:24px 0;background-color:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,&quot;Segoe UI&quot;,Roboto,&quot;Helvetica Neue&quot;,Ubuntu,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f5;">
+    <tr>
+      <td align="center" style="padding:0 12px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background-color:#ffffff;border:1px solid #e4e4e7;border-radius:12px;overflow:hidden;">
+          <tr>
+            <td align="center" style="padding:32px 48px 8px;">
+              <a href="https://www.oronacional.com"><img src="https://www.oronacional.com/logos/logo-oro-nacional-email.png" width="150" height="111" alt="Oro Nacional" style="display:block;margin:0 auto;border:0;"></a>
+              <div style="width:64px;height:2px;background-color:#D4AF37;margin:20px auto 16px;line-height:2px;font-size:0;">&nbsp;</div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:8px 48px 0;">
+              <h1 style="margin:0 0 16px;color:#1a1a1a;font-size:22px;font-weight:600;line-height:1.3;">Tu código de verificación</h1>
+              <p style="margin:0 0 14px;color:#3f3f46;font-size:16px;line-height:1.6;">Usa este código para confirmar tu identidad en Oro Nacional:</p>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:12px 48px 20px;">
+              <div style="display:inline-block;background-color:#fafafa;border:1px solid #e4e4e7;border-radius:8px;padding:14px 32px;color:#1a1a1a;font-size:30px;font-weight:700;letter-spacing:8px;">{{ .Token }}</div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 48px 8px;">
+              <p style="margin:0;color:#71717a;font-size:13px;line-height:1.5;">El código expira pronto y es de un solo uso. Si no lo solicitaste, ignora este correo y cambia tu contraseña.</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:16px 48px 8px;">
+              <div style="border-top:1px solid #e4e4e7;height:1px;line-height:1px;font-size:0;">&nbsp;</div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:8px 48px 0;">
+              <p style="margin:0 0 8px;color:#B8941E;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;">English</p><h1 style="margin:0 0 16px;color:#1a1a1a;font-size:22px;font-weight:600;line-height:1.3;">Your verification code</h1>
+              <p style="margin:0 0 14px;color:#3f3f46;font-size:16px;line-height:1.6;">Use this code to confirm your identity at Oro Nacional:</p>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:12px 48px 20px;">
+              <div style="display:inline-block;background-color:#fafafa;border:1px solid #e4e4e7;border-radius:8px;padding:14px 32px;color:#1a1a1a;font-size:30px;font-weight:700;letter-spacing:8px;">{{ .Token }}</div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 48px 8px;">
+              <p style="margin:0;color:#71717a;font-size:13px;line-height:1.5;">This code expires soon and can be used once. If you didn't request it, ignore this email and change your password.</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:16px 0 0;">&nbsp;</td>
+          </tr>
+          <tr>
+            <td align="center" style="background-color:#fafafa;border-top:1px solid #e4e4e7;padding:28px 48px;">
+              <p style="margin:0 0 12px;color:#B8941E;font-size:14px;font-weight:600;">Elegancia y tradición jalisciense desde 1990</p>
+              <p style="margin:0;color:#71717a;font-size:13px;line-height:1.6;">Magno centro joyero, San Juan de Dios interior #4041<br>Guadalajara, Jalisco</p>
+              <p style="margin:0;color:#71717a;font-size:13px;line-height:1.6;">
+                <a href="tel:+523326363714" style="color:#71717a;">33 2636 3714</a> &middot;
+                <a href="mailto:hola@oronacional.com" style="color:#71717a;">hola@oronacional.com</a>
+              </p>
+              <p style="margin:0;color:#71717a;font-size:13px;line-height:1.6;">
+                <a href="https://www.facebook.com/profile.php?id=61579417826319" style="color:#71717a;">Facebook</a> &middot;
+                <a href="https://www.instagram.com/nacionaloro/" style="color:#71717a;">Instagram</a> &middot;
+                <a href="https://www.oronacional.com" style="color:#71717a;">www.oronacional.com</a>
+              </p>
+              <p style="margin:16px 0 0;color:#71717a;font-size:12px;line-height:1.5;">Este es un correo automático, por favor no respondas a este mensaje.<br>This is an automated email, please do not reply.</p>
+              <p style="margin:8px 0 0;color:#a1a1aa;font-size:12px;">&copy; Oro Nacional</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
