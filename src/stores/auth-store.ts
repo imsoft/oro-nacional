@@ -296,6 +296,8 @@ export const useAuthStore = create<AuthStore>()(
                 data: {
                   full_name: name,
                   role: "user",
+                  // Idioma preferido (disponible en las plantillas de Supabase como .Data.locale)
+                  locale,
                 },
               },
             });
@@ -315,14 +317,9 @@ export const useAuthStore = create<AuthStore>()(
 
             // Supabase devuelve session=null cuando se requiere confirmación de email
             if (!data.session) {
-              // Enviar email branded via nuestra API (no bloquea el flujo si falla)
-              if (typeof window !== 'undefined') {
-                fetch('/api/email/resend-verification', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ email, locale }),
-                }).catch(() => {});
-              }
+              // Supabase ya envía el correo de confirmación (plantilla "Confirm signup"
+              // con la marca, ver supabase/email-templates). /api/email/resend-verification
+              // queda solo para el botón de reenviar, así no llegan dos correos.
               return { success: true, requiresEmailConfirmation: true };
             }
 

@@ -1,15 +1,10 @@
 import {
-  Body,
-  Container,
-  Head,
   Heading,
-  Html,
-  Preview,
   Section,
   Text,
-  Hr,
 } from 'react-email';
 import * as React from 'react';
+import { EmailLayout, emailColors } from './components/email-layout';
 
 interface ContactConfirmationEmailProps {
   name: string;
@@ -42,11 +37,7 @@ export const ContactConfirmationEmail = ({
   const t = translations[locale];
 
   return (
-    <Html>
-      <Head />
-      <Preview>{t.preview}</Preview>
-      <Body style={main}>
-        <Container style={container}>
+    <EmailLayout preview={t.preview} locale={locale} notice={t.footer}>
           <Heading style={h1}>{t.title}</Heading>
 
           <Section style={section}>
@@ -56,34 +47,15 @@ export const ContactConfirmationEmail = ({
             <Text style={text}>{t.message}</Text>
           </Section>
 
-          <Hr style={hr} />
-
-          <Text style={footer}>{t.footer}</Text>
-          <Text style={company}>{t.company}</Text>
-        </Container>
-      </Body>
-    </Html>
+    </EmailLayout>
   );
 };
 
 export default ContactConfirmationEmail;
 
 // Estilos
-const main = {
-  backgroundColor: '#f6f9fc',
-  fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
-};
-
-const container = {
-  backgroundColor: '#ffffff',
-  margin: '0 auto',
-  padding: '20px 0 48px',
-  marginBottom: '64px',
-  maxWidth: '600px',
-};
-
 const h1 = {
-  color: '#D4AF37',
+  color: emailColors.text,
   fontSize: '24px',
   fontWeight: '600',
   lineHeight: '1.25',
@@ -97,33 +69,9 @@ const section = {
 };
 
 const text = {
-  color: '#1e293b',
+  color: emailColors.text,
   fontSize: '16px',
   lineHeight: '1.5',
   margin: '0',
   marginBottom: '16px',
 };
-
-const hr = {
-  borderColor: '#e2e8f0',
-  margin: '32px 48px',
-};
-
-const footer = {
-  color: '#64748b',
-  fontSize: '12px',
-  lineHeight: '1.5',
-  padding: '0 48px',
-  marginTop: '32px',
-  textAlign: 'center' as const,
-};
-
-const company = {
-  color: '#D4AF37',
-  fontSize: '14px',
-  fontWeight: '600',
-  padding: '0 48px',
-  marginTop: '8px',
-  textAlign: 'center' as const,
-};
-

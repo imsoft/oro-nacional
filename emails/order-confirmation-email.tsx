@@ -1,10 +1,5 @@
 import {
-  Body,
-  Container,
-  Head,
   Heading,
-  Html,
-  Preview,
   Section,
   Text,
   Hr,
@@ -12,6 +7,7 @@ import {
   Column,
 } from 'react-email';
 import * as React from 'react';
+import { EmailLayout, emailColors } from './components/email-layout';
 
 interface OrderItem {
   product_name: string;
@@ -126,11 +122,7 @@ export const OrderConfirmationEmail = ({
   };
 
   return (
-    <Html>
-      <Head />
-      <Preview>{t.preview}</Preview>
-      <Body style={main}>
-        <Container style={container}>
+    <EmailLayout preview={t.preview} locale={locale} notice={t.footer}>
           <Heading style={h1}>{t.title}</Heading>
 
           <Section style={section}>
@@ -231,34 +223,15 @@ export const OrderConfirmationEmail = ({
             <Text style={text}>{t.questionsText}</Text>
           </Section>
 
-          <Hr style={hr} />
-
-          <Text style={footer}>{t.footer}</Text>
-          <Text style={company}>{t.company}</Text>
-        </Container>
-      </Body>
-    </Html>
+    </EmailLayout>
   );
 };
 
 export default OrderConfirmationEmail;
 
 // Estilos
-const main = {
-  backgroundColor: '#f6f9fc',
-  fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
-};
-
-const container = {
-  backgroundColor: '#ffffff',
-  margin: '0 auto',
-  padding: '20px 0 48px',
-  marginBottom: '64px',
-  maxWidth: '600px',
-};
-
 const h1 = {
-  color: '#D4AF37',
+  color: emailColors.text,
   fontSize: '24px',
   fontWeight: '600',
   lineHeight: '1.25',
@@ -267,7 +240,7 @@ const h1 = {
 };
 
 const h2 = {
-  color: '#1e293b',
+  color: emailColors.text,
   fontSize: '18px',
   fontWeight: '600',
   lineHeight: '1.25',
@@ -281,7 +254,7 @@ const section = {
 };
 
 const text = {
-  color: '#1e293b',
+  color: emailColors.text,
   fontSize: '16px',
   lineHeight: '1.5',
   margin: '0',
@@ -289,7 +262,7 @@ const text = {
 };
 
 const label = {
-  color: '#64748b',
+  color: emailColors.muted,
   fontSize: '14px',
   fontWeight: '600',
   margin: '0',
@@ -297,7 +270,7 @@ const label = {
 };
 
 const orderNumberText = {
-  color: '#D4AF37',
+  color: emailColors.gold,
   fontSize: '20px',
   fontWeight: '600',
   margin: '0',
@@ -305,14 +278,14 @@ const orderNumberText = {
 };
 
 const itemSection = {
-  backgroundColor: '#f8fafc',
+  backgroundColor: emailColors.panel,
   padding: '16px',
   margin: '8px 0',
   borderRadius: '8px',
 };
 
 const itemName = {
-  color: '#1e293b',
+  color: emailColors.text,
   fontSize: '16px',
   fontWeight: '600',
   margin: '0',
@@ -324,21 +297,21 @@ const itemColumn = {
 };
 
 const itemLabel = {
-  color: '#64748b',
+  color: emailColors.muted,
   fontSize: '14px',
   margin: '0',
   marginBottom: '4px',
 };
 
 const itemDetail = {
-  color: '#64748b',
+  color: emailColors.muted,
   fontSize: '14px',
   margin: '0',
   marginTop: '4px',
 };
 
 const itemSubtotal = {
-  color: '#1e293b',
+  color: emailColors.text,
   fontSize: '14px',
   fontWeight: '600',
   margin: '0',
@@ -350,14 +323,14 @@ const summaryColumn = {
 };
 
 const summaryLabel = {
-  color: '#64748b',
+  color: emailColors.muted,
   fontSize: '14px',
   margin: '0',
   marginBottom: '8px',
 };
 
 const summaryValue = {
-  color: '#1e293b',
+  color: emailColors.text,
   fontSize: '14px',
   textAlign: 'right' as const,
   margin: '0',
@@ -365,12 +338,13 @@ const summaryValue = {
 };
 
 const summaryHr = {
-  borderColor: '#e2e8f0',
+  borderColor: emailColors.border,
   margin: '16px 0',
+  width: 'auto',
 };
 
 const totalLabel = {
-  color: '#1e293b',
+  color: emailColors.text,
   fontSize: '18px',
   fontWeight: '600',
   margin: '0',
@@ -378,7 +352,7 @@ const totalLabel = {
 };
 
 const totalValue = {
-  color: '#D4AF37',
+  color: emailColors.gold,
   fontSize: '18px',
   fontWeight: '600',
   textAlign: 'right' as const,
@@ -387,25 +361,7 @@ const totalValue = {
 };
 
 const hr = {
-  borderColor: '#e2e8f0',
+  borderColor: emailColors.border,
   margin: '32px 48px',
+  width: 'auto',
 };
-
-const footer = {
-  color: '#64748b',
-  fontSize: '12px',
-  lineHeight: '1.5',
-  padding: '0 48px',
-  marginTop: '32px',
-  textAlign: 'center' as const,
-};
-
-const company = {
-  color: '#D4AF37',
-  fontSize: '14px',
-  fontWeight: '600',
-  padding: '0 48px',
-  marginTop: '8px',
-  textAlign: 'center' as const,
-};
-
