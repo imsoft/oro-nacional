@@ -21,17 +21,20 @@ import {
 
 const MyOrdersPage = () => {
   const router = useRouter();
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, hasCheckedSession, user } = useAuthStore();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Esperar a que se verifique la sesión antes de redirigir o consultar
+    if (!hasCheckedSession) return;
+
     if (!isAuthenticated) {
       router.push("/login");
     } else {
       loadOrders();
     }
-  }, [isAuthenticated, router]);
+  }, [hasCheckedSession, isAuthenticated, router]);
 
   const loadOrders = async () => {
     setIsLoading(true);
@@ -51,6 +54,19 @@ const MyOrdersPage = () => {
     return colors[status] || "bg-gray-100 text-gray-800";
   };
 
+  // Montos en la moneda que se cobró (los pedidos en USD guardan total_charged)
+  const formatMoney = (amount: number, currency: "MXN" | "USD") =>
+    `$${Number(amount).toLocaleString(currency === "USD" ? "en-US" : "es-MX", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })} ${currency}`;
+
+  const orderCurrency = (order: Order) =>
+    order.currency === "USD" && order.total_charged != null ? "USD" : "MXN";
+
+  const orderTotal = (order: Order) =>
+    orderCurrency(order) === "USD" ? Number(order.total_charged) : Number(order.total);
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("es-MX", {
       year: "numeric",
@@ -59,7 +75,7 @@ const MyOrdersPage = () => {
     });
   };
 
-  if (!isAuthenticated) {
+  if (hasCheckedSession && !isAuthenticated) {
     return null;
   }
 
@@ -86,7 +102,7 @@ const MyOrdersPage = () => {
         </div>
 
         {/* Loading */}
-        {isLoading ? (
+        {!hasCheckedSession || isLoading ? (
           <div className="flex items-center justify-center py-16">
             <Loader2 className="h-8 w-8 animate-spin text-[#D4AF37]" />
           </div>
@@ -140,7 +156,7 @@ const MyOrdersPage = () => {
                   <div className="text-left lg:text-right">
                     <p className="text-sm text-muted-foreground mb-1">Total</p>
                     <p className="text-2xl font-bold text-[#D4AF37]">
-                      ${order.total.toLocaleString("es-MX")} MXN
+                      {formatMoney(orderTotal(order), orderCurrency(order))}
                     </p>
                   </div>
                 </div>
@@ -240,10 +256,20 @@ const MyOrdersPage = () => {
                                 <div className="flex-1">
                                   <p className="font-medium text-foreground">{item.product_name}</p>
                                   <p className="text-sm text-muted-foreground">
-                                    Cantidad: {item.quantity} × ${item.unit_price.toLocaleString("es-MX")} MXN
+                                    Cantidad: {item.quantity} × {formatMoney(
+                                      orderCurrency(order) === "USD" && item.unit_price_charged != null
+                                        ? item.unit_price_charged
+                                        : item.unit_price,
+                                      orderCurrency(order)
+                                    )}
                                   </p>
                                   <p className="text-sm font-medium text-[#D4AF37] mt-1">
-                                    ${item.subtotal.toLocaleString("es-MX")} MXN
+                                    {formatMoney(
+                                      orderCurrency(order) === "USD" && item.unit_price_charged != null
+                                        ? item.unit_price_charged * item.quantity
+                                        : item.subtotal,
+                                      orderCurrency(order)
+                                    )}
                                   </p>
                                 </div>
                               </div>
@@ -256,11 +282,11 @@ const MyOrdersPage = () => {
                           <div className="space-y-2">
                             <div className="flex justify-between text-sm">
                               <span className="text-muted-foreground">Subtotal</span>
-                              <span className="text-foreground">${order.subtotal.toLocaleString("es-MX")} MXN</span>
+                              <span className="text-foreground">{formatMoney(orderTotal(order), orderCurrency(order))}</span>
                             </div>
                             <div className="flex justify-between text-lg font-semibold border-t border-border pt-2">
                               <span className="text-foreground">Total</span>
-                              <span className="text-[#D4AF37]">${order.total.toLocaleString("es-MX")} MXN</span>
+                              <span className="text-[#D4AF37]">{formatMoney(orderTotal(order), orderCurrency(order))}</span>
                             </div>
                           </div>
                         </div>

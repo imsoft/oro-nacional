@@ -14,27 +14,37 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCartStore } from "@/stores/cart-store";
 import { useAuthStore } from "@/stores/auth-store";
-import { createOrder } from "@/lib/supabase/orders";
+import { supabase } from "@/lib/supabase/client";
 import { getStripeClient } from "@/lib/stripe/client";
 import { StripePaymentElement } from "@/components/checkout/stripe-payment-element";
-import type { CreateOrderData } from "@/types/order";
 import { useCurrency } from "@/contexts/currency-context";
+
+// Pedido pendiente guardado para no duplicarlo si se recarga la página
+const PENDING_CHECKOUT_KEY = "oro-nacional-pending-checkout";
+
+interface PendingCheckout {
+  signature: string;
+  orderId: string;
+  orderNumber: string;
+  clientSecret: string;
+  paymentIntentId: string;
+  total: number;
+}
 
 const CheckoutPage = () => {
   const router = useRouter();
   const locale = useLocale() as 'es' | 'en';
-  const { items, clearCart } = useCartStore();
+  const { items } = useCartStore();
   const { user } = useAuthStore();
-  const total = useCartStore((state) => state.getTotal());
   const itemCount = useCartStore((state) => state.getItemCount());
-  const { formatPrice, currency, convertPrice, exchangeRate } = useCurrency();
+  const { formatPrice, currency, convertPrice } = useCurrency();
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [stripeClient, setStripeClient] = useState<Stripe | null>(null);
   const [stripeEnabled, setStripeEnabled] = useState(false);
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [orderId, setOrderId] = useState<string | null>(null);
+  const [pending, setPending] = useState<PendingCheckout | null>(null);
+  const clientSecret = pending?.clientSecret ?? null;
 
   // Datos de envío
   const [shippingData, setShippingData] = useState({
@@ -49,17 +59,27 @@ const CheckoutPage = () => {
     zipCode: "",
   });
 
-  // Método de pago - Solo tarjeta disponible
-  const [paymentMethod] = useState<"card">("card");
+  // Los precios del carrito están en MXN; convertir a la moneda del idioma actual.
+  // Es solo para mostrar: el monto que se cobra lo calcula el servidor.
+  const cartTotal = items.reduce(
+    (sum, item) => sum + convertPrice(item.price, item.priceUSD) * item.quantity,
+    0
+  );
+  // Una vez creado el pedido, mostrar el total confirmado por el servidor
+  const finalTotal = pending?.total ?? cartTotal;
 
-  const shippingCost = 0; // Envío gratis
-  // El total del carrito está en MXN, convertirlo a la moneda del contexto
-  const subtotalMXN = total + shippingCost;
+  // Identifica el contenido del carrito + datos de envío de un pedido pendiente
+  const checkoutSignature = JSON.stringify({
+    currency,
+    items: items.map((item) => [item.id, item.size ?? null, item.quantity]),
+    shippingData,
+  });
 
-  // Convertir a la moneda seleccionada para mostrar y para Stripe
-  const finalTotal = currency === 'USD'
-    ? (exchangeRate > 0 ? subtotalMXN / exchangeRate : subtotalMXN)
-    : subtotalMXN;
+  const isShippingComplete = Boolean(
+    shippingData.fullName && shippingData.email && shippingData.phone &&
+    shippingData.street && shippingData.number && shippingData.colony &&
+    shippingData.city && shippingData.state && shippingData.zipCode
+  );
 
   // Inicializar Stripe
   useEffect(() => {
@@ -71,6 +91,37 @@ const CheckoutPage = () => {
       }
     };
     initStripe();
+  }, []);
+
+  // Recuperar un pedido pendiente tras recargar la página
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem(PENDING_CHECKOUT_KEY);
+      if (!saved) return;
+      const parsed = JSON.parse(saved) as PendingCheckout;
+      const savedState = JSON.parse(parsed.signature) as {
+        currency: string;
+        items: unknown;
+        shippingData: typeof shippingData;
+      };
+      const currentItems = JSON.stringify(
+        items.map((item) => [item.id, item.size ?? null, item.quantity])
+      );
+      // Solo sirve si el carrito y la moneda no cambiaron
+      if (
+        savedState.currency === currency &&
+        JSON.stringify(savedState.items) === currentItems
+      ) {
+        setShippingData(savedState.shippingData);
+        setPending(parsed);
+      } else {
+        sessionStorage.removeItem(PENDING_CHECKOUT_KEY);
+      }
+    } catch {
+      sessionStorage.removeItem(PENDING_CHECKOUT_KEY);
+    }
+    // Solo al montar
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -86,9 +137,7 @@ const CheckoutPage = () => {
 
   const validateForm = () => {
     // Validar datos de envío
-    if (!shippingData.fullName || !shippingData.email || !shippingData.phone ||
-        !shippingData.street || !shippingData.number || !shippingData.colony ||
-        !shippingData.city || !shippingData.state || !shippingData.zipCode) {
+    if (!isShippingComplete) {
       setError("Por favor completa todos los campos de envío");
       return false;
     }
@@ -96,90 +145,116 @@ const CheckoutPage = () => {
     return true;
   };
 
-  // Crear pedido antes de procesar el pago con Stripe
-  const createOrderForStripe = async (): Promise<string | null> => {
-    if (orderId) return orderId;
+  // Crear el pedido y el pago en el servidor. El navegador solo manda qué
+  // productos quiere; precios y total se calculan en el servidor.
+  const startPayment = async () => {
+    setError("");
 
-    const orderData: CreateOrderData = {
-      customer_name: shippingData.fullName,
-      customer_email: shippingData.email,
-      customer_phone: shippingData.phone,
-      shipping_address: `${shippingData.street} ${shippingData.number}, ${shippingData.colony}`,
-      shipping_city: shippingData.city,
-      shipping_state: shippingData.state,
-      shipping_zip_code: shippingData.zipCode,
-      shipping_country: "México",
-      payment_method: "Tarjeta",
-      items: items.map((item) => ({
-        product_id: item.id,
-        product_name: item.name,
-        product_slug: item.slug,
-        product_sku: undefined,
-        product_image: item.image,
-        quantity: item.quantity,
-        unit_price: item.price,
-        size: item.size,
-        material: item.material,
-      })),
-    };
-
-    const result = await createOrder(orderData);
-    if (result.success && result.order) {
-      setOrderId(result.order.id);
-      return result.order.id;
+    if (!validateForm()) {
+      return;
     }
-    return null;
-  };
 
-  // Limpiar clientSecret cuando cambia el método de pago
-  useEffect(() => {
-    if (paymentMethod !== 'card') {
-      setClientSecret(null);
-      setOrderId(null);
-    }
-  }, [paymentMethod]);
+    setIsLoading(true);
 
-  // Manejar pago exitoso con Stripe
-  const handleStripePaymentSuccess = async (paymentIntentId: string) => {
     try {
-      if (!orderId) {
-        setError("Error: No se encontró el ID del pedido");
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+
+      // Crear un timeout para la solicitud
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos
+
+      // Si había un pedido pendiente con otros datos, el servidor lo cancela
+      let previous: { orderId: string; paymentIntentId: string } | undefined;
+      try {
+        const saved = sessionStorage.getItem(PENDING_CHECKOUT_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved) as PendingCheckout;
+          previous = { orderId: parsed.orderId, paymentIntentId: parsed.paymentIntentId };
+        }
+      } catch {
+        // Ignorar datos guardados corruptos
+      }
+
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
+        body: JSON.stringify({
+          customer_name: shippingData.fullName,
+          customer_email: shippingData.email,
+          customer_phone: shippingData.phone,
+          shipping_address: `${shippingData.street} ${shippingData.number}, ${shippingData.colony}`,
+          shipping_city: shippingData.city,
+          shipping_state: shippingData.state,
+          shipping_zip_code: shippingData.zipCode,
+          shipping_country: "México",
+          currency,
+          locale,
+          previous,
+          items: items.map((item) => ({
+            product_id: item.id,
+            size: item.size ?? null,
+            quantity: item.quantity,
+          })),
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok || !data?.clientSecret) {
+        setError(data?.error || "No se pudo crear el pedido. Por favor intenta de nuevo.");
         return;
       }
 
-      // Enviar correos electrónicos
-      try {
-        const emailResponse = await fetch('/api/email/order', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            orderId: orderId,
-            locale,
-          }),
-        });
-
-        if (!emailResponse.ok) {
-          console.error('Error sending emails:', await emailResponse.text());
-        }
-      } catch (error) {
-        console.error('Error sending emails:', error);
-      }
-
-      // Limpiar carrito
-      clearCart();
-
-      // Guardar información del pedido
-      localStorage.setItem("lastOrderNumber", orderId);
-      localStorage.setItem("paymentIntentId", paymentIntentId);
-
-      // Redirigir a página de confirmación
-      router.push("/checkout/confirmacion");
+      const newPending: PendingCheckout = {
+        signature: checkoutSignature,
+        orderId: data.orderId,
+        orderNumber: data.orderNumber,
+        clientSecret: data.clientSecret,
+        paymentIntentId: data.paymentIntentId,
+        total: data.total,
+      };
+      sessionStorage.setItem(PENDING_CHECKOUT_KEY, JSON.stringify(newPending));
+      setPending(newPending);
     } catch (err) {
-      console.error("Error after payment:", err);
-      setError("Error al procesar el pedido después del pago");
+      console.error('Error:', err);
+      if (err instanceof Error && err.name === 'AbortError') {
+        setError('La solicitud tardó demasiado. Por favor intenta de nuevo.');
+      } else {
+        setError('Error al crear el pago. Por favor intenta de nuevo.');
+      }
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  // Volver a editar los datos de envío: se descarta el pago preparado y al
+  // continuar se crea un pedido nuevo (el anterior se cancela en el servidor).
+  const handleEditShipping = () => {
+    setPending(null);
+    setError("");
+  };
+
+  // Manejar pago exitoso con Stripe
+  const handleStripePaymentSuccess = (paymentIntentId: string) => {
+    // Los correos y la confirmación del pedido se hacen en el servidor
+    // (webhook de Stripe / verificación en la página de confirmación).
+    sessionStorage.removeItem(PENDING_CHECKOUT_KEY);
+    if (pending) {
+      localStorage.setItem("lastOrderNumber", pending.orderNumber);
+    }
+
+    const query = new URLSearchParams({
+      payment_intent: paymentIntentId,
+      payment_intent_client_secret: pending?.clientSecret ?? "",
+    });
+    router.push(`/checkout/confirmacion?${query.toString()}`);
   };
 
   // Manejar pago fallido con Stripe
@@ -188,88 +263,12 @@ const CheckoutPage = () => {
     setIsLoading(false);
   };
 
-  // Manejar submit para métodos de pago que no son tarjeta
+  // El pago se hace con el formulario de Stripe; este submit solo evita el
+  // envío nativo del formulario (p. ej. al presionar Enter).
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-
-    if (!validateForm()) {
-      return;
-    }
-
-    // Si es pago con tarjeta y Stripe está habilitado, el pago se maneja con Stripe Payment Element
-    // No crear el pedido directamente, debe pasar por el flujo de Stripe
-    if (paymentMethod === 'card' && stripeEnabled) {
-      setError("Por favor, primero crea el Payment Intent haciendo clic en 'Continuar al pago con tarjeta'");
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const orderData: CreateOrderData = {
-        customer_name: shippingData.fullName,
-        customer_email: shippingData.email,
-        customer_phone: shippingData.phone,
-        shipping_address: `${shippingData.street} ${shippingData.number}, ${shippingData.colony}`,
-        shipping_city: shippingData.city,
-        shipping_state: shippingData.state,
-        shipping_zip_code: shippingData.zipCode,
-        shipping_country: "México",
-        payment_method: "Tarjeta",
-        items: items.map((item) => ({
-          product_id: item.id,
-          product_name: item.name,
-          product_slug: item.slug,
-          product_sku: undefined,
-          product_image: item.image,
-          quantity: item.quantity,
-          unit_price: item.price,
-          size: item.size,
-          material: item.material,
-        })),
-      };
-
-      const result = await createOrder(orderData);
-
-      if (!result.success || !result.order) {
-        setError(result.error || "Error al procesar el pedido");
-        setIsLoading(false);
-        return;
-      }
-
-      // Enviar correos electrónicos
-      try {
-        const emailResponse = await fetch('/api/email/order', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            orderId: result.order.id,
-            locale,
-          }),
-        });
-
-        if (!emailResponse.ok) {
-          console.error('Error sending emails:', await emailResponse.text());
-        }
-      } catch (error) {
-        console.error('Error sending emails:', error);
-      }
-
-      // Guardar el número de pedido en localStorage para la página de confirmación
-      localStorage.setItem("lastOrderNumber", result.order.order_number);
-
-      // Limpiar carrito
-      clearCart();
-
-      // Redirigir a página de confirmación
-      router.push("/checkout/confirmacion");
-    } catch (err) {
-      console.error("Error al procesar el pedido:", err);
-      setError("Error inesperado al procesar el pedido. Por favor intenta de nuevo.");
-      setIsLoading(false);
+    if (!pending) {
+      await startPayment();
     }
   };
 
@@ -342,6 +341,7 @@ const CheckoutPage = () => {
                   <div className="md:col-span-2 space-y-2">
                     <Label htmlFor="fullName">Nombre Completo *</Label>
                     <Input
+                      disabled={Boolean(pending)}
                       id="fullName"
                       value={shippingData.fullName}
                       onChange={(e) => handleShippingChange("fullName", e.target.value)}
@@ -353,6 +353,7 @@ const CheckoutPage = () => {
                   <div className="space-y-2">
                     <Label htmlFor="email">Correo Electrónico *</Label>
                     <Input
+                      disabled={Boolean(pending)}
                       id="email"
                       type="email"
                       value={shippingData.email}
@@ -365,6 +366,7 @@ const CheckoutPage = () => {
                   <div className="space-y-2">
                     <Label htmlFor="phone">Teléfono *</Label>
                     <Input
+                      disabled={Boolean(pending)}
                       id="phone"
                       type="tel"
                       value={shippingData.phone}
@@ -377,6 +379,7 @@ const CheckoutPage = () => {
                   <div className="space-y-2">
                     <Label htmlFor="street">Calle *</Label>
                     <Input
+                      disabled={Boolean(pending)}
                       id="street"
                       value={shippingData.street}
                       onChange={(e) => handleShippingChange("street", e.target.value)}
@@ -388,6 +391,7 @@ const CheckoutPage = () => {
                   <div className="space-y-2">
                     <Label htmlFor="number">Número *</Label>
                     <Input
+                      disabled={Boolean(pending)}
                       id="number"
                       value={shippingData.number}
                       onChange={(e) => handleShippingChange("number", e.target.value)}
@@ -399,6 +403,7 @@ const CheckoutPage = () => {
                   <div className="space-y-2">
                     <Label htmlFor="colony">Colonia *</Label>
                     <Input
+                      disabled={Boolean(pending)}
                       id="colony"
                       value={shippingData.colony}
                       onChange={(e) => handleShippingChange("colony", e.target.value)}
@@ -410,6 +415,7 @@ const CheckoutPage = () => {
                   <div className="space-y-2">
                     <Label htmlFor="city">Ciudad *</Label>
                     <Input
+                      disabled={Boolean(pending)}
                       id="city"
                       value={shippingData.city}
                       onChange={(e) => handleShippingChange("city", e.target.value)}
@@ -421,6 +427,7 @@ const CheckoutPage = () => {
                   <div className="space-y-2">
                     <Label htmlFor="state">Estado *</Label>
                     <Input
+                      disabled={Boolean(pending)}
                       id="state"
                       value={shippingData.state}
                       onChange={(e) => handleShippingChange("state", e.target.value)}
@@ -432,6 +439,7 @@ const CheckoutPage = () => {
                   <div className="space-y-2">
                     <Label htmlFor="zipCode">Código Postal *</Label>
                     <Input
+                      disabled={Boolean(pending)}
                       id="zipCode"
                       value={shippingData.zipCode}
                       onChange={(e) => handleShippingChange("zipCode", e.target.value)}
@@ -452,9 +460,7 @@ const CheckoutPage = () => {
                 </div>
 
                 {/* Mensaje informativo */}
-                {(!shippingData.fullName || !shippingData.email || !shippingData.phone ||
-                  !shippingData.street || !shippingData.number || !shippingData.colony ||
-                  !shippingData.city || !shippingData.state || !shippingData.zipCode) && (
+                {!isShippingComplete && (
                   <div className="mb-6 p-4 rounded-lg bg-amber-50 border border-amber-200">
                     <div className="flex items-start gap-2">
                       <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
@@ -474,90 +480,29 @@ const CheckoutPage = () => {
                     </h3>
                   </div>
                     {stripeEnabled && clientSecret && stripeClient ? (
-                      <Elements stripe={stripeClient} options={{ clientSecret }}>
-                        <StripePaymentElement
-                          clientSecret={clientSecret}
-                          onSuccess={handleStripePaymentSuccess}
-                          onError={handleStripePaymentError}
-                          isLoading={isLoading}
-                        />
-                      </Elements>
+                      <>
+                        <div className="flex items-center justify-between gap-4 p-4 rounded-lg bg-muted/50 text-sm">
+                          <p className="text-muted-foreground">
+                            Pedido <span className="font-medium text-foreground">{pending?.orderNumber}</span> listo para pagar.
+                          </p>
+                          <Button type="button" variant="outline" size="sm" onClick={handleEditShipping}>
+                            Editar datos de envío
+                          </Button>
+                        </div>
+                        <Elements key={clientSecret} stripe={stripeClient} options={{ clientSecret }}>
+                          <StripePaymentElement
+                            clientSecret={clientSecret}
+                            onSuccess={handleStripePaymentSuccess}
+                            onError={handleStripePaymentError}
+                            isLoading={isLoading}
+                          />
+                        </Elements>
+                      </>
                     ) : stripeEnabled && !clientSecret ? (
                       <Button
                         type="button"
-                        onClick={async () => {
-                          setIsLoading(true);
-                          setError("");
-
-                          try {
-                            // Crear pedido
-                            console.log('Creating order for Stripe...');
-                            const createdOrderId = await createOrderForStripe();
-                            console.log('Order created with ID:', createdOrderId);
-
-                            if (!createdOrderId) {
-                              setError("Error al crear el pedido");
-                              setIsLoading(false);
-                              return;
-                            }
-
-                            // Crear Payment Intent
-                            console.log('Creating Payment Intent...');
-                            // Determinar la moneda según el contexto (español → MXN, inglés → USD)
-                            const stripeCurrency = currency.toLowerCase();
-                            // El amount debe estar en unidades (el API lo convertirá a centavos)
-                            const stripeAmount = finalTotal;
-
-                            // Crear un timeout para la solicitud
-                            const controller = new AbortController();
-                            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos
-
-                            const response = await fetch('/api/stripe/create-payment-intent', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({
-                                amount: stripeAmount,
-                                currency: stripeCurrency,
-                                orderId: createdOrderId,
-                                customerEmail: shippingData.email,
-                                metadata: {
-                                  locale: locale, // Agregar locale para los correos
-                                },
-                              }),
-                              signal: controller.signal,
-                            });
-
-                            clearTimeout(timeoutId);
-
-                            if (!response.ok) {
-                              const errorText = await response.text();
-                              console.error('API Error:', response.status, errorText);
-                              setError(`Error ${response.status}: ${errorText || 'No se pudo crear el pago'}`);
-                              setIsLoading(false);
-                              return;
-                            }
-
-                            const data = await response.json();
-                            console.log('Payment Intent created:', data);
-                            setClientSecret(data.clientSecret);
-                          } catch (err) {
-                            console.error('Error:', err);
-                            if (err instanceof Error) {
-                              if (err.name === 'AbortError') {
-                                setError('La solicitud tardó demasiado. Por favor intenta de nuevo.');
-                              } else {
-                                setError(err.message);
-                              }
-                            } else {
-                              setError('Error desconocido al crear el pago');
-                            }
-                          } finally {
-                            setIsLoading(false);
-                          }
-                        }}
-                        disabled={isLoading || !shippingData.fullName || !shippingData.email || !shippingData.phone ||
-                          !shippingData.street || !shippingData.number || !shippingData.colony ||
-                          !shippingData.city || !shippingData.state || !shippingData.zipCode}
+                        onClick={startPayment}
+                        disabled={isLoading || !isShippingComplete}
                         className="w-full bg-[#D4AF37] hover:bg-[#B8941E] text-white"
                         size="lg"
                       >
@@ -609,7 +554,7 @@ const CheckoutPage = () => {
                           Cantidad: {item.quantity}
                         </p>
                         <p className="text-sm font-medium text-[#D4AF37]">
-                          {formatPrice(item.price * item.quantity)}
+                          {formatPrice(convertPrice(item.price, item.priceUSD) * item.quantity)}
                         </p>
                       </div>
                     </div>
@@ -620,7 +565,7 @@ const CheckoutPage = () => {
                 <div className="space-y-3 border-t border-border pt-4">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Subtotal (precio de contado)</span>
-                    <span className="font-medium">{formatPrice(total)}</span>
+                    <span className="font-medium">{formatPrice(finalTotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Envío</span>
@@ -630,24 +575,7 @@ const CheckoutPage = () => {
                     <span>Total a Pagar</span>
                     <span>{formatPrice(finalTotal)}</span>
                   </div>
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
-                    <p className="text-blue-900 text-xs">
-                      💡 El precio mostrado ya incluye todos los intereses según el plan de pagos seleccionado en la página del producto.
-                    </p>
-                  </div>
                 </div>
-
-                {/* Botón - Solo mostrar si no es pago con tarjeta usando Stripe */}
-                {!(paymentMethod === 'card' && stripeEnabled) && (
-                  <Button
-                    type="submit"
-                    size="lg"
-                    className="w-full mt-6 bg-[#D4AF37] hover:bg-[#B8941E] text-white"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Procesando..." : "Confirmar Pedido"}
-                  </Button>
-                )}
 
                 {/* Seguridad */}
                 <div className="mt-6 pt-6 border-t border-border">

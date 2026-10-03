@@ -109,7 +109,14 @@ export default function ProductsAdmin() {
         const totalStock = p.sizes && p.sizes.length > 0
           ? p.sizes.reduce((stockSum, size) => stockSum + size.stock, 0)
           : p.stock;
-        return sum + p.price * totalStock;
+        // products.price es legado (siempre 0): valorar el inventario con el precio de cada talla
+        if (p.sizes && p.sizes.length > 0) {
+          return sum + p.sizes.reduce(
+            (sizeSum, size) => sizeSum + (Number(size.price) || 0) * (size.stock || 0),
+            0
+          );
+        }
+        return sum + (p.base_price ?? p.price ?? 0) * totalStock;
       }, 0),
       lowStock: activeProducts.filter((p) => {
         const totalStock = p.sizes && p.sizes.length > 0

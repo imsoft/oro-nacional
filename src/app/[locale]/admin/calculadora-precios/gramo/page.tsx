@@ -49,6 +49,8 @@ import {
   updatePricingParameters,
   getAllSubcategoryPricing,
   upsertSubcategoryPricing,
+  calculateGramoPrice,
+  DEFAULT_SUBCATEGORY_GRAMO_PRICING,
   type SubcategoryPricingData,
 } from "@/lib/supabase/pricing";
 import type {
@@ -78,6 +80,14 @@ export default function PriceCalculatorPage() {
 
   // Refs for debouncing save operations
   const saveTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  // Debounce para guardar los parámetros globales (evita guardar en cada tecla)
+  const parametersSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Convertir decimal a porcentaje sin artefactos de punto flotante (0.07 -> 7, no 7.000000000000001)
+  const toPercent = (value: number): number => parseFloat((value * 100).toFixed(4));
+  // Convertir el valor de un input de porcentaje a decimal (permite dejar el campo vacío)
+  const percentInputToDecimal = (value: string): string =>
+    value === "" ? "" : (parseFloat(value) / 100).toString();
 
   // Format currency in Mexican Pesos
   const formatMXN = (amount: number): string => {
@@ -124,14 +134,7 @@ export default function PriceCalculatorPage() {
       const savedPricingData = await getAllSubcategoryPricing();
       
       // Initialize pricing data for all subcategories with default values or saved data
-      const defaults = {
-        goldGrams: 5,
-        factor: 0.442,
-        laborCost: 15,
-        stoneCost: 0,
-        salesCommission: 30,
-        shippingCost: 800,
-      };
+      const defaults = { ...DEFAULT_SUBCATEGORY_GRAMO_PRICING };
       
       const pricingMap = new Map<string, Partial<ProductPricingData>>();
       subcategoriesData.forEach((subcategory) => {
@@ -172,9 +175,9 @@ export default function PriceCalculatorPage() {
       subtotalWithProfit + commissionCost + shippingCost;
     const subtotalWithVat = subtotalWithCommissions * (1 + parameters.vat);
 
-    // INCLUIR comisiones de Stripe en el precio final: 3.6% + $3 MXN
-    const stripePercentage = 0.036; // 3.6%
-    const stripeFixedFee = 3; // $3 MXN
+    // INCLUIR comisiones de Stripe en el precio final usando los parámetros guardados
+    const stripePercentage = parameters.stripePercentage;
+    const stripeFixedFee = parameters.stripeFixedFee;
     const finalPrice = (subtotalWithVat * (1 + stripePercentage)) + stripeFixedFee;
 
     return {
@@ -229,20 +232,77 @@ export default function PriceCalculatorPage() {
     // Update state immediately for responsive UI
     setParameters(newParameters);
 
-    // Auto-save to database asynchronously (don't block UI)
-    setIsSavingParameters(true);
-    try {
-      await updatePricingParameters(newParameters);
-      // Don't update state after save - keep local state to prevent re-render and focus loss
-    } catch (error) {
-      console.error("Error saving pricing parameters:", error);
-      // Revert on error
-      const params = await getPricingParameters();
-      if (params) {
-        setParameters(params);
+    // Auto-save to database with debounce (no guardar en cada tecla)
+    if (parametersSaveTimeoutRef.current) {
+      clearTimeout(parametersSaveTimeoutRef.current);
+    }
+    parametersSaveTimeoutRef.current = setTimeout(async () => {
+      parametersSaveTimeoutRef.current = null;
+      setIsSavingParameters(true);
+      try {
+        await updatePricingParameters(newParameters);
+        // Don't update state after save - keep local state to prevent re-render and focus loss
+      } catch (error) {
+        console.error("Error saving pricing parameters:", error);
+        alert("Error al guardar los parámetros. Se restauraron los valores guardados.");
+        // Revert on error
+        const params = await getPricingParameters();
+        if (params) {
+          setParameters(params);
+        }
+      } finally {
+        setIsSavingParameters(false);
       }
-    } finally {
-      setIsSavingParameters(false);
+    }, 800); // 800 ms debounce
+  };
+
+  // Datos de cálculo de una subcategoría, para evaluar la fórmula completa por talla
+  const getPricingDataFromCalc = (calc: ProductPricingCalculation): SubcategoryPricingData => ({
+    goldGrams: calc.goldGrams,
+    factor: calc.factor,
+    laborCost: calc.laborCost,
+    stoneCost: calc.stoneCost,
+    salesCommission: calc.salesCommission,
+    shippingCost: calc.shippingCost,
+  });
+
+  // Precio de una talla según sus gramos usando la fórmula completa (igual que el formulario de productos)
+  const getSizePriceForCalc = (calc: ProductPricingCalculation, weight: number): number =>
+    calculateGramoPrice({ ...getPricingDataFromCalc(calc), goldGrams: weight }, parameters);
+
+  // Rango de precios (mín – máx) para mostrar
+  const formatPriceRange = (prices: number[], fallback: number): string => {
+    const valid = prices.filter((price) => Number.isFinite(price) && price > 0);
+    if (valid.length === 0) return formatMXN(fallback);
+    const min = Math.min(...valid);
+    const max = Math.max(...valid);
+    return min === max ? formatMXN(min) : `${formatMXN(min)} – ${formatMXN(max)}`;
+  };
+
+  // Precio actual del producto: precios de sus tallas o, si no tiene, el precio base
+  const getCurrentPriceLabel = (product: ProductListItem): string =>
+    formatPriceRange(
+      (product.sizes || []).map((size) => Number(size.price)),
+      product.base_price ?? product.price ?? 0
+    );
+
+  // Precio nuevo que se aplicaría a cada talla del producto
+  const getNewPriceLabel = (product: ProductListItem, calc: ProductPricingCalculation): string =>
+    formatPriceRange(
+      (product.sizes || []).map((size) =>
+        size.weight && size.weight > 0 ? getSizePriceForCalc(calc, Number(size.weight)) : calc.finalPrice
+      ),
+      calc.finalPrice
+    );
+
+  // Recargar los productos de una subcategoría ya abierta (después de aplicar precios)
+  const reloadProductsForSubcategory = async (subcategoryId: string) => {
+    if (!subcategoryProducts.has(subcategoryId)) return;
+    try {
+      const products = await getProductsWithDetailsBySubcategory(subcategoryId);
+      setSubcategoryProducts(prev => new Map(prev).set(subcategoryId, products));
+    } catch (error) {
+      console.error(`Error reloading products for subcategory ${subcategoryId}:`, error);
     }
   };
 
@@ -281,6 +341,7 @@ export default function PriceCalculatorPage() {
         } catch (error) {
           console.error("Error saving subcategory pricing:", error);
           saveTimeoutsRef.current.delete(subcategoryId);
+          alert("Error al guardar los datos de la subcategoría. Los cambios no se guardaron.");
         }
       }, 1000); // 1 second debounce
       
@@ -302,6 +363,11 @@ export default function PriceCalculatorPage() {
     const calc = calculatedSubcategories.find(c => c.id === subcategoryId);
     if (!calc) {
       alert("Error: No se pudo encontrar la información de cálculo.");
+      return;
+    }
+
+    if (!(parameters.goldQuotation > 0)) {
+      alert("Error: La cotización del oro debe ser mayor a 0 para aplicar precios.");
       return;
     }
 
@@ -327,22 +393,24 @@ export default function PriceCalculatorPage() {
         return;
       }
 
-      // Actualizar precios base y calcular precios de tallas proporcionalmente
+      // Actualizar precios base y calcular el precio de cada talla con la fórmula completa según sus gramos
       const priceUpdates = productIds.map(id => ({
         id,
         price: finalPrice,
         baseGrams: baseGrams,
+        getSizePrice: (weight: number) => getSizePriceForCalc(calc, weight),
       }));
 
       const results = await updateMultipleProductPrices(priceUpdates);
+      await reloadProductsForSubcategory(subcategoryId);
 
       if (results.failed.length > 0) {
         alert(
-          `Se actualizaron ${results.successful.length} productos correctamente. ${results.failed.length} productos fallaron.`
+          `Se actualizaron ${results.successful.length} productos correctamente. ${results.failed.length} productos fallaron.\n\n${results.failed.map(f => `- ${f.error}`).join('\n')}`
         );
       } else {
         alert(
-          `¡Éxito! Se actualizaron ${results.successful.length} productos correctamente. Los precios de las tallas se calcularon proporcionalmente.`
+          `¡Éxito! Se actualizaron ${results.successful.length} productos correctamente. Los precios de las tallas se calcularon con la fórmula completa según sus gramos.`
         );
       }
     } catch (error) {
@@ -355,11 +423,19 @@ export default function PriceCalculatorPage() {
   };
 
   const handleApplyAllPrices = async () => {
+    if (!(parameters.goldQuotation > 0)) {
+      alert("Error: La cotización del oro debe ser mayor a 0 para aplicar precios.");
+      return;
+    }
     setConfirmApplyAllDialogOpen(true);
   };
 
   const confirmApplyAllPrices = async () => {
     setConfirmApplyAllDialogOpen(false);
+    if (!(parameters.goldQuotation > 0)) {
+      alert("Error: La cotización del oro debe ser mayor a 0 para aplicar precios.");
+      return;
+    }
     setIsApplyingAllPrices(true);
 
     try {
@@ -387,14 +463,16 @@ export default function PriceCalculatorPage() {
             continue; // No hay productos, continuar con la siguiente
           }
 
-          // Actualizar precios base y calcular precios de tallas proporcionalmente
+          // Actualizar precios base y calcular el precio de cada talla con la fórmula completa según sus gramos
           const priceUpdates = productIds.map(id => ({
             id,
             price: calc.finalPrice,
             baseGrams: baseGrams,
+            getSizePrice: (weight: number) => getSizePriceForCalc(calc, weight),
           }));
 
           const results = await updateMultipleProductPrices(priceUpdates);
+          await reloadProductsForSubcategory(calc.id);
           totalSuccessful += results.successful.length;
           totalFailed += results.failed.length;
 
@@ -422,7 +500,7 @@ export default function PriceCalculatorPage() {
         );
       } else {
         alert(
-          `¡Éxito! Se actualizaron ${totalSuccessful} productos correctamente en todas las subcategorías. Los precios de las tallas se calcularon proporcionalmente.`
+          `¡Éxito! Se actualizaron ${totalSuccessful} productos correctamente en todas las subcategorías. Los precios de las tallas se calcularon con la fórmula completa según sus gramos.`
         );
       }
     } catch (error) {
@@ -578,11 +656,11 @@ export default function PriceCalculatorPage() {
                       id="profitMargin"
                       type="number"
                       step="0.01"
-                      value={parameters.profitMargin * 100}
+                      value={toPercent(parameters.profitMargin)}
                       onChange={(e) =>
                         handleParameterChange(
                           "profitMargin",
-                          (parseFloat(e.target.value) / 100).toString()
+                          percentInputToDecimal(e.target.value)
                         )
                       }
                       disabled={!isUnlocked}
@@ -596,11 +674,11 @@ export default function PriceCalculatorPage() {
                       id="vat"
                       type="number"
                       step="0.01"
-                      value={parameters.vat * 100}
+                      value={toPercent(parameters.vat)}
                       onChange={(e) =>
                         handleParameterChange(
                           "vat",
-                          (parseFloat(e.target.value) / 100).toString()
+                          percentInputToDecimal(e.target.value)
                         )
                       }
                       disabled={!isUnlocked}
@@ -612,11 +690,11 @@ export default function PriceCalculatorPage() {
                       id="stripePercentage"
                       type="number"
                       step="0.01"
-                      value={parameters.stripePercentage * 100}
+                      value={toPercent(parameters.stripePercentage)}
                       onChange={(e) =>
                         handleParameterChange(
                           "stripePercentage",
-                          (parseFloat(e.target.value) / 100).toString()
+                          percentInputToDecimal(e.target.value)
                         )
                       }
                       disabled={!isUnlocked}
@@ -643,7 +721,7 @@ export default function PriceCalculatorPage() {
           </Dialog>
           <Button
             onClick={handleApplyAllPrices}
-            disabled={isApplyingAllPrices || calculatedSubcategories.length === 0}
+            disabled={isApplyingAllPrices || calculatedSubcategories.length === 0 || !(parameters.goldQuotation > 0)}
             className="gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium disabled:text-white disabled:opacity-50"
           >
             {isApplyingAllPrices ? (
@@ -761,8 +839,8 @@ export default function PriceCalculatorPage() {
                 <li>• Cotización del Oro</li>
                 <li>• Utilidad (%)</li>
                 <li>• IVA (%)</li>
-                <li>• Stripe (%) - Solo para referencia</li>
-                <li>• Stripe Fijo - Solo para referencia</li>
+                <li>• Stripe (%)</li>
+                <li>• Stripe Fijo</li>
               </ul>
             </div>
           </div>
@@ -818,7 +896,7 @@ export default function PriceCalculatorPage() {
                             e.stopPropagation();
                             handleApplyPriceToProducts(calc.id, calc.finalPrice);
                           }}
-                          disabled={isApplyingPrices || applyingToSubcategory === calc.id}
+                          disabled={isApplyingPrices || applyingToSubcategory === calc.id || !(parameters.goldQuotation > 0)}
                           className="gap-2 bg-green-600 hover:bg-green-700 text-white"
                         >
                           {isApplyingPrices && applyingToSubcategory === calc.id ? (
@@ -975,8 +1053,8 @@ export default function PriceCalculatorPage() {
                                     <h5 className="font-medium text-sm">{product.name}</h5>
                                     <p className="text-xs text-muted-foreground">Material: {product.material}</p>
                                     <div className="flex gap-4 mt-1 text-xs">
-                                      <span>Precio actual: <span className="font-semibold">{formatMXN(product.price)}</span></span>
-                                      <span>Nuevo precio: <span className="font-semibold text-[#D4AF37]">{formatMXN(calc.finalPrice)}</span></span>
+                                      <span>Precio actual: <span className="font-semibold">{getCurrentPriceLabel(product)}</span></span>
+                                      <span>Nuevo precio: <span className="font-semibold text-[#D4AF37]">{getNewPriceLabel(product, calc)}</span></span>
                                     </div>
                                   </div>
                                   <HoverCard>
@@ -1028,8 +1106,8 @@ export default function PriceCalculatorPage() {
                                           </div>
 
                                           <div className="bg-yellow-50 p-2 rounded border border-yellow-200">
-                                            <p className="font-semibold text-yellow-900 mb-1">Paso 4: Agregamos la ganancia ({(parameters?.profitMargin || 0) * 100}%)</p>
-                                            <p className="text-gray-700">Tomamos el subtotal anterior y le agregamos {(parameters?.profitMargin || 0) * 100}% de ganancia</p>
+                                            <p className="font-semibold text-yellow-900 mb-1">Paso 4: Agregamos la ganancia ({toPercent(parameters?.profitMargin || 0)}%)</p>
+                                            <p className="text-gray-700">Tomamos el subtotal anterior y le agregamos {toPercent(parameters?.profitMargin || 0)}% de ganancia</p>
                                             <p className="font-mono font-semibold text-yellow-900 mt-1">
                                               {formatMXN(calc.subtotalBeforeProfit)} × {(1 + (parameters?.profitMargin || 0)).toFixed(2)} = {formatMXN(calc.subtotalWithProfit)}
                                             </p>
@@ -1064,8 +1142,8 @@ export default function PriceCalculatorPage() {
                                           </div>
 
                                           <div className="bg-indigo-50 p-2 rounded border border-indigo-200">
-                                            <p className="font-semibold text-indigo-900 mb-1">Paso 7: Agregamos el IVA ({(parameters?.vat || 0) * 100}%)</p>
-                                            <p className="text-gray-700">El gobierno cobra {(parameters?.vat || 0) * 100}% de impuesto</p>
+                                            <p className="font-semibold text-indigo-900 mb-1">Paso 7: Agregamos el IVA ({toPercent(parameters?.vat || 0)}%)</p>
+                                            <p className="text-gray-700">El gobierno cobra {toPercent(parameters?.vat || 0)}% de impuesto</p>
                                             <p className="text-gray-700">Multiplicamos el subtotal anterior por {(1 + (parameters?.vat || 0)).toFixed(2)}</p>
                                             <p className="font-mono font-semibold text-indigo-900 mt-1">
                                               {formatMXN(calc.subtotalWithCommissions)} × {(1 + (parameters?.vat || 0)).toFixed(2)} = {formatMXN(calc.subtotalWithVat)}
@@ -1077,7 +1155,7 @@ export default function PriceCalculatorPage() {
 
                                           <div className="bg-teal-50 p-2 rounded border border-teal-200">
                                             <p className="font-semibold text-teal-900 mb-1">Paso 8: Agregamos la comisión de Stripe</p>
-                                            <p className="text-gray-700">Stripe cobra {(parameters?.stripePercentage || 0) * 100}% más {formatMXN(parameters?.stripeFixedFee || 0)} fijos</p>
+                                            <p className="text-gray-700">Stripe cobra {toPercent(parameters?.stripePercentage || 0)}% más {formatMXN(parameters?.stripeFixedFee || 0)} fijos</p>
                                             <p className="text-gray-700">Primero multiplicamos por {(1 + (parameters?.stripePercentage || 0)).toFixed(4)}</p>
                                             <p className="text-gray-700">Luego sumamos {formatMXN(parameters?.stripeFixedFee || 0)}</p>
                                             <p className="font-mono font-semibold text-teal-900 mt-1">
@@ -1218,7 +1296,7 @@ export default function PriceCalculatorPage() {
                 </p>
                 <ul className="text-sm text-blue-700 list-disc list-inside space-y-1">
                   <li>Actualizará el precio base de todos los productos</li>
-                  <li>Calculará proporcionalmente los precios de todas las tallas</li>
+                  <li>Calculará el precio de cada talla con la fórmula completa según sus gramos</li>
                   <li>Aplicará los precios según los cálculos actuales de cada subcategoría</li>
                 </ul>
               </div>

@@ -1,24 +1,86 @@
+import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { Truck, Package, MapPin, Clock, Shield, CheckCircle2 } from "lucide-react";
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
+import { buildAlternates, localizedUrl, ogLocale, toSiteLocale } from "@/lib/seo";
 
-const ShippingPage = () => {
+type Params = Promise<{ locale: string }>;
+
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  const locale = toSiteLocale((await params).locale);
+
+  const content = {
+    es: {
+      title: "Política de Envíos | Oro Nacional Guadalajara",
+      description:
+        "Envío gratis, seguro y asegurado a toda la República Mexicana. Conoce los tiempos de entrega, cobertura, rastreo y empaque de tu joyería de oro - Oro Nacional.",
+    },
+    en: {
+      title: "Shipping Policy | Oro Nacional Guadalajara",
+      description:
+        "Free, secure and insured shipping throughout Mexico. Learn about delivery times, coverage, tracking and packaging for your gold jewelry - Oro Nacional.",
+    },
+  }[locale];
+
+  return {
+    title: content.title,
+    description: content.description,
+    openGraph: {
+      title: content.title,
+      description: content.description,
+      type: "website",
+      locale: ogLocale(locale),
+      url: localizedUrl("/shipping", locale),
+      siteName: "Oro Nacional",
+    },
+    alternates: buildAlternates("/shipping", locale),
+  };
+}
+
+// Nombres propios de los estados (iguales en ambos idiomas)
+const coverageStates = [
+  "Aguascalientes",
+  "Baja California",
+  "Baja California Sur",
+  "Campeche",
+  "Chiapas",
+  "Chihuahua",
+  "Ciudad de México",
+  "Coahuila",
+  "Colima",
+  "Durango",
+  "Estado de México",
+  "Guanajuato",
+  "Guerrero",
+  "Hidalgo",
+];
+
+const ShippingPage = async ({ params }: { params: Params }) => {
+  const locale = toSiteLocale((await params).locale);
+  const t = await getTranslations({ locale, namespace: "shipping" });
+
+  const standardItems = t.raw("standardItems") as string[];
+  const expressItems = t.raw("expressItems") as string[];
+  const packagingItems = t.raw("packagingItems") as string[];
+  const faqItems = t.raw("faqItems") as Array<{ q: string; a: string }>;
+  const strong = (chunks: React.ReactNode) => <strong>{chunks}</strong>;
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
 
       {/* Hero */}
-      <section className="relative bg-gradient-to-b from-muted/50 to-background py-16 lg:py-20">
+      <section className="relative bg-gradient-to-b from-muted/50 to-background py-16 lg:py-20 pt-32 lg:pt-40">
         <div className="mx-auto max-w-4xl px-6 lg:px-8 text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#D4AF37]/10 mb-6">
             <Truck className="h-8 w-8 text-[#D4AF37]" />
           </div>
           <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
-            Política de Envíos
+            {t("title")}
           </h1>
           <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-            Envío seguro y asegurado a toda la República Mexicana. Tu joya llegará
-            en perfectas condiciones directamente a tu puerta.
+            {t("subtitle")}
           </p>
         </div>
       </section>
@@ -35,11 +97,10 @@ const ShippingPage = () => {
                 </div>
                 <div>
                   <h2 className="text-2xl font-semibold text-foreground">
-                    Envío Gratis a Todo México
+                    {t("freeTitle")}
                   </h2>
                   <p className="mt-2 text-muted-foreground">
-                    En todas las compras, sin mínimo. Queremos que disfrutes tu joya
-                    sin preocupaciones adicionales.
+                    {t("freeDescription")}
                   </p>
                 </div>
               </div>
@@ -49,7 +110,7 @@ const ShippingPage = () => {
           {/* Tiempos de entrega */}
           <div className="mb-12">
             <h2 className="text-2xl font-semibold text-foreground mb-6">
-              Tiempos de Entrega
+              {t("deliveryTitle")}
             </h2>
             <div className="space-y-4">
               <div className="rounded-lg bg-card p-6 shadow-sm">
@@ -57,16 +118,15 @@ const ShippingPage = () => {
                   <Clock className="h-6 w-6 text-[#D4AF37] mt-1" />
                   <div className="flex-1">
                     <h3 className="font-semibold text-foreground mb-2">
-                      Envío Estándar (Gratis)
+                      {t("standardTitle")}
                     </h3>
                     <p className="text-sm text-muted-foreground mb-3">
-                      <strong>3 a 5 días hábiles</strong> a partir de la confirmación
-                      del pedido.
+                      {t.rich("standardTime", { strong })}
                     </p>
                     <ul className="text-sm text-muted-foreground space-y-1">
-                      <li>• Zona Metropolitana de Guadalajara: 2-3 días</li>
-                      <li>• Jalisco y estados vecinos: 3-4 días</li>
-                      <li>• Resto de la República: 4-5 días</li>
+                      {standardItems.map((item) => (
+                        <li key={item}>• {item}</li>
+                      ))}
                     </ul>
                   </div>
                 </div>
@@ -77,16 +137,15 @@ const ShippingPage = () => {
                   <Truck className="h-6 w-6 text-[#D4AF37] mt-1" />
                   <div className="flex-1">
                     <h3 className="font-semibold text-foreground mb-2">
-                      Envío Express (+$200 MXN)
+                      {t("expressTitle")}
                     </h3>
                     <p className="text-sm text-muted-foreground mb-3">
-                      <strong>1 a 2 días hábiles</strong> para cuando necesitas tu
-                      joya urgentemente.
+                      {t.rich("expressTime", { strong })}
                     </p>
                     <ul className="text-sm text-muted-foreground space-y-1">
-                      <li>• Guadalajara: Entrega al siguiente día hábil</li>
-                      <li>• Principales ciudades: 1-2 días</li>
-                      <li>• Zonas remotas: No disponible</li>
+                      {expressItems.map((item) => (
+                        <li key={item}>• {item}</li>
+                      ))}
                     </ul>
                   </div>
                 </div>
@@ -97,33 +156,21 @@ const ShippingPage = () => {
           {/* Cobertura */}
           <div className="mb-12">
             <h2 className="text-2xl font-semibold text-foreground mb-6">
-              Cobertura de Envíos
+              {t("coverageTitle")}
             </h2>
             <div className="rounded-lg bg-card p-6 shadow-sm">
               <div className="flex items-start gap-4">
                 <MapPin className="h-6 w-6 text-[#D4AF37] mt-1" />
                 <div className="flex-1">
                   <p className="text-sm text-muted-foreground mb-4">
-                    Realizamos envíos a los 32 estados de la República Mexicana a
-                    través de paqueterías certificadas y confiables.
+                    {t("coverageDescription")}
                   </p>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm text-muted-foreground">
-                    <div>✓ Aguascalientes</div>
-                    <div>✓ Baja California</div>
-                    <div>✓ Baja California Sur</div>
-                    <div>✓ Campeche</div>
-                    <div>✓ Chiapas</div>
-                    <div>✓ Chihuahua</div>
-                    <div>✓ Ciudad de México</div>
-                    <div>✓ Coahuila</div>
-                    <div>✓ Colima</div>
-                    <div>✓ Durango</div>
-                    <div>✓ Estado de México</div>
-                    <div>✓ Guanajuato</div>
-                    <div>✓ Guerrero</div>
-                    <div>✓ Hidalgo</div>
+                    {coverageStates.map((state) => (
+                      <div key={state}>✓ {state}</div>
+                    ))}
                     <div className="font-semibold text-[#D4AF37]">✓ Jalisco</div>
-                    <div>✓ Y todos los demás...</div>
+                    <div>✓ {t("coverageOthers")}</div>
                   </div>
                 </div>
               </div>
@@ -133,7 +180,7 @@ const ShippingPage = () => {
           {/* Seguridad del envío */}
           <div className="mb-12">
             <h2 className="text-2xl font-semibold text-foreground mb-6">
-              Seguridad y Rastreo
+              {t("securityTitle")}
             </h2>
             <div className="space-y-4">
               <div className="rounded-lg bg-card p-6 shadow-sm">
@@ -141,12 +188,10 @@ const ShippingPage = () => {
                   <Shield className="h-6 w-6 text-[#D4AF37] mt-1" />
                   <div className="flex-1">
                     <h3 className="font-semibold text-foreground mb-2">
-                      Envío Asegurado
+                      {t("insuredTitle")}
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      Todos nuestros envíos están completamente asegurados contra
-                      pérdida, robo o daño durante el transporte. En el remoto caso de
-                      algún incidente, reponemos tu joya sin costo adicional.
+                      {t("insuredDescription")}
                     </p>
                   </div>
                 </div>
@@ -157,12 +202,10 @@ const ShippingPage = () => {
                   <Package className="h-6 w-6 text-[#D4AF37] mt-1" />
                   <div className="flex-1">
                     <h3 className="font-semibold text-foreground mb-2">
-                      Número de Rastreo
+                      {t("trackingTitle")}
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      Una vez que tu pedido sea enviado, recibirás un correo
-                      electrónico con tu número de rastreo para que puedas seguir tu
-                      paquete en tiempo real hasta tu puerta.
+                      {t("trackingDescription")}
                     </p>
                   </div>
                 </div>
@@ -173,33 +216,19 @@ const ShippingPage = () => {
           {/* Empaque */}
           <div className="mb-12">
             <h2 className="text-2xl font-semibold text-foreground mb-6">
-              Empaque Premium
+              {t("packagingTitle")}
             </h2>
             <div className="rounded-lg bg-card p-6 shadow-sm">
               <p className="text-sm text-muted-foreground mb-4">
-                Cada joya se envía en un empaque elegante que incluye:
+                {t("packagingIntro")}
               </p>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <span className="text-[#D4AF37] mt-1">✓</span>
-                  <span>Caja de regalo premium con logo de Oro Nacional</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-[#D4AF37] mt-1">✓</span>
-                  <span>Certificado de autenticidad y garantía</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-[#D4AF37] mt-1">✓</span>
-                  <span>Guía de cuidados para tu joya</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-[#D4AF37] mt-1">✓</span>
-                  <span>Paño de limpieza de microfibra</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-[#D4AF37] mt-1">✓</span>
-                  <span>Empaque exterior discreto y seguro</span>
-                </li>
+                {packagingItems.map((item) => (
+                  <li key={item} className="flex items-start gap-2">
+                    <span className="text-[#D4AF37] mt-1">✓</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
               </ul>
             </div>
           </div>
@@ -207,38 +236,19 @@ const ShippingPage = () => {
           {/* Preguntas comunes */}
           <div className="rounded-2xl bg-muted/30 p-8">
             <h2 className="text-xl font-semibold text-foreground mb-6">
-              Preguntas Frecuentes sobre Envíos
+              {t("faqTitle")}
             </h2>
             <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold text-foreground mb-1">
-                  ¿Puedo recoger mi pedido en tienda?
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Sí, ofrecemos la opción de recoger en nuestra tienda en
-                  Guadalajara sin costo. Selecciona esta opción al finalizar tu
-                  compra.
-                </p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground mb-1">
-                  ¿Requiere firma la entrega?
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Sí, por seguridad todos los envíos requieren firma del
-                  destinatario o persona autorizada.
-                </p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground mb-1">
-                  ¿Envían a domicilios particulares?
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Sí, enviamos tanto a domicilios particulares como a oficinas. Solo
-                  asegúrate de proporcionar una dirección donde alguien pueda recibir
-                  el paquete.
-                </p>
-              </div>
+              {faqItems.map((item) => (
+                <div key={item.q}>
+                  <h3 className="font-semibold text-foreground mb-1">
+                    {item.q}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {item.a}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         </div>

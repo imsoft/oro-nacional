@@ -2,13 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { Link } from "@/i18n/routing";
-import { useTranslations } from "next-intl";
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
 import { AlertCircle, Search, ArrowRight } from "lucide-react";
 import { getProducts } from "@/lib/supabase/products";
 import type { Product } from "@/types/product";
-import { useCurrency } from "@/contexts/currency-context";
+import { getPrimaryImageUrl, useProductPriceLabel } from "@/components/catalog/product-display";
 
 interface ProductNotFoundProps {
   slug: string;
@@ -16,8 +15,7 @@ interface ProductNotFoundProps {
 }
 
 export function ProductNotFound({ slug, locale }: ProductNotFoundProps) {
-  const t = useTranslations("catalog");
-  const { convertPrice, formatPrice } = useCurrency();
+  const getPriceLabel = useProductPriceLabel();
   const [suggestedProducts, setSuggestedProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -26,7 +24,7 @@ export function ProductNotFound({ slug, locale }: ProductNotFoundProps) {
       try {
         const products = await getProducts(locale);
         // Tomar 4 productos aleatorios o los primeros 4
-        const suggestions = products
+        const suggestions = [...products]
           .sort(() => Math.random() - 0.5)
           .slice(0, 4);
         setSuggestedProducts(suggestions);
@@ -40,17 +38,13 @@ export function ProductNotFound({ slug, locale }: ProductNotFoundProps) {
     loadSuggestions();
   }, [locale]);
 
-  const transformedProducts = suggestedProducts.map((p) => {
-    const primaryImage = p.images?.find((img) => img.is_primary)?.image_url;
-    const priceInCurrency = convertPrice(p.price, p.base_price_usd);
-    return {
-      id: p.id,
-      name: p.name,
-      price: formatPrice(priceInCurrency),
-      image: primaryImage || "https://via.placeholder.com/400x400?text=Sin+Imagen",
-      slug: p.slug,
-    };
-  });
+  const transformedProducts = suggestedProducts.map((p) => ({
+    id: p.id,
+    name: p.name,
+    price: getPriceLabel(p),
+    image: getPrimaryImageUrl(p.images),
+    slug: p.slug,
+  }));
 
   return (
     <div className="min-h-screen bg-background">

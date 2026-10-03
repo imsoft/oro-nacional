@@ -1,5 +1,6 @@
 import { supabase } from "./client";
 import type { Product, ProductDetail, ProductListItem, FeaturedCategory } from "@/types/product";
+import { getStoreSettings } from "./settings";
 
 /**
  * Get all active products with their categories and primary images
@@ -123,6 +124,7 @@ export async function getAllProducts() {
       slug_es,
       slug_en,
       price,
+      base_price,
       stock,
       material_es,
       material_en,
@@ -149,6 +151,7 @@ export async function getAllProducts() {
       slug_es: string;
       slug_en: string;
       price: number;
+      base_price?: number | null;
       stock: number;
       material_es: string;
       material_en: string;
@@ -162,6 +165,7 @@ export async function getAllProducts() {
       name: p.name_es || p.name_en || 'Sin nombre', // Preferir español, fallback a inglés
       slug: p.slug_es || p.slug_en || '',
       price: p.price,
+      base_price: p.base_price ?? undefined,
       stock: p.stock,
       material: p.material_es || p.material_en || 'Sin material',
       is_active: p.is_active,
@@ -503,6 +507,7 @@ export async function getProductById(id: string) {
       weight,
       has_engraving,
       is_active,
+      available_languages,
       category_id,
       base_price,
       base_price_usd,
@@ -747,17 +752,49 @@ export async function updateProduct(
 
 /**
  * Delete product images from database and storage
+ * Si se elimina la imagen principal, se promueve la siguiente imagen (por display_order) a principal
  */
 export async function deleteProductImages(imageIds: string[]) {
   // First, get the image URLs to delete from storage
   const { data: images, error: fetchError } = await supabase
     .from("product_images")
-    .select("image_url")
+    .select("id, image_url, product_id, is_primary")
     .in("id", imageIds);
 
   if (fetchError) {
     console.error("Error fetching images for deletion:", fetchError);
     throw fetchError;
+  }
+
+  // Delete from storage first (si falla, el registro se conserva y se puede reintentar)
+  if (images && images.length > 0) {
+    const filePaths: string[] = [];
+    for (const image of images) {
+      try {
+        // Extract the file path from the public URL
+        const url = new URL(image.image_url);
+        const pathParts = url.pathname.split('/');
+        const bucketIndex = pathParts.findIndex(part => part === 'product-images');
+
+        if (bucketIndex !== -1 && bucketIndex < pathParts.length - 1) {
+          filePaths.push(decodeURIComponent(pathParts.slice(bucketIndex + 1).join('/')));
+        }
+      } catch (error) {
+        console.error("Error parsing image URL:", error);
+        // URL externa o inválida: no hay archivo que eliminar en el bucket
+      }
+    }
+
+    if (filePaths.length > 0) {
+      const { error: storageError } = await supabase.storage
+        .from("product-images")
+        .remove(filePaths);
+
+      if (storageError) {
+        console.error("Error deleting image from storage:", storageError);
+        throw storageError;
+      }
+    }
   }
 
   // Delete from database
@@ -771,30 +808,31 @@ export async function deleteProductImages(imageIds: string[]) {
     throw dbError;
   }
 
-  // Delete from storage
-  if (images && images.length > 0) {
-    for (const image of images) {
-      try {
-        // Extract the file path from the public URL
-        const url = new URL(image.image_url);
-        const pathParts = url.pathname.split('/');
-        const bucketIndex = pathParts.findIndex(part => part === 'product-images');
+  // Si se eliminó la imagen principal, promover la siguiente imagen del producto
+  const affectedProductIds = Array.from(
+    new Set((images || []).filter((img) => img.is_primary && img.product_id).map((img) => img.product_id as string))
+  );
 
-        if (bucketIndex !== -1 && bucketIndex < pathParts.length - 1) {
-          const filePath = pathParts.slice(bucketIndex + 1).join('/');
+  for (const productId of affectedProductIds) {
+    const { data: remaining, error: remainingError } = await supabase
+      .from("product_images")
+      .select("id, is_primary, display_order")
+      .eq("product_id", productId)
+      .order("display_order", { ascending: true });
 
-          const { error: storageError } = await supabase.storage
-            .from("product-images")
-            .remove([filePath]);
+    if (remainingError) {
+      console.error("Error fetching remaining product images:", remainingError);
+      continue;
+    }
 
-          if (storageError) {
-            console.error("Error deleting image from storage:", storageError);
-            // Don't throw here, continue with other deletions
-          }
-        }
-      } catch (error) {
-        console.error("Error parsing image URL:", error);
-        // Continue with other deletions
+    if (remaining && remaining.length > 0 && !remaining.some((img) => img.is_primary)) {
+      const { error: promoteError } = await supabase
+        .from("product_images")
+        .update({ is_primary: true })
+        .eq("id", remaining[0].id);
+
+      if (promoteError) {
+        console.error("Error promoting next image to primary:", promoteError);
       }
     }
   }
@@ -845,6 +883,8 @@ export async function addProductImages(
 
     if (imageError) {
       console.error("Error creating image record:", imageError);
+      // Evitar archivos huérfanos si no se pudo crear el registro
+      await supabase.storage.from("product-images").remove([fileName]);
       throw imageError;
     }
 
@@ -1165,24 +1205,52 @@ export async function updateProductPrice(productId: string, newPrice: number) {
 /**
  * Update multiple product prices at once
  * Used by price calculator for bulk price updates
- * Now updates base_price and base_grams, and calculates size prices proportionally
+ * Updates base_price / base_grams (and base_price_usd) and recalculates every size price.
+ *
+ * - getSizePrice (opcional): evalúa la fórmula completa de la calculadora para el peso de la talla
+ *   (gramos en Gramo, piezas en Broquel). Así "Aplicar" y el formulario de productos dan el mismo precio.
+ * - Sin getSizePrice se conserva el cálculo proporcional anterior: (peso_talla / baseGrams) × precio_base
+ * - Cada vez que se escribe un precio MXN también se escribe su precio USD con la tasa de cambio de la tienda
  */
 export async function updateMultipleProductPrices(
-  priceUpdates: Array<{ id: string; price: number; baseGrams: number }>
+  priceUpdates: Array<{
+    id: string;
+    price: number;
+    baseGrams: number;
+    getSizePrice?: (weight: number) => number;
+  }>
 ) {
   const results = {
     successful: [] as string[],
     failed: [] as Array<{ id: string; error: string }>,
   };
 
+  // Tasa de cambio (MXN por 1 USD) para mantener sincronizados los precios USD
+  const settings = await getStoreSettings();
+  const exchangeRate = Number(settings?.exchange_rate);
+  const hasExchangeRate = Number.isFinite(exchangeRate) && exchangeRate > 0;
+  if (!hasExchangeRate) {
+    console.warn("[updateMultipleProductPrices] Tasa de cambio no disponible; los precios USD se dejarán en NULL para convertirse al vuelo");
+  }
+  const round2 = (value: number) => Math.round(value * 100) / 100;
+  const toUsd = (priceMxn: number): number | null =>
+    hasExchangeRate && priceMxn > 0 ? round2(priceMxn / exchangeRate) : null;
+
   // Update products one by one to ensure proper error handling
   for (const update of priceUpdates) {
     try {
-      // 1. Update base_price and base_grams in the product
+      if (!Number.isFinite(update.price) || update.price <= 0) {
+        throw new Error("Precio calculado inválido");
+      }
+
+      const basePrice = round2(update.price);
+
+      // 1. Update base_price, base_price_usd and base_grams in the product
       const { error: productError } = await supabase
         .from("products")
         .update({
-          base_price: update.price,
+          base_price: basePrice,
+          base_price_usd: toUsd(basePrice),
           base_grams: update.baseGrams
         })
         .eq("id", update.id);
@@ -1194,42 +1262,55 @@ export async function updateMultipleProductPrices(
       // 2. Get all sizes for this product
       const { data: sizes, error: sizesError } = await supabase
         .from("product_sizes")
-        .select("id, weight, price")
+        .select("id, size, weight, price")
         .eq("product_id", update.id);
 
       if (sizesError) {
         throw sizesError;
       }
 
-      // 3. Update all size prices proportionally based on weight
-      // Para Gramo: baseGrams = gramos base usados en el cálculo
-      // Para Broquel: baseGrams = gramos_por_pieza × número_de_piezas
-      // En ambos casos: precio_talla = (gramos_talla / baseGrams) × precio_base
+      // 3. Update all size prices based on weight
       if (sizes && sizes.length > 0) {
         const sizeUpdates = sizes.map(size => {
           let calculatedPrice = update.price;
+          const weight = Number(size.weight);
 
-          if (size.weight && size.weight > 0 && update.baseGrams > 0) {
-            calculatedPrice = (size.weight / update.baseGrams) * update.price;
+          if (weight > 0) {
+            if (update.getSizePrice) {
+              // Fórmula completa de la calculadora para el peso/piezas de esta talla
+              const formulaPrice = update.getSizePrice(weight);
+              if (Number.isFinite(formulaPrice) && formulaPrice > 0) {
+                calculatedPrice = formulaPrice;
+              }
+            } else if (update.baseGrams > 0) {
+              calculatedPrice = (weight / update.baseGrams) * update.price;
+            }
           }
 
           return {
             id: size.id,
-            price: Math.round(calculatedPrice * 100) / 100, // Round to 2 decimal places
+            size: size.size,
+            price: round2(calculatedPrice), // Round to 2 decimal places
           };
         });
 
-        // Update all size prices
+        // Update all size prices (MXN y USD)
+        const sizeErrors: string[] = [];
         for (const sizeUpdate of sizeUpdates) {
           const { error: sizeUpdateError } = await supabase
             .from("product_sizes")
-            .update({ price: sizeUpdate.price })
+            .update({ price: sizeUpdate.price, price_usd: toUsd(sizeUpdate.price) })
             .eq("id", sizeUpdate.id);
 
           if (sizeUpdateError) {
             console.error(`Error updating size ${sizeUpdate.id}:`, sizeUpdateError);
             // Continue with other sizes even if one fails
+            sizeErrors.push(`${sizeUpdate.size}: ${sizeUpdateError.message}`);
           }
+        }
+
+        if (sizeErrors.length > 0) {
+          throw new Error(`No se pudieron actualizar ${sizeErrors.length} talla(s) (${sizeErrors.join("; ")})`);
         }
       }
 
@@ -1237,7 +1318,9 @@ export async function updateMultipleProductPrices(
     } catch (error) {
       results.failed.push({
         id: update.id,
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: error instanceof Error
+          ? error.message
+          : (error as { message?: string })?.message || "Unknown error",
       });
     }
   }

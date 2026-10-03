@@ -18,22 +18,21 @@ const BlogPage = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   // Cargar posts al montar
+  // isLoading inicia en true; la página se vuelve a montar al cambiar de ruta
   useEffect(() => {
-    loadPosts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const loadPosts = async () => {
+      try {
+        const postsData = await getPublishedPosts(locale);
+        setPosts(postsData);
+      } catch (error) {
+        console.error("Error loading blog posts:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const loadPosts = async () => {
-    setIsLoading(true);
-    try {
-      const postsData = await getPublishedPosts(locale);
-      setPosts(postsData);
-    } catch (error) {
-      console.error("Error loading blog posts:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    loadPosts();
+  }, [locale]);
 
   return (
     <div className="min-h-screen bg-background">

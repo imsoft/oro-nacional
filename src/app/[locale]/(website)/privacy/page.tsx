@@ -1,25 +1,67 @@
+import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { ArrowLeft } from "lucide-react";
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
+import { buildAlternates, localizedUrl, ogLocale, toSiteLocale } from "@/lib/seo";
+import { SITE_CONTACT } from "@/lib/site-contact";
 
-export const metadata = {
-  title: "Política de Privacidad - Oro Nacional",
-  description: "Política de privacidad y protección de datos personales de Oro Nacional S.A. de C.V.",
-};
+type Params = Promise<{ locale: string }>;
 
-const PrivacyPage = () => {
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  const locale = toSiteLocale((await params).locale);
+
+  const content = {
+    es: {
+      title: "Política de Privacidad - Oro Nacional",
+      description:
+        "Política de privacidad y protección de datos personales de Oro Nacional S.A. de C.V.",
+    },
+    en: {
+      title: "Privacy Policy - Oro Nacional",
+      description:
+        "Privacy and personal data protection policy of Oro Nacional S.A. de C.V.",
+    },
+  }[locale];
+
+  return {
+    title: content.title,
+    description: content.description,
+    openGraph: {
+      title: content.title,
+      description: content.description,
+      type: "website",
+      locale: ogLocale(locale),
+      url: localizedUrl("/privacy", locale),
+      siteName: "Oro Nacional",
+    },
+    alternates: buildAlternates("/privacy", locale),
+  };
+}
+
+const PrivacyPage = async ({ params }: { params: Params }) => {
+  const locale = toSiteLocale((await params).locale);
+  const t = await getTranslations({ locale, namespace: "privacy" });
+
+  const list = (key: string) => t.raw(key) as string[];
+  const email = (chunks: React.ReactNode) => (
+    <a href={SITE_CONTACT.emailHref} className="text-[#D4AF37] hover:underline">
+      {chunks}
+    </a>
+  );
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
-      <main className="flex-1 mx-auto max-w-4xl px-6 lg:px-8 py-24 lg:py-32">
+      <main className="flex-1 mx-auto max-w-4xl px-6 lg:px-8 pt-32 pb-24 lg:py-32">
         <Link
           href="/"
           className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Volver al inicio
+          {t("backHome")}
         </Link>
 
         <div className="text-center mb-12">
@@ -27,204 +69,174 @@ const PrivacyPage = () => {
             Oro Nacional S.A. de C.V.
           </h1>
           <h2 className="text-2xl font-semibold text-foreground">
-            POLÍTICA DE PRIVACIDAD
+            {t("heading")}
           </h2>
         </div>
 
         <div className="prose prose-neutral max-w-none space-y-8">
           <section className="border-b border-border pb-8">
             <h3 className="text-xl font-semibold text-foreground mb-4">
-              1. Responsable del Tratamiento de Datos Personales
+              {t("s1Title")}
             </h3>
             <p className="text-muted-foreground leading-relaxed">
-              Oro Nacional S.A. de C.V., con domicilio en [agregar dirección fiscal o principal],
-              es responsable del tratamiento, uso y protección de los datos personales proporcionados
-              por sus clientes, en cumplimiento con la Ley Federal de Protección de Datos Personales
-              en Posesión de los Particulares (LFPDPPP).
+              {t("s1Text")}
             </p>
           </section>
 
           <section className="border-b border-border pb-8">
             <h3 className="text-xl font-semibold text-foreground mb-4">
-              2. Datos Personales que Recabamos
+              {t("s2Title")}
             </h3>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              Oro Nacional recaba los siguientes datos personales de manera directa o indirecta a
-              través de su sitio web, redes sociales, o durante el proceso de compra:
+              {t("s2Intro")}
             </p>
             <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4">
-              <li>Nombre completo</li>
-              <li>Dirección de envío y facturación</li>
-              <li>Teléfono de contacto</li>
-              <li>Correo electrónico</li>
-              <li>RFC (en caso de requerir factura)</li>
-              <li>Información de pago (procesada por terceros con protocolos de seguridad)</li>
-              <li>Historial de compras y preferencias</li>
+              {list("s2Items").map((item) => (
+                <li key={item}>{item}</li>
+              ))}
             </ul>
             <p className="text-muted-foreground leading-relaxed mt-4">
-              No se solicitan ni almacenan datos sensibles (como estado de salud, religión,
-              orientación sexual, etc.).
+              {t("s2Note")}
             </p>
           </section>
 
           <section className="border-b border-border pb-8">
             <h3 className="text-xl font-semibold text-foreground mb-4">
-              3. Finalidades del Tratamiento de Datos
+              {t("s3Title")}
             </h3>
 
             <div className="mb-6">
               <h4 className="text-lg font-semibold text-foreground mb-3">
-                Finalidades principales:
+                {t("s3PrimaryTitle")}
               </h4>
               <ol className="list-decimal list-inside text-muted-foreground space-y-2 ml-4">
-                <li>Procesar pedidos y realizar la entrega de productos.</li>
-                <li>Emitir comprobantes fiscales.</li>
-                <li>Gestionar pagos y cobros.</li>
-                <li>Brindar atención al cliente y soporte postventa.</li>
+                {list("s3PrimaryItems").map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
               </ol>
             </div>
 
             <div className="mb-6">
               <h4 className="text-lg font-semibold text-foreground mb-3">
-                Finalidades secundarias:
+                {t("s3SecondaryTitle")}
               </h4>
               <ol className="list-decimal list-inside text-muted-foreground space-y-2 ml-4">
-                <li>Enviar promociones, novedades y lanzamientos de productos.</li>
-                <li>Realizar encuestas de satisfacción y análisis de mercado.</li>
-                <li>Mejorar la experiencia del usuario en el sitio web.</li>
+                {list("s3SecondaryItems").map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
               </ol>
             </div>
 
             <p className="text-muted-foreground leading-relaxed mt-4">
-              El titular puede negar el uso de sus datos para finalidades secundarias enviando un
-              correo a{" "}
-              <a href="mailto:contacto@oronacional.mx" className="text-[#D4AF37] hover:underline">
-                contacto@oronacional.mx
-              </a>
-              {" "}con el asunto &quot;Cancelación de uso secundario de datos&quot;.
+              {t.rich("s3OptOut", { email })}
             </p>
           </section>
 
           <section className="border-b border-border pb-8">
             <h3 className="text-xl font-semibold text-foreground mb-4">
-              4. Transferencia de Datos Personales
+              {t("s4Title")}
             </h3>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              Oro Nacional no vende, renta ni cede datos personales a terceros. Únicamente se
-              comparten con:
+              {t("s4Intro")}
             </p>
             <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4">
-              <li>Empresas de mensajería (para entrega de productos).</li>
-              <li>Plataformas de pago (para procesar transacciones).</li>
-              <li>Autoridades fiscales o judiciales, en caso de requerimiento legal.</li>
+              {list("s4Items").map((item) => (
+                <li key={item}>{item}</li>
+              ))}
             </ul>
             <p className="text-muted-foreground leading-relaxed mt-4">
-              Todos los terceros están sujetos a cláusulas de confidencialidad y protección de datos
-              conforme a la ley mexicana.
+              {t("s4Note")}
             </p>
           </section>
 
           <section className="border-b border-border pb-8">
             <h3 className="text-xl font-semibold text-foreground mb-4">
-              5. Derechos ARCO (Acceso, Rectificación, Cancelación y Oposición)
+              {t("s5Title")}
             </h3>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              El titular tiene derecho a:
+              {t("s5Intro")}
             </p>
             <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4">
-              <li>Acceder a sus datos personales.</li>
-              <li>Rectificar información incorrecta.</li>
-              <li>Cancelar sus datos cuando considere que no se requieren.</li>
-              <li>Oponerse al uso de sus datos para fines específicos.</li>
+              {list("s5Rights").map((item) => (
+                <li key={item}>{item}</li>
+              ))}
             </ul>
             <p className="text-muted-foreground leading-relaxed mt-4">
-              Para ejercer estos derechos, el titular deberá enviar una solicitud escrita al correo{" "}
-              <a href="mailto:contacto@oronacional.mx" className="text-[#D4AF37] hover:underline">
-                contacto@oronacional.mx
-              </a>
-              , incluyendo:
+              {t.rich("s5Request", { email })}
             </p>
             <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4 mt-2">
-              <li>Nombre completo y medio de contacto.</li>
-              <li>Descripción clara del derecho que desea ejercer.</li>
-              <li>Copia de identificación oficial vigente.</li>
+              {list("s5Requirements").map((item) => (
+                <li key={item}>{item}</li>
+              ))}
             </ul>
             <p className="text-muted-foreground leading-relaxed mt-4">
-              El plazo de respuesta será de máximo 15 días hábiles a partir de la recepción de la
-              solicitud.
+              {t("s5Deadline")}
             </p>
           </section>
 
-          <section className="border-b border-border pb-8">
+          {/* Destino del enlace "Política de cookies" del footer (/privacy#cookies) */}
+          <section id="cookies" className="border-b border-border pb-8 scroll-mt-32">
             <h3 className="text-xl font-semibold text-foreground mb-4">
-              6. Uso de Cookies y Tecnologías Similares
+              {t("s6Title")}
             </h3>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              El sitio web de Oro Nacional utiliza cookies y etiquetas web para mejorar la
-              experiencia del usuario, analizar tráfico y ofrecer contenido personalizado.
+              {t("s6Text1")}
             </p>
             <p className="text-muted-foreground leading-relaxed">
-              El usuario puede deshabilitar las cookies desde su navegador sin afectar la
-              funcionalidad básica del sitio.
+              {t("s6Text2")}
             </p>
           </section>
 
           <section className="border-b border-border pb-8">
             <h3 className="text-xl font-semibold text-foreground mb-4">
-              7. Protección de la Información
+              {t("s7Title")}
             </h3>
             <p className="text-muted-foreground leading-relaxed">
-              Oro Nacional aplica medidas de seguridad administrativa, técnica y física para
-              proteger los datos personales contra daño, pérdida, alteración o acceso no
-              autorizado.
+              {t("s7Text")}
             </p>
           </section>
 
           <section className="border-b border-border pb-8">
             <h3 className="text-xl font-semibold text-foreground mb-4">
-              8. Cambios a la Política de Privacidad
+              {t("s8Title")}
             </h3>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              Oro Nacional podrá modificar esta política para cumplir con actualizaciones legales
-              o mejoras internas.
+              {t("s8Text1")}
             </p>
             <p className="text-muted-foreground leading-relaxed">
-              Cualquier cambio será notificado a través del sitio web www.oronacional.mx, en la
-              sección &quot;Política de Privacidad&quot;.
+              {t("s8Text2")}
             </p>
           </section>
 
           <section className="border-b border-border pb-8">
             <h3 className="text-xl font-semibold text-foreground mb-4">
-              9. Legislación y Jurisdicción
+              {t("s9Title")}
             </h3>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              Esta Política de Privacidad se rige por la legislación mexicana, en particular por
-              la Ley Federal de Protección de Datos Personales en Posesión de los Particulares.
+              {t("s9Text1")}
             </p>
             <p className="text-muted-foreground leading-relaxed">
-              Cualquier controversia será resuelta ante los tribunales competentes de la Ciudad
-              de Guadalajara, Jalisco, México.
+              {t("s9Text2")}
             </p>
           </section>
 
           <section className="mt-12 pt-8 border-t-2 border-border">
             <div className="text-center">
               <p className="text-muted-foreground mb-4">
-                Representante Legal
+                {t("legalRepresentative")}
               </p>
               <p className="text-foreground font-semibold mb-4">
                 Oro Nacional S.A. de C.V.
               </p>
               <p className="text-sm text-muted-foreground italic">
-                Firma y sello oficial
+                {t("signature")}
               </p>
             </div>
           </section>
 
           <footer className="mt-12 pt-8 border-t border-border text-center">
             <p className="text-sm text-muted-foreground">
-              © Oro Nacional S.A. de C.V. – Todos los derechos reservados 2025 | www.oronacional.mx
+              {t("copyright")}
             </p>
           </footer>
         </div>

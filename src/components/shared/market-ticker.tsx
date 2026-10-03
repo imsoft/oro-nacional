@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 
+const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
+
 export function MarketTicker() {
   const t = useTranslations('marketTicker');
   const locale = useLocale();
@@ -13,10 +15,8 @@ export function MarketTicker() {
 
   const fetchMarketData = async () => {
     try {
-      setIsLoading(true);
+      // isLoading solo aplica a la carga inicial; las actualizaciones no ocultan la cintilla
       setError(null);
-
-      console.log('[MarketTicker] Fetching market data...');
 
       // Obtener cotización del oro y tasa de cambio desde configuración
       // Agregar timestamp para evitar caché
@@ -38,7 +38,6 @@ export function MarketTicker() {
 
       if (goldResponse.ok) {
         const goldResult = await goldResponse.json();
-        console.log('[MarketTicker] Gold quotation response:', goldResult);
         setGoldQuotation(goldResult.gold_quotation);
       } else {
         console.error('[MarketTicker] Gold quotation API error:', goldResponse.status);
@@ -46,7 +45,6 @@ export function MarketTicker() {
 
       if (exchangeResponse.ok) {
         const exchangeResult = await exchangeResponse.json();
-        console.log('[MarketTicker] Exchange rate response:', exchangeResult);
         setExchangeRate(exchangeResult.exchange_rate);
       } else {
         console.error('[MarketTicker] Exchange rate API error:', exchangeResponse.status);
@@ -63,8 +61,8 @@ export function MarketTicker() {
     // Fetch immediately
     fetchMarketData();
 
-    // Fetch every 10 seconds for more frequent updates
-    const interval = setInterval(fetchMarketData, 10000);
+    // Refresh every 5 minutes (the values change at most a few times a day)
+    const interval = setInterval(fetchMarketData, REFRESH_INTERVAL_MS);
 
     return () => clearInterval(interval);
   }, []);
@@ -94,18 +92,15 @@ export function MarketTicker() {
   const displayGoldQuotation = goldQuotation ?? 2550.00;
   const displayExchangeRate = exchangeRate ?? 18.00;
 
-  console.log('[MarketTicker] Displaying:', { goldQuotation, exchangeRate, displayGoldQuotation, displayExchangeRate });
-
   // Calcular valores según el idioma
   const goldPrice = locale === 'es' 
     ? displayGoldQuotation 
-    : displayGoldQuotation / displayExchangeRate;
+    : displayExchangeRate > 0 ? displayGoldQuotation / displayExchangeRate : displayGoldQuotation;
   const goldUnit = locale === 'es' ? 'MXN/gr' : 'USD/gr';
   
-  const exchangeRateValue = locale === 'es'
-    ? displayExchangeRate
-    : 1 / displayExchangeRate;
-  const exchangeRateUnit = locale === 'es' ? 'MXN/USD' : 'USD/MXN';
+  // La tasa siempre se muestra como pesos por dólar (ej. $18.00 MXN/USD)
+  const exchangeRateValue = displayExchangeRate;
+  const exchangeRateUnit = 'MXN/USD';
 
   // Contenido de la cintilla con mejor separación
   const tickerContent = (

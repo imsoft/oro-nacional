@@ -71,12 +71,30 @@ export async function uploadHeroImage(
       data: { publicUrl },
     } = supabase.storage.from("hero-images").getPublicUrl(fileName);
 
+    // display_order es UNIQUE: usar max(display_order) + 1 para no chocar con filas existentes
+    // (por ejemplo después de eliminar una imagen intermedia)
+    let nextDisplayOrder = displayOrder;
+    const { data: lastImage, error: orderError } = await supabase
+      .from("hero_images")
+      .select("display_order")
+      .order("display_order", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (orderError) {
+      console.error("Error fetching max hero image display_order:", orderError);
+    } else if (lastImage) {
+      nextDisplayOrder = Number(lastImage.display_order) + 1;
+    } else {
+      nextDisplayOrder = 0;
+    }
+
     // Create database record
     const { data, error } = await supabase
       .from("hero_images")
       .insert({
         image_url: publicUrl,
-        display_order: displayOrder,
+        display_order: nextDisplayOrder,
         is_active: true,
       })
       .select()
@@ -84,6 +102,13 @@ export async function uploadHeroImage(
 
     if (error) {
       console.error("Error creating hero image record:", error);
+      // Evitar archivos huérfanos: eliminar el archivo subido si no se pudo crear el registro
+      const { error: cleanupError } = await supabase.storage
+        .from("hero-images")
+        .remove([fileName]);
+      if (cleanupError) {
+        console.error("Error removing orphaned hero image:", cleanupError);
+      }
       throw error;
     }
 

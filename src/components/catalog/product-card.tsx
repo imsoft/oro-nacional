@@ -2,10 +2,12 @@
 
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { Heart, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useFavoritesStore } from "@/stores/favorites-store";
+import { PRODUCT_PLACEHOLDER_IMAGE } from "@/components/catalog/product-display";
 
 interface ProductCardProps {
   id: string;
@@ -29,6 +31,8 @@ const ProductCard = ({
   slug,
 }: ProductCardProps) => {
   const t = useTranslations("common");
+  const tProduct = useTranslations("product");
+  const locale = useLocale();
   const { addFavorite, removeFavorite, isFavorite } = useFavoritesStore();
   const favorite = isFavorite(id);
 
@@ -58,8 +62,8 @@ const ProductCard = ({
 
     const shareData = {
       title: `${name} - Oro Nacional`,
-      text: `${description} - ${price}`,
-      url: `${window.location.origin}/product/${slug}`,
+      text: [description, price].filter(Boolean).join(" - "),
+      url: `${window.location.origin}${locale === "es" ? "" : `/${locale}`}/product/${slug}`,
     };
 
     try {
@@ -68,7 +72,7 @@ const ProductCard = ({
       } else {
         // Fallback: copiar al portapapeles
         await navigator.clipboard.writeText(shareData.url);
-        alert("¡Enlace copiado al portapapeles!");
+        toast.success(tProduct("linkCopied"));
       }
     } catch (err) {
       console.log("Error sharing:", err);
@@ -81,7 +85,7 @@ const ProductCard = ({
         <Link href={`/product/${slug}`}>
           <Image
             alt={`${name} - Oro Nacional Guadalajara`}
-            src={image}
+            src={image || PRODUCT_PLACEHOLDER_IMAGE}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-110"
           />
@@ -132,7 +136,7 @@ const ProductCard = ({
             size="sm"
             className="bg-[#D4AF37] hover:bg-[#B8941E] text-white transition-all duration-300 hover:scale-105"
           >
-            <Link href={`/product/${slug}`}>Ver detalles</Link>
+            <Link href={`/product/${slug}`}>{t("viewDetails")}</Link>
           </Button>
         </div>
       </div>

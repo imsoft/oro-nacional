@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/routing";
 import { Shield, Award, CheckCircle2, FileCheck, Infinity, Star } from "lucide-react";
 
 const Certifications = () => {
@@ -163,12 +164,12 @@ const Certifications = () => {
         <div className="mt-16 text-center">
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
             {t("certificationsQuestion")}{" "}
-            <a
-              href="#"
+            <Link
+              href="/contact"
               className="font-semibold text-[#D4AF37] hover:text-[#B8941E] transition-colors"
             >
               {t("contactUs")}
-            </a>{" "}
+            </Link>{" "}
             {t("contactUsText")}
           </p>
         </div>

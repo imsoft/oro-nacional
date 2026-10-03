@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { ChevronRight } from "lucide-react";
 
@@ -11,6 +12,8 @@ interface BreadcrumbsProps {
 }
 
 const Breadcrumbs = ({ items }: BreadcrumbsProps) => {
+  const t = useTranslations("nav");
+
   return (
     <nav aria-label="Breadcrumb" className="py-4">
       <ol className="flex items-center space-x-2 text-sm">
@@ -19,7 +22,7 @@ const Breadcrumbs = ({ items }: BreadcrumbsProps) => {
             href="/"
             className="text-muted-foreground hover:text-foreground transition-colors"
           >
-            Inicio
+            {t("home")}
           </Link>
         </li>
         {items.map((item, index) => (

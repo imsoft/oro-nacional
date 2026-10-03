@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getBlogPostBySlug } from "@/lib/supabase/blog";
+import { buildAlternates, localizedUrl, ogLocale, toSiteLocale } from "@/lib/seo";
 
 // Force dynamic rendering - don't try to statically generate during build
 export const dynamic = 'force-dynamic';
@@ -7,30 +8,40 @@ export const dynamic = 'force-dynamic';
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }): Promise<Metadata> {
+  const { locale: rawLocale, slug } = await params;
+  const locale = toSiteLocale(rawLocale);
+  const isSpanish = locale === "es";
+
   // Default metadata
   const defaultMetadata: Metadata = {
-    title: "Artículo no encontrado | Oro Nacional",
-    description: "El artículo que buscas no existe.",
+    title: isSpanish
+      ? "Artículo no encontrado | Oro Nacional"
+      : "Article not found | Oro Nacional",
+    description: isSpanish
+      ? "El artículo que buscas no existe."
+      : "The article you are looking for does not exist.",
+    robots: { index: false, follow: true },
   };
 
   try {
-    const { slug } = await params;
     const post = await getBlogPostBySlug(slug);
 
     if (!post) {
       return defaultMetadata;
     }
 
+    const postPath = `/blog/${post.slug}`;
+
     return {
       title: `${post.title} | Blog Oro Nacional`,
       description: post.excerpt || post.title,
       keywords: [
         post.title,
-        post.category?.name || "joyería",
+        post.category?.name || (isSpanish ? "joyería" : "jewelry"),
         "Oro Nacional",
-        "blog joyería",
+        isSpanish ? "blog joyería" : "jewelry blog",
         "Guadalajara",
         ...(post.tags?.map((tag) => tag.name) || []),
       ].join(", "),
@@ -41,8 +52,11 @@ export async function generateMetadata({
         type: "article",
         publishedTime: post.published_at || post.created_at,
         authors: post.author ? [post.author.full_name] : undefined,
-        locale: "es_MX",
+        locale: ogLocale(locale),
+        url: localizedUrl(postPath, locale),
+        siteName: "Oro Nacional",
       },
+      alternates: buildAlternates(postPath, locale),
     };
   } catch (error) {
     console.error("Error generating metadata:", error);

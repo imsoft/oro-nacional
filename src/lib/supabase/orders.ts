@@ -6,118 +6,12 @@ import { supabase } from "./client";
 import type {
   Order,
   OrderListItem,
-  CreateOrderData,
   UpdateOrderStatusData,
   OrderStats,
 } from "@/types/order";
 
-// =============================================
-// CREATE - Crear un nuevo pedido
-// =============================================
-
-export async function createOrder(
-  orderData: CreateOrderData
-): Promise<{ success: boolean; order?: Order; error?: string }> {
-  try {
-    // 1. Obtener el usuario actual
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    // 2. Calcular totales
-    // Los precios de los productos ya incluyen IVA, Stripe, envío, etc., por lo que el total es igual al subtotal
-    const subtotal = orderData.items.reduce(
-      (sum, item) => sum + item.unit_price * item.quantity,
-      0
-    );
-    const shipping_cost = 0; // El costo de envío ya está incluido en el precio del producto
-    // IVA ya está incluido en los precios, por lo que tax = 0
-    const tax = 0;
-    // El total es igual al subtotal porque el subtotal ya incluye todo (IVA, Stripe, envío, etc.)
-    const total = subtotal;
-
-    // 3. Generar número de pedido
-    const { data: orderNumberData, error: orderNumberError } =
-      await supabase.rpc("generate_order_number");
-
-    if (orderNumberError) {
-      console.error("Error generating order number:", orderNumberError);
-      return { success: false, error: "Error al generar número de pedido" };
-    }
-
-    // 4. Crear el pedido
-    const { data: order, error: orderError } = await supabase
-      .from("orders")
-      .insert({
-        order_number: orderNumberData,
-        user_id: user?.id || null,
-        customer_name: orderData.customer_name,
-        customer_email: orderData.customer_email,
-        customer_phone: orderData.customer_phone,
-        shipping_address: orderData.shipping_address,
-        shipping_city: orderData.shipping_city,
-        shipping_state: orderData.shipping_state,
-        shipping_zip_code: orderData.shipping_zip_code,
-        shipping_country: orderData.shipping_country || "México",
-        subtotal,
-        shipping_cost,
-        tax,
-        total,
-        payment_method: orderData.payment_method,
-        customer_notes: orderData.customer_notes || null,
-      })
-      .select()
-      .single();
-
-    if (orderError) {
-      console.error("Error creating order:", orderError);
-      return { success: false, error: "Error al crear el pedido" };
-    }
-
-    // 5. Crear los items del pedido
-    const orderItems = orderData.items.map((item) => ({
-      order_id: order.id,
-      product_id: item.product_id,
-      product_name: item.product_name,
-      product_slug: item.product_slug,
-      product_sku: item.product_sku || null,
-      product_image: item.product_image || null,
-      quantity: item.quantity,
-      unit_price: item.unit_price,
-      size: item.size || null,
-      material: item.material || null,
-      subtotal: item.unit_price * item.quantity,
-    }));
-
-    const { error: itemsError } = await supabase
-      .from("order_items")
-      .insert(orderItems);
-
-    if (itemsError) {
-      console.error("Error creating order items:", itemsError);
-      // Intentar eliminar el pedido creado
-      await supabase.from("orders").delete().eq("id", order.id);
-      return { success: false, error: "Error al crear items del pedido" };
-    }
-
-    // 6. Obtener el pedido completo con sus items
-    const { data: fullOrder } = await supabase
-      .from("orders")
-      .select(
-        `
-        *,
-        items:order_items(*)
-      `
-      )
-      .eq("id", order.id)
-      .single();
-
-    return { success: true, order: fullOrder as Order };
-  } catch (error) {
-    console.error("Error in createOrder:", error);
-    return { success: false, error: "Error inesperado al crear el pedido" };
-  }
-}
+// La creación de pedidos se hace en el servidor (src/lib/orders/server.ts
+// vía /api/checkout), donde los precios se calculan desde la base de datos.
 
 // =============================================
 // READ - Obtener pedidos
@@ -259,12 +153,14 @@ export async function updateOrderStatus(
       updated_at: new Date().toISOString(),
     };
 
-    const { error } = await supabase
+    // RLS no da error si filtra la fila: confirmar que sí se actualizó
+    const { data, error } = await supabase
       .from("orders")
       .update(updateData)
-      .eq("id", orderId);
+      .eq("id", orderId)
+      .select("id");
 
-    if (error) {
+    if (error || !data || data.length === 0) {
       console.error("Error updating order status:", error);
       return { success: false, error: "Error al actualizar el pedido" };
     }
@@ -282,16 +178,17 @@ export async function cancelOrder(
   reason?: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("orders")
       .update({
         status: "Cancelado",
         admin_notes: reason || null,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", orderId);
+      .eq("id", orderId)
+      .select("id");
 
-    if (error) {
+    if (error || !data || data.length === 0) {
       console.error("Error cancelling order:", error);
       return { success: false, error: "Error al cancelar el pedido" };
     }
@@ -308,14 +205,15 @@ export async function softDeleteOrder(
   orderId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("orders")
       .update({
         deleted_at: new Date().toISOString(),
       })
-      .eq("id", orderId);
+      .eq("id", orderId)
+      .select("id");
 
-    if (error) {
+    if (error || !data || data.length === 0) {
       console.error("Error soft deleting order:", error);
       return { success: false, error: "Error al eliminar el pedido" };
     }
@@ -332,13 +230,19 @@ export async function getOrderStats(): Promise<OrderStats | null> {
   try {
     const { data, error } = await supabase
       .from("orders")
-      .select("status, total")
+      .select("status, total, payment_status")
       .is("deleted_at", null);
 
     if (error) {
       console.error("Error fetching order stats:", error);
       return null;
     }
+
+    // Los ingresos solo cuentan pedidos pagados y no cancelados
+    const paidOrders = data.filter(
+      (o) => o.payment_status === "Pagado" && o.status !== "Cancelado"
+    );
+    const revenue = paidOrders.reduce((sum, o) => sum + Number(o.total), 0);
 
     const stats: OrderStats = {
       total_orders: data.length,
@@ -347,11 +251,9 @@ export async function getOrderStats(): Promise<OrderStats | null> {
       shipped_orders: data.filter((o) => o.status === "Enviado").length,
       delivered_orders: data.filter((o) => o.status === "Entregado").length,
       cancelled_orders: data.filter((o) => o.status === "Cancelado").length,
-      total_revenue: data.reduce((sum, o) => sum + Number(o.total), 0),
+      total_revenue: revenue,
       average_order_value:
-        data.length > 0
-          ? data.reduce((sum, o) => sum + Number(o.total), 0) / data.length
-          : 0,
+        paidOrders.length > 0 ? revenue / paidOrders.length : 0,
     };
 
     return stats;

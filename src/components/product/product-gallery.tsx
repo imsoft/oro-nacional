@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -11,6 +12,7 @@ interface ProductGalleryProps {
 }
 
 const ProductGallery = ({ images, productName }: ProductGalleryProps) => {
+  const t = useTranslations("product");
   const [selectedImage, setSelectedImage] = useState(0);
   const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
 
@@ -21,8 +23,8 @@ const ProductGallery = ({ images, productName }: ProductGalleryProps) => {
         <div className="relative aspect-square overflow-hidden rounded-2xl bg-muted flex items-center justify-center">
           <div className="text-center text-muted-foreground">
             <div className="text-6xl mb-4">📷</div>
-            <p className="text-lg font-medium">Imagen no disponible</p>
-            <p className="text-sm">Próximamente</p>
+            <p className="text-lg font-medium">{t("imageUnavailable")}</p>
+            <p className="text-sm">{t("imageComingSoon")}</p>
           </div>
         </div>
       </div>
@@ -39,8 +41,8 @@ const ProductGallery = ({ images, productName }: ProductGalleryProps) => {
         <div className="relative aspect-square overflow-hidden rounded-2xl bg-muted flex items-center justify-center">
           <div className="text-center text-muted-foreground">
             <div className="text-6xl mb-4">📷</div>
-            <p className="text-lg font-medium">Imagen no disponible</p>
-            <p className="text-sm">Error al cargar la imagen</p>
+            <p className="text-lg font-medium">{t("imageUnavailable")}</p>
+            <p className="text-sm">{t("imageLoadError")}</p>
           </div>
         </div>
       </div>
@@ -65,7 +67,7 @@ const ProductGallery = ({ images, productName }: ProductGalleryProps) => {
       <div className="relative aspect-square overflow-hidden rounded-2xl bg-muted">
         <Image
           src={validImages[selectedImage]}
-          alt={`${productName} - Vista ${selectedImage + 1}`}
+          alt={t("imageAlt", { name: productName, number: selectedImage + 1 })}
           fill
           className="object-cover"
           priority
@@ -80,6 +82,7 @@ const ProductGallery = ({ images, productName }: ProductGalleryProps) => {
               size="icon"
               className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm hover:bg-white"
               onClick={prevImage}
+              aria-label={t("previousImage")}
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>
@@ -88,6 +91,7 @@ const ProductGallery = ({ images, productName }: ProductGalleryProps) => {
               size="icon"
               className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm hover:bg-white"
               onClick={nextImage}
+              aria-label={t("nextImage")}
             >
               <ChevronRight className="h-5 w-5" />
             </Button>
@@ -106,7 +110,7 @@ const ProductGallery = ({ images, productName }: ProductGalleryProps) => {
                     ? "bg-[#D4AF37] w-6"
                     : "bg-white/60 hover:bg-white/80"
                 }`}
-                aria-label={`Ver imagen ${index + 1}`}
+                aria-label={t("viewImage", { number: index + 1 })}
               />
             ))}
           </div>
@@ -128,7 +132,7 @@ const ProductGallery = ({ images, productName }: ProductGalleryProps) => {
             >
               <Image
                 src={image}
-                alt={`${productName} - Miniatura ${index + 1}`}
+                alt={t("thumbnailAlt", { name: productName, number: index + 1 })}
                 fill
                 className="object-cover"
                 onError={() => handleImageError(index)}

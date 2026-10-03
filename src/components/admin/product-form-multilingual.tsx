@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,6 +61,11 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
   const [exchangeRate, setExchangeRate] = useState<number>(18.00); // Tasa de cambio por defecto (18 MXN = 1 USD)
   const [subcategoryBasePrice, setSubcategoryBasePrice] = useState<number | null>(null);
   const [loadingBasePrice, setLoadingBasePrice] = useState(false);
+  // Imagen nueva (aún sin subir) elegida como principal; null = la principal es una imagen existente
+  const [primaryNewImage, setPrimaryNewImage] = useState<File | null>(null);
+  // Solo recalcular precios automáticamente cuando el admin cambia gramos/piezas o la (sub)categoría interna.
+  // Al abrir un producto existente se conservan los precios guardados.
+  const shouldRecalculatePricesRef = useRef(false);
 
   const defaultData: ProductFormData = {
     name: { es: "", en: "" },
@@ -176,6 +181,10 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
         updateField("category_id", product.category_id || "");
         updateField("price", 0); // Ya no se usa, pero se mantiene para compatibilidad
         updateField("is_active", product.is_active);
+        // Conservar los idiomas disponibles guardados (no reiniciar a ['es'])
+        if (Array.isArray(product.available_languages) && product.available_languages.length > 0) {
+          updateField("available_languages", product.available_languages);
+        }
 
         // Cargar base_price, base_price_usd y base_grams del producto
         setProductBasePrice(product.base_price ?? null);
@@ -201,7 +210,10 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
 
         // Cargar imágenes existentes
         if (product.images && Array.isArray(product.images)) {
-          updateField("existing_images", product.images.map((img: {
+          const sortedImages = [...product.images].sort(
+            (a: { display_order?: number }, b: { display_order?: number }) => (a.display_order ?? 0) - (b.display_order ?? 0)
+          );
+          updateField("existing_images", sortedImages.map((img: {
             id: string;
             image_url: string;
             alt_text_es?: string;
@@ -318,6 +330,11 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
 
   // Calcular automáticamente los precios cuando cambien los gramos usando la fórmula completa
   useEffect(() => {
+    // No recalcular al cargar un producto: solo cuando el admin cambió gramos/piezas o la subcategoría
+    if (!shouldRecalculatePricesRef.current) {
+      return;
+    }
+
     // Solo calcular si hay categoría y subcategoría interna seleccionadas
     if (!formData.internal_category_id || !formData.internal_subcategory_id) {
       return;
@@ -328,6 +345,8 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
     if (!selectedCategory) {
       return;
     }
+
+    shouldRecalculatePricesRef.current = false;
 
     // Calcular precio para cada talla que tenga gramos definidos usando la fórmula completa
     const calculatePrices = async () => {
@@ -343,9 +362,12 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
               });
 
               if (calculatedPrice !== null) {
+                const roundedPrice = Math.round(calculatedPrice * 100) / 100;
                 return {
                   ...size,
-                  price: calculatedPrice,
+                  price: roundedPrice,
+                  // Mantener el precio USD sincronizado con el nuevo precio MXN
+                  price_usd: exchangeRate > 0 ? Math.round((roundedPrice / exchangeRate) * 100) / 100 : null,
                 };
               }
             } catch (error) {
@@ -384,7 +406,12 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
       await deleteProductImages([imageId]);
 
       // Actualizar el estado local
-      const newImages = formData.existing_images?.filter((_, i) => i !== index);
+      const deletedImage = formData.existing_images?.[index];
+      let newImages = formData.existing_images?.filter((_, i) => i !== index);
+      // Si se eliminó la imagen principal, promover la siguiente (igual que en la base de datos)
+      if (deletedImage?.is_primary && newImages && newImages.length > 0 && !primaryNewImage) {
+        newImages = newImages.map((img, i) => ({ ...img, is_primary: i === 0 }));
+      }
       updateField("existing_images", newImages);
 
       toast.success("Imagen eliminada exitosamente", {
@@ -487,7 +514,20 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
       let savedProductId: string;
       if (productId && productId.trim() !== "") {
         try {
-          await updateProduct(productId, productData);
+          // Persistir también imágenes nuevas, orden e imagen principal
+          const newImages = formData.images || [];
+          const primaryNewImageIndex = primaryNewImage ? newImages.indexOf(primaryNewImage) : -1;
+          await updateProduct(productId, productData, {
+            existingImages: (formData.existing_images || []).map((img) => ({
+              id: img.id,
+              is_primary: primaryNewImageIndex >= 0 ? false : img.is_primary,
+            })),
+            newImages,
+            primaryNewImageIndex: primaryNewImageIndex >= 0 ? primaryNewImageIndex : null,
+          });
+          // Las imágenes nuevas ya se subieron; evitar subirlas de nuevo en otro guardado
+          updateField("images", []);
+          setPrimaryNewImage(null);
           savedProductId = productId;
           toast.success("Producto actualizado exitosamente", {
             description: `El producto "${formData.name.es}" ha sido actualizado correctamente.`
@@ -508,11 +548,20 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
         }
       } else {
         try {
-          const newProduct = await createProduct(productData);
+          const newImages = formData.images || [];
+          const primaryNewImageIndex = primaryNewImage ? newImages.indexOf(primaryNewImage) : -1;
+          const newProduct = await createProduct(productData, {
+            primaryImageIndex: primaryNewImageIndex >= 0 ? primaryNewImageIndex : 0,
+          });
           savedProductId = newProduct.id;
           toast.success("Producto creado exitosamente", {
             description: `El producto "${formData.name.es}" ha sido creado correctamente.`
           });
+          if (newProduct.imageErrors && newProduct.imageErrors.length > 0) {
+            toast.warning("Algunas imágenes no se pudieron subir", {
+              description: `El producto se creó, pero ${newProduct.imageErrors.length} imagen(es) fallaron. Edita el producto para subirlas de nuevo.`
+            });
+          }
         } catch (createError) {
           console.error("Error creating product:", createError);
           if (createError instanceof Error) {
@@ -608,14 +657,16 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
   const updateSize = (index: number, field: "size" | "stock" | "price" | "price_usd" | "weight", value: string | number | null | undefined) => {
     const newSizes = [...formData.sizes];
     const updatedSize = { ...newSizes[index], [field]: value };
+
+    // Cambiar gramos/piezas sí debe recalcular el precio con la fórmula
+    if (field === "weight") {
+      shouldRecalculatePricesRef.current = true;
+    }
     
-    // Si se actualiza el precio MXN y no hay precio USD manual, calcular automáticamente
+    // Si se actualiza el precio MXN, recalcular siempre el precio USD para que no quede desactualizado
     if (field === "price" && typeof value === "number" && value > 0) {
-      // Solo calcular automáticamente si no hay un precio USD ya establecido manualmente
       // Conversión: precio_mxn / tasa_mxn (ej: 180 MXN / 18 = 10 USD)
-      if (updatedSize.price_usd === null || updatedSize.price_usd === undefined) {
-        updatedSize.price_usd = exchangeRate > 0 ? Math.round((value / exchangeRate) * 100) / 100 : null;
-      }
+      updatedSize.price_usd = exchangeRate > 0 ? Math.round((value / exchangeRate) * 100) / 100 : null;
     }
     
     newSizes[index] = updatedSize;
@@ -663,8 +714,9 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
       if (calculatedPrice !== null) {
         // Actualizar precio MXN y SIEMPRE recalcular el precio USD basado en el nuevo precio MXN
         const newSizes = [...formData.sizes];
+        const roundedPrice = Math.round(calculatedPrice * 100) / 100;
         // Calcular precio USD basado en el nuevo precio MXN calculado
-        const calculatedPriceUSD = exchangeRate > 0 ? Math.round((calculatedPrice / exchangeRate) * 100) / 100 : null;
+        const calculatedPriceUSD = exchangeRate > 0 ? Math.round((roundedPrice / exchangeRate) * 100) / 100 : null;
         
         console.log('Calculando precio USD:', {
           precioMXN: calculatedPrice,
@@ -675,7 +727,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
         
         newSizes[index] = {
           ...newSizes[index],
-          price: calculatedPrice,
+          price: roundedPrice,
           price_usd: calculatedPriceUSD // Siempre actualizar el precio USD cuando se calcula desde la calculadora
         };
         updateField("sizes", newSizes);
@@ -898,6 +950,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
               <RadioGroup
                 value={formData.internal_category_id || ""}
                 onValueChange={(value) => {
+                  shouldRecalculatePricesRef.current = true;
                   updateField("internal_category_id", value || undefined);
                   // Si se cambia la categoría, limpiar la subcategoría seleccionada
                   updateField("internal_subcategory_id", undefined);
@@ -937,6 +990,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
                           <RadioGroup
                             value={formData.internal_subcategory_id || ""}
                             onValueChange={(value) => {
+                              shouldRecalculatePricesRef.current = true;
                               updateField("internal_subcategory_id", value || undefined);
                             }}
                             className="space-y-2"
@@ -1004,6 +1058,8 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
             onExistingImagesChange={(images) => updateField("existing_images", images)}
             onNewImagesChange={(images) => updateField("images", images)}
             onDeleteImage={handleDeleteImage}
+            primaryNewImage={primaryNewImage}
+            onPrimaryNewImageChange={setPrimaryNewImage}
             productName={formData.name[previewLocale] || 'Product'}
           />
         </MultilingualCard>

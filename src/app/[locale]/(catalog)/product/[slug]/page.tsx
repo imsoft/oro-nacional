@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
 import Breadcrumbs from "@/components/shared/breadcrumbs";
@@ -9,6 +10,7 @@ import ProductInfo from "@/components/product/product-info";
 import ProductDetails from "@/components/product/product-details";
 import RelatedProducts from "@/components/product/related-products";
 import { ProductNotFound } from "@/components/product/product-not-found";
+import { getPrimaryImageUrl, useProductPriceLabel } from "@/components/catalog/product-display";
 import { Loader2 } from "lucide-react";
 import { getProductBySlug, getProductsByCategory } from "@/lib/supabase/products";
 import { getProductInternalCategoriesAndSubcategories } from "@/lib/supabase/internal-categories";
@@ -27,7 +29,10 @@ export default function ProductPage({ params }: ProductPageProps) {
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const locale = resolvedParams.locale || 'es';
+  const locale = useLocale() as 'es' | 'en';
+  const tNav = useTranslations('nav');
+  const tProduct = useTranslations('product');
+  const getPriceLabel = useProductPriceLabel();
 
   useEffect(() => {
     loadProduct();
@@ -92,7 +97,7 @@ export default function ProductPage({ params }: ProductPageProps) {
 
   // Transform product for compatibility with existing components
   const productImages = product.images && product.images.length > 0
-    ? product.images
+    ? [...product.images]
         .sort((a, b) => {
           if (a.is_primary) return -1;
           if (b.is_primary) return 1;
@@ -102,7 +107,7 @@ export default function ProductPage({ params }: ProductPageProps) {
     : [];
 
   const productSpecs = product.specifications && product.specifications.length > 0
-    ? product.specifications
+    ? [...product.specifications]
         .sort((a, b) => a.display_order - b.display_order)
         .reduce((acc, spec) => {
           acc[spec.spec_key] = spec.spec_value;
@@ -111,57 +116,56 @@ export default function ProductPage({ params }: ProductPageProps) {
     : {};
 
   // Transformar tallas con información completa (size, price, price_usd, stock, weight)
+  // El precio se conserva como null cuando la talla no lo tiene definido, para que
+  // ProductInfo pueda usar el precio base del producto como respaldo
   const productSizes = product.sizes && product.sizes.length > 0
     ? product.sizes.map((s) => ({
         size: s.size,
-        price: s.price ?? 0, // Precio debe estar definido en la talla
+        price: s.price ?? null,
         price_usd: s.price_usd ?? null, // Precio USD opcional
         stock: s.stock,
         weight: s.weight, // Gramos de oro para esta talla
       }))
     : [];
 
-  // Obtener precio base de la primera talla disponible, o 0 si no hay tallas
-  const basePrice = productSizes.length > 0 && productSizes[0].price > 0
-    ? productSizes[0].price
-    : 0;
+  // Precio base (MXN): el calculado del producto, o el de la primera talla con precio.
+  // 0 significa "sin precio" (se muestra "Consultar precio")
+  const firstPricedSize = productSizes.find((s) => (s.price ?? 0) > 0);
+  const hasBasePrice = (product.base_price ?? 0) > 0;
+  const basePrice = hasBasePrice
+    ? (product.base_price as number)
+    : firstPricedSize?.price ?? ((product.price ?? 0) > 0 ? product.price : 0);
+  const basePriceUSD = hasBasePrice
+    ? product.base_price_usd ?? null
+    : firstPricedSize?.price_usd ?? null;
 
   const transformedProduct = {
     id: product.id,
     name: product.name,
-    price: basePrice > 0 ? `$${basePrice.toLocaleString("es-MX")} MXN` : "Consultar precio",
-    basePrice: product.base_price ?? basePrice, // Precio base calculado o de la primera talla
-    basePriceUSD: product.base_price_usd ?? null, // Precio base USD opcional
+    basePrice,
+    basePriceUSD,
     baseGrams: product.base_grams, // Gramos base usados para calcular el precio base
-    category: product.category?.name || "Sin categoría",
+    category: product.category?.name || tProduct('uncategorized'),
     material: product.material,
     description: product.description,
     images: productImages,
     specifications: productSpecs,
     sizes: productSizes,
-    stock: undefined, // Stock ya no se usa a nivel de producto
     slug: product.slug,
     internalCategory: (product as { internalCategory?: { id: string; name: string } | null }).internalCategory ?? null,
   };
 
   // Transform related products for compatibility
-  const transformedRelated = relatedProducts.map((p) => {
-    const primaryImage = p.images?.find((img) => img.is_primary)?.image_url;
-    // Obtener precio de la primera talla disponible, o 0 si no hay tallas
-    const relatedBasePrice = p.sizes && p.sizes.length > 0 && p.sizes[0].price
-      ? p.sizes[0].price
-      : 0;
-    return {
-      id: p.id,
-      name: p.name,
-      description: p.description,
-      price: relatedBasePrice > 0 ? `$${relatedBasePrice.toLocaleString("es-MX")} MXN` : "Consultar precio",
-      image: primaryImage || "https://via.placeholder.com/600x600?text=Sin+Imagen",
-      category: p.category?.name || "Sin categoría",
-      material: p.material,
-      slug: p.slug,
-    };
-  });
+  const transformedRelated = relatedProducts.map((p) => ({
+    id: p.id,
+    name: p.name,
+    description: p.description ?? "",
+    price: getPriceLabel(p),
+    image: getPrimaryImageUrl(p.images),
+    category: p.category?.name || tProduct('uncategorized'),
+    material: p.material,
+    slug: p.slug,
+  }));
 
   // Preparar datos para structured data
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://www.oronacional.com';
@@ -169,17 +173,18 @@ export default function ProductPage({ params }: ProductPageProps) {
   const basePriceForSchema = transformedProduct.basePrice || 0;
   const isInStock = product.sizes && product.sizes.some(s => s.stock > 0);
   
-  // Breadcrumbs para structured data
+  // Breadcrumbs para structured data (las URLs en español no llevan prefijo de idioma)
+  const localeBaseUrl = locale === 'es' ? baseUrl : `${baseUrl}/${locale}`;
   const breadcrumbItems = [
-    { name: locale === 'es' ? 'Inicio' : 'Home', url: `${baseUrl}/${locale}` },
-    { name: locale === 'es' ? 'Catálogo' : 'Catalog', url: `${baseUrl}/${locale}/catalog` },
+    { name: tNav('home'), url: localeBaseUrl },
+    { name: tNav('catalog'), url: `${localeBaseUrl}/catalog` },
     {
-      name: product.category?.name || (locale === 'es' ? 'Productos' : 'Products'),
+      name: product.category?.name || tNav('catalog'),
       url: product.category?.slug
-        ? `${baseUrl}/${locale}/catalog?category=${product.category.slug}`
-        : `${baseUrl}/${locale}/catalog`,
+        ? `${localeBaseUrl}/catalog?category=${product.category.slug}`
+        : `${localeBaseUrl}/catalog`,
     },
-    { name: product.name, url: `${baseUrl}/${locale}/product/${product.slug}` },
+    { name: product.name, url: `${localeBaseUrl}/product/${product.slug}` },
   ];
 
   return (
@@ -193,7 +198,8 @@ export default function ProductPage({ params }: ProductPageProps) {
               description: product.description || '',
               image: primaryImageForSchema,
               price: basePriceForSchema,
-              currency: locale === 'es' ? 'MXN' : 'USD',
+              // base_price está en MXN en ambos idiomas
+              currency: 'MXN',
               sku: product.id,
               brand: 'Oro Nacional',
               availability: isInStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
@@ -209,9 +215,9 @@ export default function ProductPage({ params }: ProductPageProps) {
           {/* Breadcrumbs */}
           <Breadcrumbs
             items={[
-              { label: locale === 'es' ? "Catálogo" : "Catalog", href: "/catalog" },
+              { label: tNav('catalog'), href: "/catalog" },
               {
-                label: product.category?.name || (locale === 'es' ? "Productos" : "Products"),
+                label: product.category?.name || tNav('catalog'),
                 href: product.category?.slug
                   ? `/catalog?category=${product.category.slug}`
                   : "/catalog",

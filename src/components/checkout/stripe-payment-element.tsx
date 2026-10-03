@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
+import { useLocale } from 'next-intl';
 
 interface StripePaymentElementProps {
   clientSecret: string;
@@ -22,6 +23,7 @@ export function StripePaymentElement({
 }: StripePaymentElementProps) {
   const stripe = useStripe();
   const elements = useElements();
+  const locale = useLocale();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
@@ -56,7 +58,8 @@ export function StripePaymentElement({
         clientSecret,
         redirect: 'if_required',
         confirmParams: {
-          return_url: `${window.location.origin}/checkout/confirmacion`,
+          // Mantener el idioma al volver de un método de pago con redirección
+          return_url: `${window.location.origin}${locale === 'en' ? '/en' : ''}/checkout/confirmacion`,
         },
       });
 

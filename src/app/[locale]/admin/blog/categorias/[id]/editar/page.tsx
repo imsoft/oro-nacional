@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -20,10 +20,12 @@ interface CategoryFormData {
 }
 
 interface EditCategoryPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default function EditBlogCategoryPage({ params }: EditCategoryPageProps) {
+  // En Next 16 `params` es una Promise
+  const { id } = use(params);
   const router = useRouter();
   const t = useTranslations("admin.blogCategories");
   const [isLoading, setIsLoading] = useState(false);
@@ -44,12 +46,12 @@ export default function EditBlogCategoryPage({ params }: EditCategoryPageProps) 
   useEffect(() => {
     loadCategory();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.id]);
+  }, [id]);
 
   const loadCategory = async () => {
     setIsLoadingData(true);
     try {
-      const category = await getBlogCategoryById(params.id);
+      const category = await getBlogCategoryById(id);
       if (category) {
         setFormData({
           name: category.name,
@@ -89,12 +91,11 @@ export default function EditBlogCategoryPage({ params }: EditCategoryPageProps) 
 
       const categoryData = {
         name: formData.name,
-        description: formData.description.es || formData.description.en
-          ? formData.description
-          : undefined,
+        // Enviar siempre la descripción (vacía = limpiar)
+        description: formData.description,
       };
 
-      await updateBlogCategory(params.id, categoryData);
+      await updateBlogCategory(id, categoryData);
       toast.success("Categoría actualizada", {
         description: `La categoría "${formData.name.es}" se actualizó exitosamente.`,
       });

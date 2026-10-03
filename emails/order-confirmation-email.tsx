@@ -35,6 +35,8 @@ interface OrderConfirmationEmailProps {
   shippingZipCode: string;
   paymentMethod: string;
   locale: 'es' | 'en';
+  // Moneda en la que se cobró el pedido
+  currency?: 'MXN' | 'USD';
 }
 
 const translations = {
@@ -112,13 +114,14 @@ export const OrderConfirmationEmail = ({
   shippingZipCode,
   paymentMethod,
   locale = 'es',
+  currency = 'MXN',
 }: OrderConfirmationEmailProps) => {
   const t = translations[locale];
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat(locale === 'es' ? 'es-MX' : 'en-US', {
       style: 'currency',
-      currency: 'MXN',
+      currency,
     }).format(amount);
   };
 

@@ -46,7 +46,7 @@ const HeroSection = () => {
                 <div className="relative rounded-full px-3 py-1 text-sm/6 text-muted-foreground ring-1 ring-border hover:ring-border/80 transition-all duration-300 hover:scale-105">
                   {t('badge')}{" "}
                   <Link
-                    href="#"
+                    href="/catalog"
                     className="font-semibold text-[#D4AF37] hover:text-[#B8941E]"
                   >
                     <span aria-hidden="true" className="absolute inset-0" />

@@ -5,70 +5,11 @@ import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
+import { SITE_CONTACT } from "@/lib/site-contact";
+import { faqCategories } from "./faq-data";
 
 const FAQPage = () => {
   const t = useTranslations('faq');
-  
-  const faqCategories = [
-    {
-      titleKey: "categories.products",
-      questions: [
-        { key: "products.karat" },
-        { key: "products.solid" },
-        { key: "products.customize" },
-        { key: "products.stones" },
-        { key: "products.resize" },
-      ],
-    },
-    {
-      titleKey: "categories.purchase",
-      questions: [
-        { key: "purchase.payment" },
-        { key: "purchase.installments" },
-        { key: "purchase.secure" },
-        { key: "purchase.layaway" },
-        { key: "purchase.invoice" },
-      ],
-    },
-    {
-      titleKey: "categories.shipping",
-      questions: [
-        { key: "shipping.cost" },
-        { key: "shipping.time" },
-        { key: "shipping.tracking" },
-        { key: "shipping.insured" },
-        { key: "shipping.pickup" },
-      ],
-    },
-    {
-      titleKey: "categories.returns",
-      questions: [
-        { key: "returns.return" },
-        { key: "returns.exchange" },
-        { key: "returns.size" },
-        { key: "returns.engraved" },
-      ],
-    },
-    {
-      titleKey: "categories.warranty",
-      questions: [
-        { key: "warranty.duration" },
-        { key: "warranty.maintenance" },
-        { key: "warranty.claim" },
-        { key: "warranty.cleaning" },
-      ],
-    },
-    {
-      titleKey: "categories.about",
-      questions: [
-        { key: "about.location" },
-        { key: "about.experience" },
-        { key: "about.manufacturer" },
-        { key: "about.buyGold" },
-        { key: "about.contact" },
-      ],
-    },
-  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -147,7 +88,7 @@ const FAQPage = () => {
                 {t('contactForm')}
               </Link>
               <a
-                href="tel:+523312345678"
+                href={SITE_CONTACT.phoneHref}
                 className="inline-flex items-center justify-center px-6 py-3 rounded-lg border-2 border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white font-medium transition-colors"
               >
                 <span className="mr-2">📞</span>

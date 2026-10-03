@@ -17,6 +17,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { LanguageSwitcher } from "@/components/shared/language-switcher";
 import { getStoreSettings, updateStoreSettings } from "@/lib/supabase/settings";
+import { toast } from "sonner";
 
 export default function AdminSettings() {
   const t = useTranslations('admin.settings');
@@ -123,6 +124,17 @@ export default function AdminSettings() {
   };
 
   const handleSave = async () => {
+    // Validar la tasa de cambio: no guardar silenciosamente 18 cuando el campo está vacío o es 0
+    const parsedExchangeRate = parseFloat(exchangeRate);
+    if (!Number.isFinite(parsedExchangeRate) || parsedExchangeRate <= 0) {
+      toast.error(locale === 'es' ? 'Tasa de cambio inválida' : 'Invalid exchange rate', {
+        description: locale === 'es'
+          ? 'Ingresa una tasa de cambio mayor a 0 (MXN por USD). No se guardaron los cambios.'
+          : 'Enter an exchange rate greater than 0 (MXN per USD). Changes were not saved.',
+      });
+      return;
+    }
+
     setIsSaving(true);
     try {
       const result = await updateStoreSettings({
@@ -136,7 +148,7 @@ export default function AdminSettings() {
         standard_shipping_cost: parseFloat(standardShippingCost) || 0,
         express_shipping_cost: parseFloat(expressShippingCost) || 0,
         delivery_time: deliveryTime,
-        exchange_rate: parseFloat(exchangeRate) || 18.00,
+        exchange_rate: parsedExchangeRate,
       });
 
       if (result.success) {

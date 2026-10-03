@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useState, useEffect } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { Calendar, Clock, User, ArrowLeft, Tag, Loader2, BookOpen } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import Image from "next/image";
@@ -8,6 +9,7 @@ import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
 import { getBlogPostBySlug, getBlogPostsByCategory, incrementBlogPostViews } from "@/lib/supabase/blog";
 import type { BlogPostDetail, BlogPostCard } from "@/types/blog";
+import { dateLocale } from "@/lib/seo";
 
 export default function BlogPostPage({
   params,
@@ -15,43 +17,45 @@ export default function BlogPostPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = use(params);
+  const t = useTranslations("blog");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
   const [post, setPost] = useState<BlogPostDetail | null>(null);
   const [relatedPosts, setRelatedPosts] = useState<BlogPostCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // isLoading inicia en true; la página se vuelve a montar al cambiar de ruta
   useEffect(() => {
-    loadPost();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug]);
+    const loadPost = async () => {
+      try {
+        const postData = await getBlogPostBySlug(slug);
 
-  const loadPost = async () => {
-    setIsLoading(true);
-    try {
-      const postData = await getBlogPostBySlug(slug);
+        if (!postData) {
+          setIsLoading(false);
+          setPost(null);
+          return;
+        }
 
-      if (!postData) {
+        setPost(postData);
+
+        // Incrementar vistas
+        await incrementBlogPostViews(postData.id);
+
+        // Cargar posts relacionados de la misma categoría
+        if (postData.category?.slug) {
+          const related = await getBlogPostsByCategory(postData.category.slug, locale);
+          const filtered = related.filter((p) => p.id !== postData.id).slice(0, 3);
+          setRelatedPosts(filtered);
+        }
+      } catch (error) {
+        console.error("Error loading post:", error);
+      } finally {
         setIsLoading(false);
-        setPost(null);
-        return;
       }
+    };
 
-      setPost(postData);
-
-      // Incrementar vistas
-      await incrementBlogPostViews(postData.id);
-
-      // Cargar posts relacionados de la misma categoría
-      if (postData.category?.slug) {
-        const related = await getBlogPostsByCategory(postData.category.slug);
-        const filtered = related.filter((p) => p.id !== postData.id).slice(0, 3);
-        setRelatedPosts(filtered);
-      }
-    } catch (error) {
-      console.error("Error loading post:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    loadPost();
+  }, [slug, locale]);
 
   // Loading state
   if (isLoading) {
@@ -72,14 +76,14 @@ export default function BlogPostPage({
       <div className="min-h-screen bg-background">
         <Navbar />
         <div className="flex flex-col items-center justify-center pt-32 pb-20 px-6">
-          <h1 className="text-2xl font-bold text-foreground mb-4">Post no encontrado</h1>
-          <p className="text-muted-foreground mb-6">El artículo que buscas no existe o ha sido eliminado.</p>
+          <h1 className="text-2xl font-bold text-foreground mb-4">{t("postNotFound")}</h1>
+          <p className="text-muted-foreground mb-6">{t("postNotFoundDescription")}</p>
           <Link
             href="/blog"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-[#D4AF37] hover:bg-[#B8941E] text-white font-medium transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
-            Volver al blog
+            {t("backToBlog")}
           </Link>
         </div>
         <Footer />
@@ -92,14 +96,14 @@ export default function BlogPostPage({
       <Navbar />
 
       {/* Volver al blog */}
-      <div className="bg-muted/30 border-b border-border pt-24">
+      <div className="bg-muted/30 border-b border-border pt-28 lg:pt-32">
         <div className="mx-auto max-w-4xl px-6 lg:px-8 py-4">
           <Link
             href="/blog"
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
-            Volver al blog
+            {t("backToBlog")}
           </Link>
         </div>
       </div>
@@ -133,7 +137,7 @@ export default function BlogPostPage({
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
                 <span>
-                  {new Date(post.published_at).toLocaleDateString("es-MX", {
+                  {new Date(post.published_at).toLocaleDateString(dateLocale(locale), {
                     year: "numeric",
                     month: "long",
                     day: "numeric",
@@ -143,7 +147,7 @@ export default function BlogPostPage({
             )}
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4" />
-              <span>{post.views} vistas</span>
+              <span>{post.views} {tCommon("views")}</span>
             </div>
           </div>
 
@@ -265,24 +269,23 @@ export default function BlogPostPage({
           {/* CTA */}
           <div className="mt-12 rounded-2xl bg-gradient-to-br from-[#D4AF37]/10 to-[#D4AF37]/5 p-8 lg:p-12 border border-[#D4AF37]/20 text-center">
             <h2 className="text-2xl font-semibold text-foreground mb-4">
-              ¿Te Gustó Este Artículo?
+              {t("likedArticleTitle")}
             </h2>
             <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-              Descubre nuestra colección de joyería de oro en Guadalajara.
-              Piezas únicas fabricadas por maestros joyeros.
+              {t("likedArticleDescription")}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/catalog"
                 className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-[#D4AF37] hover:bg-[#B8941E] text-white font-medium transition-colors"
               >
-                Ver Catálogo
+                {t("viewCatalog")}
               </Link>
               <Link
                 href="/contact"
                 className="inline-flex items-center justify-center px-6 py-3 rounded-lg border-2 border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white font-medium transition-colors"
               >
-                Contactar
+                {t("contactCta")}
               </Link>
             </div>
           </div>
@@ -294,7 +297,7 @@ export default function BlogPostPage({
         <section className="py-16 bg-muted/30 border-t border-border">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <h2 className="text-2xl font-semibold text-foreground mb-8">
-              Artículos Relacionados
+              {t("relatedArticles")}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {relatedPosts.map((relatedPost) => (

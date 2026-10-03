@@ -6,11 +6,11 @@ import { OrderConfirmationEmail } from '../../../emails/order-confirmation-email
 import { OrderNotificationEmail } from '../../../emails/order-notification-email';
 import { EmailConfirmation } from '../../../emails/email-confirmation';
 import type { ContactMessage } from '@/types/contact';
-import type { Order } from '@/types/order';
+import type { Order, OrderItem } from '@/types/order';
 
 // Email de la empresa (debe configurarse en Resend)
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'noreply@oronation.com';
-const ADMIN_EMAIL = process.env.RESEND_ADMIN_EMAIL || 'admin@oronation.com';
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'noreply@oronacional.com';
+const ADMIN_EMAIL = process.env.RESEND_ADMIN_EMAIL || 'hola@oronacional.com';
 
 // Función para obtener instancia de Resend (solo cuando se necesite)
 function getResend() {
@@ -142,6 +142,21 @@ export async function sendContactConfirmationEmail(
   }
 }
 
+// Los correos muestran los montos en la moneda que se le cobró al cliente.
+// subtotal/total/unit_price del pedido están en MXN; para pedidos en USD se
+// usan total_charged / unit_price_charged.
+function orderTotal(order: Order): number {
+  return order.currency === 'USD' && order.total_charged != null
+    ? Number(order.total_charged)
+    : Number(order.total);
+}
+
+function orderUnitPrice(order: Order, item: OrderItem): number {
+  return order.currency === 'USD' && item.unit_price_charged != null
+    ? Number(item.unit_price_charged)
+    : Number(item.unit_price);
+}
+
 /**
  * Enviar correo de confirmación al cliente cuando realiza una compra
  */
@@ -179,14 +194,15 @@ export async function sendOrderConfirmationEmail(
         items: order.items.map((item) => ({
           product_name: item.product_name,
           quantity: item.quantity,
-          unit_price: Number(item.unit_price),
+          unit_price: orderUnitPrice(order, item),
           size: item.size || null,
           material: item.material || null,
         })),
-        subtotal: Number(order.subtotal),
+        subtotal: orderTotal(order),
         shippingCost: Number(order.shipping_cost),
         tax: Number(order.tax),
-        total: Number(order.total),
+        total: orderTotal(order),
+        currency: order.currency || 'MXN',
         shippingAddress: order.shipping_address,
         shippingCity: order.shipping_city,
         shippingState: order.shipping_state,
@@ -307,14 +323,15 @@ export async function sendOrderNotificationEmail(
         items: order.items.map((item) => ({
           product_name: item.product_name,
           quantity: item.quantity,
-          unit_price: Number(item.unit_price),
+          unit_price: orderUnitPrice(order, item),
           size: item.size || null,
           material: item.material || null,
         })),
-        subtotal: Number(order.subtotal),
+        subtotal: orderTotal(order),
         shippingCost: Number(order.shipping_cost),
         tax: Number(order.tax),
-        total: Number(order.total),
+        total: orderTotal(order),
+        currency: order.currency || 'MXN',
         shippingAddress: order.shipping_address,
         shippingCity: order.shipping_city,
         shippingState: order.shipping_state,

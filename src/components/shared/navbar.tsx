@@ -32,7 +32,12 @@ import { useFavoritesStore } from "@/stores/favorites-store";
 const Navbar = () => {
   const t = useTranslations("nav");
   const [isOpen, setIsOpen] = useState(false);
-  const { user, isAuthenticated, isAdmin, logout } = useAuthStore();
+  const { user, isAdmin, logout } = useAuthStore();
+  // Hasta verificar la sesión se muestra como visitante: evita que el HTML del
+  // servidor y el del cliente difieran por el estado guardado en localStorage
+  const isAuthenticated = useAuthStore(
+    (state) => state.hasCheckedSession && state.isAuthenticated
+  );
   const itemCount = useCartStore((state) => state.getItemCount());
   const favoriteCount = useFavoritesStore((state) => state.getFavoriteCount());
 

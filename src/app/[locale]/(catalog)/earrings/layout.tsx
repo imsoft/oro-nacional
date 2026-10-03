@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildAlternates, localizedUrl } from "@/lib/seo";
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.oronacional.com';
 
@@ -24,7 +25,7 @@ export async function generateMetadata({
     en: "gold earrings Guadalajara, 14k gold earrings, gold hoops Jalisco, diamond earrings Guadalajara, gold ear cuffs, pearl gold earrings",
   };
 
-  const earringsUrl = `${baseUrl}/${locale}/earrings`;
+  const earringsUrl = localizedUrl("/earrings", locale);
 
   return {
     title: titles[locale],
@@ -52,13 +53,7 @@ export async function generateMetadata({
       description: descriptions[locale],
       images: [`${baseUrl}/logos/logo-oro-nacional.png`],
     },
-    alternates: {
-      canonical: earringsUrl,
-      languages: {
-        'es-MX': `${baseUrl}/es/earrings`,
-        'en-US': `${baseUrl}/en/earrings`,
-      },
-    },
+    alternates: buildAlternates("/earrings", locale),
   };
 }
 

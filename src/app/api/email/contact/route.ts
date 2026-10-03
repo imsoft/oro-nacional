@@ -3,7 +3,8 @@ import {
   sendContactFormNotificationEmail,
   sendContactConfirmationEmail,
 } from '@/lib/email/resend';
-import { getContactMessageById } from '@/lib/supabase/contact';
+import { createAdminClient } from '@/lib/supabase/admin';
+import type { ContactMessage } from '@/types/contact';
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,14 +18,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Obtener el mensaje de contacto
-    const message = await getContactMessageById(messageId);
+    const admin = createAdminClient();
+    if (!admin) {
+      console.error('[Contact email] SUPABASE_SERVICE_ROLE_KEY is not configured');
+      return NextResponse.json(
+        { success: false, error: 'Email service is not configured' },
+        { status: 503 }
+      );
+    }
 
-    if (!message) {
+    // Reclamar el envío de forma atómica: cada mensaje notifica una sola vez,
+    // así la ruta no puede usarse para reenviar correos.
+    const { data: claimed, error: claimError } = await admin
+      .from('contact_messages')
+      .update({ notified_at: new Date().toISOString() })
+      .eq('id', messageId)
+      .is('notified_at', null)
+      .select('*');
+
+    if (claimError) {
+      console.error('Error fetching contact message:', claimError);
       return NextResponse.json(
         { success: false, error: 'Message not found' },
         { status: 404 }
       );
+    }
+
+    const message = claimed?.[0] as ContactMessage | undefined;
+
+    if (!message) {
+      // No existe o ya se notificó
+      return NextResponse.json({ success: true, alreadySent: true });
     }
 
     // Enviar correo de notificación al admin

@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useTranslations } from "next-intl";
+import { toast } from "sonner";
+import { Link } from "@/i18n/routing";
 import { Heart, Share2, ShoppingCart, Shield, Truck, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -9,27 +12,29 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCartStore } from "@/stores/cart-store";
 import { getPricingParameters } from "@/lib/supabase/pricing";
 import { useCurrency } from "@/contexts/currency-context";
+import { PRODUCT_PLACEHOLDER_IMAGE } from "@/components/catalog/product-display";
+
+type SizeWithPrice = {
+  size: string;
+  price: number | null;
+  price_usd?: number | null;
+  stock: number;
+  weight?: number; // Gramos de oro o piezas según categoría
+};
 
 interface ProductInfoProps {
   product: {
     id: string;
     name: string;
-    price: string;
-    basePrice?: number;
+    basePrice?: number | null; // Precio base en MXN (0 o null = sin precio)
     baseGrams?: number; // Gramos base usados para calcular el precio base
     category: string;
     material: string;
-    description: string;
+    description?: string | null;
     specifications: {
       [key: string]: string;
     };
-    sizes?: Array<{
-      size: string;
-      price: number;
-      price_usd?: number | null;
-      stock: number;
-      weight?: number; // Gramos de oro o piezas según categoría
-    }> | string[];
+    sizes?: SizeWithPrice[] | string[];
     basePriceUSD?: number | null;
     weight?: number;
     slug?: string;
@@ -39,35 +44,41 @@ interface ProductInfoProps {
   };
 }
 
+// Tasas de interés para pagos a meses (sobre el precio base)
+const INTEREST_RATES = {
+  0: 0,      // Pago de contado - sin intereses (solo comisión base de Stripe)
+  3: 0.05,   // 3 meses - 5% de intereses
+  6: 0.075,  // 6 meses - 7.5% de intereses
+  9: 0.10,   // 9 meses - 10% de intereses
+  12: 0.125, // 12 meses - 12.5% de intereses
+};
+
+const INSTALLMENT_MONTHS = [3, 6, 9, 12] as const;
+
 const ProductInfo = ({ product }: ProductInfoProps) => {
-  const { currency, convertPrice, formatPrice } = useCurrency();
+  const t = useTranslations("product");
+  const tCommon = useTranslations("common");
+  const { currency, convertPrice, formatPrice, exchangeRate } = useCurrency();
 
   // Unidad según categoría interna: Gramo → gramos, Broquel (y similares) → pares
   const categoryName = product.internalCategory?.name?.toLowerCase() ?? "";
   const isByPairs = categoryName === "broquel" || categoryName === "broqueles";
-  const unitLabel = isByPairs ? "pares" : "gramos";
+  const formatUnits = (count: number) =>
+    isByPairs ? t("pairs", { count }) : t("grams", { count });
 
   // Determinar si sizes es un array de objetos o strings
   const sizesArray = product.sizes || [];
   const isSizesWithPrice = sizesArray.length > 0 && typeof sizesArray[0] === 'object';
-  const firstSize = isSizesWithPrice 
-    ? (sizesArray[0] as { size: string; price: number; stock: number }).size
+  // Preseleccionar la primera talla con existencias (si ninguna tiene, la primera)
+  const firstSize = isSizesWithPrice
+    ? ((sizesArray as SizeWithPrice[]).find((s) => s.stock > 0) ?? (sizesArray as SizeWithPrice[])[0]).size
     : (sizesArray[0] as string) || "";
-  
+
   const [selectedSize, setSelectedSize] = useState(firstSize);
   const [selectedMSI, setSelectedMSI] = useState<number>(0); // 0 = Sin MSI (pago de contado)
   const [isFavorite, setIsFavorite] = useState(false);
   const [stripeParams, setStripeParams] = useState<{ percentage: number; fixedFee: number } | null>(null);
   const { addItem } = useCartStore();
-
-  // Tasas de interés para pagos a meses (sobre el precio base)
-  const INTEREST_RATES = {
-    0: 0,      // Pago de contado - sin intereses (solo comisión base de Stripe)
-    3: 0.05,   // 3 meses - 5% de intereses
-    6: 0.075,  // 6 meses - 7.5% de intereses
-    9: 0.10,   // 9 meses - 10% de intereses
-    12: 0.125, // 12 meses - 12.5% de intereses
-  };
 
   // Obtener parámetros de Stripe desde la base de datos
   useEffect(() => {
@@ -94,50 +105,54 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
 
   // NO calcular precio dinámicamente - siempre usar el precio guardado desde el formulario
   // El precio debe venir de sizes[].price que se guarda en el formulario de edición/creación
-  
-  // Calcular precio base según talla seleccionada (ya incluye IVA)
-  // Siempre usar el precio guardado desde el formulario
-  const currentPrice = useMemo(() => {
-    // Si no hay tallas con precio, usar precio base del producto
-    if (!isSizesWithPrice || !selectedSize) {
-      const basePriceMXN = product.basePrice ?? parseFloat(product.price.replace(/[^0-9.-]+/g, ""));
-      return convertPrice(basePriceMXN, product.basePriceUSD);
-    }
 
-    // Usar el precio guardado de la talla seleccionada
-    const selectedSizeObj = (sizesArray as Array<{ size: string; price: number; price_usd?: number | null; stock: number }>)
-      .find(s => s.size === selectedSize);
+  const selectedSizeObj = isSizesWithPrice && selectedSize
+    ? (sizesArray as SizeWithPrice[]).find((s) => s.size === selectedSize)
+    : undefined;
 
-    // Prioridad: precio de la talla > precio base del producto > precio del producto (obsoleto)
-    const priceMXN = selectedSizeObj?.price ?? product.basePrice ?? parseFloat(product.price.replace(/[^0-9.-]+/g, ""));
-    return convertPrice(priceMXN, selectedSizeObj?.price_usd ?? product.basePriceUSD);
-  }, [isSizesWithPrice, selectedSize, sizesArray, product.basePrice, product.basePriceUSD, product.price, convertPrice]);
+  // Precio unitario en MXN (ya incluye IVA) y precio fijo en USD si existe.
+  // Prioridad: precio de la talla > precio base del producto. 0 = sin precio.
+  const sizePriceMXN = selectedSizeObj?.price ?? 0;
+  const basePriceMXN = product.basePrice ?? 0;
+  const priceMXN = sizePriceMXN > 0 ? sizePriceMXN : basePriceMXN > 0 ? basePriceMXN : 0;
+  const priceUSD = sizePriceMXN > 0
+    ? selectedSizeObj?.price_usd ?? null
+    : product.basePriceUSD ?? null;
+  const hasPrice = priceMXN > 0;
+  const isOutOfStock = selectedSizeObj ? selectedSizeObj.stock === 0 : false;
+
+  // Precio en la moneda mostrada (MXN o USD)
+  const currentPrice = hasPrice ? convertPrice(priceMXN, priceUSD) : 0;
+
+  // La comisión fija de Stripe está en MXN: convertirla si se muestra en USD
+  const fixedFee = stripeParams
+    ? currency === 'USD' && exchangeRate > 0
+      ? stripeParams.fixedFee / exchangeRate
+      : stripeParams.fixedFee
+    : 0;
 
   // Calcular precio final con comisión de Stripe e intereses
   const finalPrice = useMemo(() => {
     if (!stripeParams) return currentPrice;
 
-    const basePrice = currentPrice;
     const interestRate = INTEREST_RATES[selectedMSI as keyof typeof INTEREST_RATES] || 0;
 
-    // Si es pago de contado (0 MSI), solo aplicar comisión base de Stripe
-    if (selectedMSI === 0) {
-      return basePrice * (1 + stripeParams.percentage) + stripeParams.fixedFee;
-    }
+    // Pago de contado (0 MSI): solo comisión base de Stripe.
+    // A meses: intereses sobre el precio base y luego Stripe.
+    const priceWithInterest = currentPrice * (1 + interestRate);
+    return priceWithInterest * (1 + stripeParams.percentage) + fixedFee;
+  }, [currentPrice, selectedMSI, stripeParams, fixedFee]);
 
-    // Si es a meses, aplicar intereses sobre el precio base, luego Stripe
-    const priceWithInterest = basePrice * (1 + interestRate);
-    return priceWithInterest * (1 + stripeParams.percentage) + stripeParams.fixedFee;
-  }, [currentPrice, selectedMSI, stripeParams]);
-
-  const displayPrice = formatPrice(finalPrice);
   const monthlyPayment = selectedMSI > 0 ? finalPrice / selectedMSI : finalPrice;
-  const interestAmount = selectedMSI > 0 ? finalPrice - (currentPrice * (1 + (stripeParams?.percentage || 0)) + (stripeParams?.fixedFee || 0)) : 0;
+  const interestAmount = selectedMSI > 0 ? finalPrice - (currentPrice * (1 + (stripeParams?.percentage || 0)) + fixedFee) : 0;
 
   const handleShare = async () => {
+    const description = product.description ?? "";
+    const summary = description.length > 100 ? `${description.substring(0, 100)}...` : description;
+    const priceText = hasPrice ? `${formatPrice(currentPrice)} ${currency}` : t("priceOnRequest");
     const shareData = {
       title: `${product.name} - Oro Nacional`,
-      text: `${product.description.substring(0, 100)}... - ${product.price}`,
+      text: [summary, priceText].filter(Boolean).join(" - "),
       url: window.location.href,
     };
 
@@ -147,7 +162,7 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
       } else {
         // Fallback: copiar al portapapeles
         await navigator.clipboard.writeText(shareData.url);
-        alert("¡Enlace copiado al portapapeles!");
+        toast.success(t("linkCopied"));
       }
     } catch (err) {
       console.log("Error sharing:", err);
@@ -156,20 +171,23 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
 
 
   const handleAddToCart = () => {
-    // Usar el precio base de la talla seleccionada (sin comisiones de Stripe/MSI)
-    // Las comisiones se aplicarán al momento del pago
+    if (!hasPrice || isOutOfStock) return;
+
+    // El carrito guarda SIEMPRE el precio unitario en MXN (sin comisiones de Stripe/MSI)
+    // y, si existe, el precio fijo en USD. La conversión se hace al mostrar/cobrar.
     addItem({
       id: product.id,
       name: product.name,
-      price: currentPrice,
-      image: product.images?.[0] || "/placeholder-product.jpg",
+      price: priceMXN,
+      priceUSD,
+      image: product.images?.[0] || PRODUCT_PLACEHOLDER_IMAGE,
       material: product.material,
       size: selectedSize || undefined,
       slug: product.slug || "",
     });
-    
+
     // Mostrar confirmación
-    alert('¡Producto agregado al carrito!');
+    toast.success(t("addedToCart"));
   };
 
   return (
@@ -186,17 +204,25 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
 
       {/* Precio */}
       <div className="flex items-baseline gap-4">
-        <div className="flex items-baseline gap-2">
-          <p className="text-4xl font-semibold text-foreground">
-            {formatPrice(currentPrice)}
+        {hasPrice ? (
+          <>
+            <div className="flex items-baseline gap-2">
+              <p className="text-4xl font-semibold text-foreground">
+                {formatPrice(currentPrice)}
+              </p>
+              <span className="text-lg font-medium text-muted-foreground">
+                {currency}
+              </span>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {t("taxIncluded")}
+            </p>
+          </>
+        ) : (
+          <p className="text-3xl font-semibold text-foreground">
+            {t("priceOnRequest")}
           </p>
-          <span className="text-lg font-medium text-muted-foreground">
-            {currency}
-          </span>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          IVA incluido
-        </p>
+        )}
       </div>
 
       {/* Descripción */}
@@ -209,7 +235,7 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
         {product.sizes && product.sizes.length > 0 && (
           <div>
             <Label className="text-base font-semibold">
-              Talla {selectedSize && `- ${selectedSize}`}
+              {t("size")} {selectedSize && `- ${selectedSize}`}
             </Label>
             <RadioGroup
               value={selectedSize}
@@ -218,12 +244,12 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
             >
               {(() => {
                 // Normalizar las tallas a un formato consistente
-                const normalizedSizes: Array<{ size: string; price: number; price_usd?: number | null; stock: number; weight?: number }> = isSizesWithPrice
-                  ? (product.sizes as Array<{ size: string; price: number; price_usd?: number | null; stock: number; weight?: number }>)
+                const normalizedSizes: SizeWithPrice[] = isSizesWithPrice
+                  ? (product.sizes as SizeWithPrice[])
                   : (product.sizes as string[]).map(s => ({
                       size: s,
-                      price: currentPrice,
-                      price_usd: product.basePriceUSD,
+                      price: null,
+                      price_usd: null,
                       stock: 1, // Stock por defecto si no hay información de stock por talla
                       weight: undefined
                     }));
@@ -232,9 +258,7 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
                   const isOutOfStock = sizeObj.stock === 0;
                   const weight = sizeObj.weight;
                   const weightText = weight !== undefined && weight !== null && weight > 0
-                    ? isByPairs
-                      ? `${weight} ${weight === 1 ? "par" : "pares"}`
-                      : `${weight} ${unitLabel}`
+                    ? formatUnits(weight)
                     : null;
 
                   return (
@@ -266,103 +290,90 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
           </div>
         )}
 
-        {/* Selector de Pagos a Meses */}
-        <div>
-          <Label className="text-base font-semibold">
-            Opciones de Pago a Meses
-          </Label>
-          <RadioGroup
-            value={selectedMSI.toString()}
-            onValueChange={(value) => setSelectedMSI(parseInt(value))}
-            className="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-3"
-          >
+        {hasPrice ? (
+          <>
+            {/* Selector de Pagos a Meses */}
             <div>
-              <RadioGroupItem value="0" id="msi-0" className="peer sr-only" />
-              <Label
-                htmlFor="msi-0"
-                className="flex flex-col items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium cursor-pointer transition-all border-muted bg-card hover:bg-muted peer-data-[state=checked]:border-green-600 peer-data-[state=checked]:bg-green-50"
-              >
-                <span className="text-xs text-muted-foreground">De contado</span>
-                <span className="text-xs font-semibold text-green-600 mt-1">0% interés</span>
+              <Label className="text-base font-semibold">
+                {t("installmentOptions")}
               </Label>
-            </div>
-            <div>
-              <RadioGroupItem value="3" id="msi-3" className="peer sr-only" />
-              <Label
-                htmlFor="msi-3"
-                className="flex flex-col items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium cursor-pointer transition-all border-muted bg-card hover:bg-muted peer-data-[state=checked]:border-amber-600 peer-data-[state=checked]:bg-amber-50"
+              <RadioGroup
+                value={selectedMSI.toString()}
+                onValueChange={(value) => setSelectedMSI(parseInt(value))}
+                className="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-3"
               >
-                <span className="text-xs text-muted-foreground">3 meses</span>
-                <span className="text-sm font-semibold text-amber-600 mt-1">5% interés</span>
-              </Label>
+                <div>
+                  <RadioGroupItem value="0" id="msi-0" className="peer sr-only" />
+                  <Label
+                    htmlFor="msi-0"
+                    className="flex flex-col items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium cursor-pointer transition-all border-muted bg-card hover:bg-muted peer-data-[state=checked]:border-green-600 peer-data-[state=checked]:bg-green-50"
+                  >
+                    <span className="text-xs text-muted-foreground">{t("payInFull")}</span>
+                    <span className="text-xs font-semibold text-green-600 mt-1">{t("zeroInterest")}</span>
+                  </Label>
+                </div>
+                {INSTALLMENT_MONTHS.map((months) => (
+                  <div key={months}>
+                    <RadioGroupItem value={months.toString()} id={`msi-${months}`} className="peer sr-only" />
+                    <Label
+                      htmlFor={`msi-${months}`}
+                      className="flex flex-col items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium cursor-pointer transition-all border-muted bg-card hover:bg-muted peer-data-[state=checked]:border-amber-600 peer-data-[state=checked]:bg-amber-50"
+                    >
+                      <span className="text-xs text-muted-foreground">{t("months", { count: months })}</span>
+                      <span className="text-sm font-semibold text-amber-600 mt-1">
+                        {t("interestRate", { rate: INTEREST_RATES[months] * 100 })}
+                      </span>
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
             </div>
-            <div>
-              <RadioGroupItem value="6" id="msi-6" className="peer sr-only" />
-              <Label
-                htmlFor="msi-6"
-                className="flex flex-col items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium cursor-pointer transition-all border-muted bg-card hover:bg-muted peer-data-[state=checked]:border-amber-600 peer-data-[state=checked]:bg-amber-50"
-              >
-                <span className="text-xs text-muted-foreground">6 meses</span>
-                <span className="text-sm font-semibold text-amber-600 mt-1">7.5% interés</span>
-              </Label>
-            </div>
-            <div>
-              <RadioGroupItem value="9" id="msi-9" className="peer sr-only" />
-              <Label
-                htmlFor="msi-9"
-                className="flex flex-col items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium cursor-pointer transition-all border-muted bg-card hover:bg-muted peer-data-[state=checked]:border-amber-600 peer-data-[state=checked]:bg-amber-50"
-              >
-                <span className="text-xs text-muted-foreground">9 meses</span>
-                <span className="text-sm font-semibold text-amber-600 mt-1">10% interés</span>
-              </Label>
-            </div>
-            <div>
-              <RadioGroupItem value="12" id="msi-12" className="peer sr-only" />
-              <Label
-                htmlFor="msi-12"
-                className="flex flex-col items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium cursor-pointer transition-all border-muted bg-card hover:bg-muted peer-data-[state=checked]:border-amber-600 peer-data-[state=checked]:bg-amber-50"
-              >
-                <span className="text-xs text-muted-foreground">12 meses</span>
-                <span className="text-sm font-semibold text-amber-600 mt-1">12.5% interés</span>
-              </Label>
-            </div>
-          </RadioGroup>
-        </div>
 
-        {/* Información de pago mensual */}
-        {selectedMSI > 0 ? (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-amber-900">
-                  Pago mensual ({selectedMSI} meses):
-                </span>
-                <span className="text-lg font-bold text-amber-600">
-                  {formatPrice(monthlyPayment)} {currency}
-                </span>
+            {/* Información de pago mensual */}
+            {selectedMSI > 0 ? (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-amber-900">
+                      {t("monthlyPayment", { count: selectedMSI })}
+                    </span>
+                    <span className="text-lg font-bold text-amber-600">
+                      {formatPrice(monthlyPayment)} {currency}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-amber-700">{t("totalToPay")}</span>
+                    <span className="font-semibold text-amber-900">{formatPrice(finalPrice)} {currency}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-amber-700">
+                      {t("includesInterest", { rate: INTEREST_RATES[selectedMSI as keyof typeof INTEREST_RATES] * 100 })}
+                    </span>
+                    <span className="font-semibold text-amber-900">+{formatPrice(interestAmount)} {currency}</span>
+                  </div>
+                </div>
               </div>
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-amber-700">Total a pagar:</span>
-                <span className="font-semibold text-amber-900">{formatPrice(finalPrice)} {currency}</span>
+            ) : (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-green-900">
+                    {t("payInFullNoInterest")}
+                  </span>
+                  <span className="text-lg font-bold text-green-600">
+                    {formatPrice(finalPrice)} {currency}
+                  </span>
+                </div>
+                <p className="text-xs text-green-700 mt-2">{t("bestPrice")}</p>
               </div>
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-amber-700">Incluye intereses del {(INTEREST_RATES[selectedMSI as keyof typeof INTEREST_RATES] * 100)}%:</span>
-                <span className="font-semibold text-amber-900">+{formatPrice(interestAmount)} {currency}</span>
-              </div>
-            </div>
-          </div>
+            )}
+          </>
         ) : (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium text-green-900">
-                Pago de contado (sin intereses):
-              </span>
-              <span className="text-lg font-bold text-green-600">
-                {formatPrice(finalPrice)} {currency}
-              </span>
-            </div>
-            <p className="text-xs text-green-700 mt-2">✓ Mejor precio disponible</p>
-          </div>
+          <p className="text-sm text-muted-foreground">
+            {t("priceOnRequestHint")}{" "}
+            <Link href="/contact" className="font-medium text-[#D4AF37] hover:text-[#B8941E]">
+              {t("contactUs")}
+            </Link>
+          </p>
         )}
 
         {/* Botones de acción */}
@@ -371,21 +382,14 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
             size="lg"
             className="w-full bg-[#D4AF37] hover:bg-[#B8941E] text-white text-base font-semibold py-6 transition-all duration-300 hover:scale-[1.02]"
             onClick={handleAddToCart}
-            disabled={(() => {
-              // Verificar stock de la talla seleccionada
-              if (!isSizesWithPrice || !selectedSize) return false;
-              const selectedSizeObj = (sizesArray as Array<{ size: string; price: number; stock: number }>)
-                .find(s => s.size === selectedSize);
-              return selectedSizeObj ? selectedSizeObj.stock === 0 : false;
-            })()}
+            disabled={!hasPrice || isOutOfStock}
           >
             <ShoppingCart className="mr-2 h-5 w-5" />
-            {(() => {
-              if (!isSizesWithPrice || !selectedSize) return 'Agregar al Carrito';
-              const selectedSizeObj = (sizesArray as Array<{ size: string; price: number; stock: number }>)
-                .find(s => s.size === selectedSize);
-              return selectedSizeObj && selectedSizeObj.stock === 0 ? 'Agotado' : 'Agregar al Carrito';
-            })()}
+            {isOutOfStock
+              ? tCommon("outOfStock")
+              : hasPrice
+                ? tCommon("addToCart")
+                : t("priceOnRequest")}
           </Button>
         </div>
 
@@ -401,11 +405,11 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
             <Heart
               className={`mr-2 h-5 w-5 ${isFavorite ? "fill-red-500 text-red-500" : ""}`}
             />
-            {isFavorite ? "Guardado" : "Guardar"}
+            {isFavorite ? t("saved") : tCommon("save")}
           </Button>
           <Button variant="outline" size="lg" className="flex-1" onClick={handleShare}>
             <Share2 className="mr-2 h-5 w-5" />
-            Compartir
+            {t("share")}
           </Button>
         </div>
       </div>
@@ -415,27 +419,27 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
         <div className="flex items-start gap-3">
           <Shield className="h-5 w-5 text-[#D4AF37] mt-0.5" />
           <div>
-            <p className="font-semibold text-sm">Certificado de Autenticidad</p>
+            <p className="font-semibold text-sm">{t("certificateTitle")}</p>
             <p className="text-sm text-muted-foreground">
-              Oro {product.material} certificado
+              {t("certificateDescription", { material: product.material })}
             </p>
           </div>
         </div>
         <div className="flex items-start gap-3">
           <Truck className="h-5 w-5 text-[#D4AF37] mt-0.5" />
           <div>
-            <p className="font-semibold text-sm">Envío Seguro Gratis</p>
+            <p className="font-semibold text-sm">{t("secureShippingTitle")}</p>
             <p className="text-sm text-muted-foreground">
-              A toda la República Mexicana
+              {t("secureShippingDescription")}
             </p>
           </div>
         </div>
         <div className="flex items-start gap-3">
           <Award className="h-5 w-5 text-[#D4AF37] mt-0.5" />
           <div>
-            <p className="font-semibold text-sm">Garantía de Manufactura</p>
+            <p className="font-semibold text-sm">{t("warrantyTitle")}</p>
             <p className="text-sm text-muted-foreground">
-              En todos nuestros productos
+              {t("warrantyDescription")}
             </p>
           </div>
         </div>
@@ -450,22 +454,21 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
           <Tabs defaultValue={defaultTab} className="border-t border-border pt-6">
             <TabsList className={`grid w-full ${hasSpecifications ? 'grid-cols-3' : 'grid-cols-2'}`}>
               {hasSpecifications && (
-                <TabsTrigger value="specs">Especificaciones</TabsTrigger>
+                <TabsTrigger value="specs">{t("tabSpecs")}</TabsTrigger>
               )}
-              <TabsTrigger value="care">Cuidados</TabsTrigger>
-              <TabsTrigger value="shipping">Envío</TabsTrigger>
+              <TabsTrigger value="care">{t("tabCare")}</TabsTrigger>
+              <TabsTrigger value="shipping">{t("tabShipping")}</TabsTrigger>
             </TabsList>
             {hasSpecifications && (
               <TabsContent value="specs" className="mt-6 space-y-3">
                 {Object.entries(product.specifications).map(([key, value]) => {
-                  const keyLower = key.toLowerCase();
-                  const isWeightOrPieces = /peso|gramo|pieza|par|cantidad/.test(keyLower);
-                  const displayValue = isWeightOrPieces && value.trim() !== ""
+                  // Solo las especificaciones de peso llevan unidad (no "piezas", "cantidad", etc.)
+                  const isWeight = /\b(peso|gramos?|weight|grams?)\b/i.test(key);
+                  const displayValue = isWeight && value.trim() !== ""
                     ? (() => {
                         const num = parseFloat(value.replace(",", "."));
                         if (isNaN(num)) return value;
-                        if (isByPairs) return `${num} ${num === 1 ? "par" : "pares"}`;
-                        return `${num} ${unitLabel}`;
+                        return formatUnits(num);
                       })()
                     : value;
                   return (
@@ -482,30 +485,17 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
             )}
             <TabsContent value="care" className="mt-6 space-y-3 text-sm text-muted-foreground">
               <ul className="list-disc list-inside space-y-2">
-                <li>Limpie con un paño suave y seco después de cada uso</li>
-                <li>Evite el contacto con productos químicos, perfumes y lociones</li>
-                <li>Guarde en un lugar seco, preferiblemente en su caja original</li>
-                <li>Para limpieza profunda, use agua tibia con jabón neutro</li>
-                <li>Evite usar su joyería mientras hace ejercicio o tareas pesadas</li>
+                {(["care1", "care2", "care3", "care4", "care5"] as const).map((key) => (
+                  <li key={key}>{t(key)}</li>
+                ))}
               </ul>
             </TabsContent>
             <TabsContent value="shipping" className="mt-6 space-y-3 text-sm text-muted-foreground">
-              <p>
-                <strong>Envío Nacional:</strong> Gratis a toda la República Mexicana.
-                Tiempo estimado de entrega: 3-5 días hábiles.
-              </p>
-              <p>
-                <strong>Seguimiento:</strong> Recibirás un número de rastreo una vez
-                que tu pedido sea enviado.
-              </p>
-              <p>
-                <strong>Empaque:</strong> Todos nuestros productos se envían en cajas
-                de regalo elegantes con certificado de autenticidad.
-              </p>
-              <p>
-                <strong>Seguro:</strong> Todos los envíos están asegurados contra
-                pérdida o daño.
-              </p>
+              {(["shippingNational", "shippingTracking", "shippingPackaging", "shippingInsurance"] as const).map((key) => (
+                <p key={key}>
+                  {t.rich(key, { strong: (chunks) => <strong>{chunks}</strong> })}
+                </p>
+              ))}
             </TabsContent>
           </Tabs>
         );

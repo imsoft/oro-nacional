@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
 import { useTranslations } from 'next-intl';
 import { useAuthStore } from "@/stores/auth-store";
 import { Button } from "@/components/ui/button";
@@ -25,8 +25,9 @@ import type { UserProfile, UserAddress } from "@/types/profile";
 
 const ProfilePage = () => {
   const t = useTranslations('profile');
+  const tAuth = useTranslations('auth.updatePassword');
   const router = useRouter();
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, hasCheckedSession } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -98,12 +99,15 @@ const ProfilePage = () => {
   }, [user]);
 
   useEffect(() => {
+    // Esperar a que termine la verificación de sesión antes de decidir
+    if (!hasCheckedSession) return;
+
     if (!isAuthenticated) {
-      router.push("/login");
+      router.replace("/login");
     } else {
       loadUserData();
     }
-  }, [isAuthenticated, router, loadUserData]);
+  }, [hasCheckedSession, isAuthenticated, router, loadUserData]);
 
   const showMessage = (type: "success" | "error", text: string) => {
     setMessage({ type, text });
@@ -165,6 +169,11 @@ const ProfilePage = () => {
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!passwordForm.currentPassword) {
+      showMessage("error", tAuth('currentPasswordRequired'));
+      return;
+    }
+
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
       showMessage("error", t('passwordsDontMatch'));
       return;
@@ -177,7 +186,11 @@ const ProfilePage = () => {
 
     setIsLoading(true);
 
-    const result = await updateUserPassword(passwordForm.newPassword);
+    // Se verifica la contraseña actual antes de cambiarla
+    const result = await updateUserPassword(
+      passwordForm.currentPassword,
+      passwordForm.newPassword
+    );
 
     setIsLoading(false);
 
@@ -189,15 +202,25 @@ const ProfilePage = () => {
       });
       showMessage("success", t('passwordUpdated'));
     } else {
-      showMessage("error", result.error || t('errorUpdatingPassword'));
+      const passwordErrors: Record<string, string> = {
+        wrong_current_password: tAuth('currentPasswordIncorrect'),
+        same_password: tAuth('samePassword'),
+        weak_password: tAuth('weakPassword'),
+        not_authenticated: tAuth('sessionExpired'),
+      };
+      showMessage(
+        "error",
+        (result.errorCode && passwordErrors[result.errorCode]) || t('errorUpdatingPassword')
+      );
     }
   };
 
-  if (!isAuthenticated || !user) {
+  // Tras verificar la sesión, si no hay usuario se redirige al login
+  if (hasCheckedSession && (!isAuthenticated || !user)) {
     return null;
   }
 
-  if (isLoadingData) {
+  if (!hasCheckedSession || isLoadingData) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
@@ -254,7 +277,7 @@ const ProfilePage = () => {
               <CardContent>
                 <form onSubmit={handleSavePersonalInfo} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name">{t('fullName')}</Label>
+                    <Label htmlFor="name">{t('name')}</Label>
                     <Input
                       id="name"
                       type="text"
@@ -336,7 +359,7 @@ const ProfilePage = () => {
               <CardContent>
                 <form onSubmit={handleSaveAddress} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="street">{t('streetAndNumber')}</Label>
+                    <Label htmlFor="street">{t('street')}</Label>
                     <Input
                       id="street"
                       type="text"
@@ -484,7 +507,7 @@ const ProfilePage = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="confirmPassword">
-                      {t('confirmNewPassword')}
+                      {t('confirmPassword')}
                     </Label>
                     <Input
                       id="confirmPassword"

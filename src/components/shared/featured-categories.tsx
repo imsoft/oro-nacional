@@ -7,6 +7,7 @@ import { Link } from '@/i18n/routing';
 import { Loader2 } from "lucide-react";
 import { getFeaturedCategories } from "@/lib/supabase/products";
 import type { FeaturedCategory } from "@/types/product";
+import { PRODUCT_PLACEHOLDER_IMAGE } from "@/components/catalog/product-display";
 
 // Mapping from category slugs to routes
 const categoryRoutes: Record<string, string> = {
@@ -78,7 +79,7 @@ const FeaturedCategories = () => {
                 <div className="relative aspect-square overflow-hidden">
                   <Image
                     alt={t('imageAlt', { name: categoryName })}
-                    src={category.image_url}
+                    src={category.image_url || PRODUCT_PLACEHOLDER_IMAGE}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-110"
                   />

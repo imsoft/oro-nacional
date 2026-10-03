@@ -81,7 +81,9 @@ export default function HeroImagesAdmin() {
           return;
         }
         setUploadingIndex(heroImages.length);
-        const newImage = await uploadHeroImage(file, heroImages.length);
+        // El orden real (max + 1) se calcula en uploadHeroImage; este valor es solo un respaldo
+        const nextOrder = heroImages.reduce((max, img) => Math.max(max, img.display_order), -1) + 1;
+        const newImage = await uploadHeroImage(file, nextOrder);
         if (newImage) {
           await loadHeroImages();
         } else {

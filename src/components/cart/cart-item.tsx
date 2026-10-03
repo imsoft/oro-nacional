@@ -13,7 +13,9 @@ interface CartItemProps {
 
 const CartItem = ({ item }: CartItemProps) => {
   const { updateQuantity, removeItem } = useCartStore();
-  const { formatPrice } = useCurrency();
+  const { formatPrice, convertPrice } = useCurrency();
+  // item.price está en MXN; convertir a la moneda del idioma actual
+  const unitPrice = convertPrice(item.price, item.priceUSD);
 
   return (
     <div className="flex gap-4 py-6 border-b border-border last:border-0">
@@ -48,10 +50,10 @@ const CartItem = ({ item }: CartItemProps) => {
           {/* Precio */}
           <div className="text-right">
             <p className="font-semibold text-foreground">
-              {formatPrice(item.price * item.quantity)}
+              {formatPrice(unitPrice * item.quantity)}
             </p>
             <p className="text-xs text-muted-foreground">
-              {formatPrice(item.price)} c/u
+              {formatPrice(unitPrice)} c/u
             </p>
           </div>
         </div>
@@ -63,7 +65,7 @@ const CartItem = ({ item }: CartItemProps) => {
               variant="outline"
               size="icon"
               className="h-8 w-8"
-              onClick={() => updateQuantity(item.id, item.quantity - 1)}
+              onClick={() => updateQuantity(item.id, item.quantity - 1, item.size)}
             >
               <Minus className="h-4 w-4" />
             </Button>
@@ -72,7 +74,7 @@ const CartItem = ({ item }: CartItemProps) => {
               variant="outline"
               size="icon"
               className="h-8 w-8"
-              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+              onClick={() => updateQuantity(item.id, item.quantity + 1, item.size)}
             >
               <Plus className="h-4 w-4" />
             </Button>
@@ -82,7 +84,7 @@ const CartItem = ({ item }: CartItemProps) => {
             variant="ghost"
             size="sm"
             className="text-red-600 hover:text-red-700 hover:bg-red-50"
-            onClick={() => removeItem(item.id)}
+            onClick={() => removeItem(item.id, item.size)}
           >
             <Trash2 className="mr-2 h-4 w-4" />
             Eliminar

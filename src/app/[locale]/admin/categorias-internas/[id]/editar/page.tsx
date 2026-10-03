@@ -149,7 +149,8 @@ export default function EditInternalCategoryPage({ params }: EditInternalCategor
         internal_category_id: categoryId,
         name: newSubcategoryData.name.trim(),
         special_code: newSubcategoryData.special_code.trim() || undefined,
-        display_order: subcategories.length,
+        // max + 1 para no chocar con órdenes existentes después de eliminar subcategorías
+        display_order: subcategories.reduce((max, sub) => Math.max(max, sub.display_order ?? 0), -1) + 1,
       });
       setSubcategories([...subcategories, newSubcategory]);
       toast.success("Subcategoría creada exitosamente", {
@@ -210,12 +211,16 @@ export default function EditInternalCategoryPage({ params }: EditInternalCategor
     const newIndex = direction === "up" ? index - 1 : index + 1;
     if (newIndex < 0 || newIndex >= subcategories.length) return;
 
-    const newOrder = subcategories[newIndex].display_order;
-    const currentOrder = subcategories[index].display_order;
+    // Renumerar toda la lista por índice (evita movimientos sin efecto cuando hay órdenes repetidos o huecos)
+    const reordered = [...subcategories];
+    [reordered[index], reordered[newIndex]] = [reordered[newIndex], reordered[index]];
 
     try {
-      await updateInternalSubcategory(subcategoryId, { display_order: newOrder });
-      await updateInternalSubcategory(subcategories[newIndex].id, { display_order: currentOrder });
+      for (let i = 0; i < reordered.length; i++) {
+        if (reordered[i].display_order !== i) {
+          await updateInternalSubcategory(reordered[i].id, { display_order: i });
+        }
+      }
       await loadSubcategories();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Error desconocido al reordenar la subcategoría";
@@ -241,8 +246,9 @@ export default function EditInternalCategoryPage({ params }: EditInternalCategor
     try {
       await updateInternalCategory(categoryId, {
         name: formData.name.trim(),
-        description: formData.description.trim() || undefined,
-        color: formData.color.trim() || undefined,
+        // Enviar "" (no undefined) para poder limpiar descripción y color
+        description: formData.description.trim(),
+        color: formData.color.trim(),
         is_active: formData.is_active,
       });
 

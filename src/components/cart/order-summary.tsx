@@ -7,11 +7,15 @@ import { useCartStore } from "@/stores/cart-store";
 import { useCurrency } from "@/contexts/currency-context";
 
 const OrderSummary = () => {
-  const total = useCartStore((state) => state.getTotal());
+  const items = useCartStore((state) => state.items);
   const itemCount = useCartStore((state) => state.getItemCount());
-  const { formatPrice } = useCurrency();
+  const { formatPrice, convertPrice } = useCurrency();
 
-  const subtotal = total;
+  // Los precios del carrito están en MXN; convertir a la moneda del idioma actual
+  const subtotal = items.reduce(
+    (sum, item) => sum + convertPrice(item.price, item.priceUSD) * item.quantity,
+    0
+  );
   const finalTotal = subtotal;
 
   return (

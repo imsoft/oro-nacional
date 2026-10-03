@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600" role="img" aria-label="Oro Nacional">
+  <rect width="600" height="600" fill="#f3f1ec"/>
+  <g fill="none" stroke="#c9b98a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="300" cy="340" r="95"/>
+    <path d="M262 232l-26-40 30-34h68l30 34-26 40"/>
+    <path d="M236 192h128M266 158l34 34 34-34"/>
+  </g>
+</svg>

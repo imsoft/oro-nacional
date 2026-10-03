@@ -58,6 +58,7 @@ export async function getPricingParameters(): Promise<PricingParameters | null> 
     .from("pricing_parameters")
     .select("*")
     .order("updated_at", { ascending: false })
+    .order("id", { ascending: true })
     .limit(1)
     .maybeSingle();
 
@@ -91,9 +92,12 @@ export async function updatePricingParameters(
   parameters: PricingParameters
 ): Promise<PricingParameters> {
   // Get the current row to update it - use maybeSingle to avoid errors if no row exists
+  // Misma fila que lee getPricingParameters (la más reciente, desempate por id)
   const { data: current, error: selectError } = await supabase
     .from("pricing_parameters")
     .select("id")
+    .order("updated_at", { ascending: false })
+    .order("id", { ascending: true })
     .limit(1)
     .maybeSingle();
 
@@ -317,6 +321,16 @@ export interface SubcategoryPricingData {
   shippingCost: number;
 }
 
+// Valores por defecto de una subcategoría Gramo (compartidos por la calculadora y el formulario de productos)
+export const DEFAULT_SUBCATEGORY_GRAMO_PRICING: SubcategoryPricingData = {
+  goldGrams: 5,
+  factor: 0.442,
+  laborCost: 15,
+  stoneCost: 0,
+  salesCommission: 30,
+  shippingCost: 800,
+};
+
 // Get pricing data for a single subcategory (Gramo)
 export async function getSubcategoryPricing(subcategoryId: string): Promise<SubcategoryPricingData | null> {
   const { data, error } = await supabase
@@ -455,54 +469,72 @@ export interface BroquelPricingParameters {
 
 // Convert database row to application type
 function convertBroquelPricingParameters(row: BroquelPricingParametersRow): BroquelPricingParameters {
+  // Supabase puede devolver strings para campos numeric
   return {
-    quotation: row.quotation,
-    profitMargin: row.profit_margin,
-    vat: row.vat,
-    stripePercentage: row.stripe_percentage,
-    stripeFixedFee: row.stripe_fixed_fee,
+    quotation: Number(row.quotation),
+    profitMargin: Number(row.profit_margin),
+    vat: Number(row.vat),
+    stripePercentage: Number(row.stripe_percentage),
+    stripeFixedFee: Number(row.stripe_fixed_fee),
   };
 }
+
+// Valores por defecto de parámetros de Broquel (solo se usan si no existe ninguna fila en la BD)
+const DEFAULT_BROQUEL_PRICING_PARAMETERS: BroquelPricingParameters = {
+  quotation: 2450,
+  profitMargin: 0.08,
+  vat: 0.16,
+  stripePercentage: 0.036,
+  stripeFixedFee: 3.00,
+};
 
 // Get global broquel pricing parameters
 // NOTE: La cotización del oro (quotation) se sincroniza con pricing_parameters.gold_quotation
 // para que ambos calculadores (Gramo y Broquel) usen el mismo precio del oro
 export async function getBroquelPricingParameters(): Promise<BroquelPricingParameters> {
-  // Obtener parámetros de broquel
+  // Obtener parámetros de broquel (misma fila que actualiza updateBroquelPricingParameters)
   const { data: broquelData, error: broquelError } = await supabase
     .from("broquel_pricing_parameters")
     .select("*")
+    .order("updated_at", { ascending: false })
+    .order("id", { ascending: true })
     .limit(1)
-    .single();
+    .maybeSingle();
 
   // Obtener la cotización del oro desde pricing_parameters (fuente única de verdad)
   const { data: pricingData, error: pricingError } = await supabase
     .from("pricing_parameters")
     .select("gold_quotation")
+    .order("updated_at", { ascending: false })
+    .order("id", { ascending: true })
     .limit(1)
-    .single();
+    .maybeSingle();
 
-  if (broquelError) {
-    console.error("Error fetching broquel pricing parameters:", broquelError);
-    // Return default values if error, usando la cotización de pricing_parameters si está disponible
+  if (pricingError) {
+    console.error("Error fetching gold quotation for broquel parameters:", pricingError);
+  }
+
+  const goldQuotation = pricingData?.gold_quotation != null ? Number(pricingData.gold_quotation) : 0;
+
+  if (broquelError || !broquelData) {
+    if (broquelError) {
+      console.error("Error fetching broquel pricing parameters:", broquelError);
+    } else {
+      console.warn("No broquel pricing parameters found in database, using default values");
+    }
+    // Valores por defecto, usando la cotización de pricing_parameters si está disponible
     return {
-      quotation: pricingData?.gold_quotation || 2450,
-      profitMargin: 0.08,
-      vat: 0.16,
-      stripePercentage: 0.036,
-      stripeFixedFee: 3.00,
+      ...DEFAULT_BROQUEL_PRICING_PARAMETERS,
+      quotation: goldQuotation > 0 ? goldQuotation : DEFAULT_BROQUEL_PRICING_PARAMETERS.quotation,
     };
   }
 
-  // Usar la cotización de pricing_parameters si está disponible, sino usar la de broquel
-  const syncedQuotation = pricingData?.gold_quotation || broquelData.quotation;
+  const converted = convertBroquelPricingParameters(broquelData);
 
+  // Usar la cotización de pricing_parameters si está disponible, sino usar la de broquel
   return {
-    quotation: syncedQuotation,
-    profitMargin: broquelData.profit_margin,
-    vat: broquelData.vat,
-    stripePercentage: broquelData.stripe_percentage,
-    stripeFixedFee: broquelData.stripe_fixed_fee,
+    ...converted,
+    quotation: goldQuotation > 0 ? goldQuotation : converted.quotation,
   };
 }
 
@@ -512,9 +544,12 @@ export async function updateBroquelPricingParameters(
   parameters: BroquelPricingParameters
 ): Promise<BroquelPricingParameters> {
   // Get the current row to update it - use maybeSingle to avoid errors if no row exists
+  // Misma fila que lee getBroquelPricingParameters (la más reciente, desempate por id)
   const { data: current, error: selectError } = await supabase
     .from("broquel_pricing_parameters")
     .select("id")
+    .order("updated_at", { ascending: false })
+    .order("id", { ascending: true })
     .limit(1)
     .maybeSingle();
 
@@ -602,6 +637,19 @@ export interface SubcategoryBroquelPricingData {
   salesCommission: number;
   shipping: number;
 }
+
+// Valores por defecto de una subcategoría Broquel (compartidos por la calculadora y el formulario de productos)
+export const DEFAULT_SUBCATEGORY_BROQUEL_PRICING: SubcategoryBroquelPricingData = {
+  pz: 1.0,
+  goldGrams: 0.185,
+  carats: 10,
+  factor: 0.000,
+  merma: 8.00, // 8%
+  laborCost: 20.00,
+  stoneCost: 0.00,
+  salesCommission: 30.00,
+  shipping: 800.00,
+};
 
 // Get pricing data for a single subcategory (Broquel)
 export async function getSubcategoryBroquelPricing(subcategoryId: string): Promise<SubcategoryBroquelPricingData | null> {
@@ -766,15 +814,8 @@ export async function calculateDynamicProductPrice(
         console.log('[calculateDynamicProductPrice] No saved data, using defaults');
         // Si no hay datos guardados, usar valores por defecto
         const defaultData: SubcategoryBroquelPricingData = {
+          ...DEFAULT_SUBCATEGORY_BROQUEL_PRICING,
           pz: params.goldGrams, // Para Broquel, params.goldGrams es en realidad el número de piezas
-          goldGrams: 1.0, // Gramos por pieza por defecto
-          carats: 10,
-          factor: 0.000,
-          merma: 8.00,
-          laborCost: 20.00,
-          stoneCost: 0.00,
-          salesCommission: 30.00,
-          shipping: 800.00,
         };
         const price = calculateBroquelPrice(defaultData, broquelParams);
         console.log('[calculateDynamicProductPrice] Calculated price (default):', price);
@@ -810,12 +851,8 @@ export async function calculateDynamicProductPrice(
         console.log('[calculateDynamicProductPrice] No saved data, using defaults');
         // Si no hay datos guardados, usar valores por defecto
         const defaultData: SubcategoryPricingData = {
+          ...DEFAULT_SUBCATEGORY_GRAMO_PRICING,
           goldGrams: params.goldGrams, // Usar los gramos de la talla
-          factor: 0.442,
-          laborCost: 15,
-          stoneCost: 0,
-          salesCommission: 30,
-          shippingCost: 800,
         };
         const price = calculateGramoPrice(defaultData, globalParams);
         console.log('[calculateDynamicProductPrice] Calculated price (default):', price);
@@ -841,9 +878,9 @@ export async function calculateDynamicProductPrice(
 
 /**
  * Calcular precio usando fórmula de Gramo
- * INCLUYE comisiones de Stripe: 3.6% + $3 MXN
+ * INCLUYE comisiones de Stripe (porcentaje y cuota fija de los parámetros guardados)
  */
-function calculateGramoPrice(
+export function calculateGramoPrice(
   pricingData: SubcategoryPricingData,
   globalParams: PricingParameters
 ): number {
@@ -858,9 +895,9 @@ function calculateGramoPrice(
   const subtotalWithCommissions = subtotalWithProfit + commissionCost + shippingCost;
   const subtotalWithVat = subtotalWithCommissions * (1 + globalParams.vat);
 
-  // Agregar comisiones de Stripe: 3.6% + $3 MXN
-  const stripePercentage = 0.036; // 3.6%
-  const stripeFixedFee = 3; // $3 MXN
+  // Agregar comisiones de Stripe usando los parámetros guardados
+  const stripePercentage = globalParams.stripePercentage;
+  const stripeFixedFee = globalParams.stripeFixedFee;
   const finalPrice = (subtotalWithVat * (1 + stripePercentage)) + stripeFixedFee;
 
   return finalPrice;
@@ -868,9 +905,9 @@ function calculateGramoPrice(
 
 /**
  * Calcular precio usando fórmula de Broquel
- * INCLUYE comisiones de Stripe: 3.6% + $3 MXN
+ * INCLUYE comisiones de Stripe (porcentaje y cuota fija de los parámetros guardados)
  */
-function calculateBroquelPrice(
+export function calculateBroquelPrice(
   pricingData: SubcategoryBroquelPricingData,
   broquelParams: BroquelPricingParameters
 ): number {
@@ -903,9 +940,9 @@ function calculateBroquelPrice(
   // 8. * (1 + IVA)
   const subtotalWithVat = subtotalWithShipping * (1 + broquelParams.vat);
 
-  // 9. Agregar comisiones de Stripe: 3.6% + $3 MXN
-  const stripePercentage = 0.036; // 3.6%
-  const stripeFixedFee = 3; // $3 MXN
+  // 9. Agregar comisiones de Stripe usando los parámetros guardados
+  const stripePercentage = broquelParams.stripePercentage;
+  const stripeFixedFee = broquelParams.stripeFixedFee;
   const finalPrice = (subtotalWithVat * (1 + stripePercentage)) + stripeFixedFee;
 
   return finalPrice;

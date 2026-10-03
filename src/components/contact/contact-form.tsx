@@ -46,7 +46,7 @@ const ContactForm = () => {
       message: formData.message,
     });
 
-    if (result.success && result.message) {
+    if (result.success && result.id) {
       // Enviar correos electrónicos
       try {
         const emailResponse = await fetch('/api/email/contact', {
@@ -55,7 +55,7 @@ const ContactForm = () => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            messageId: result.message.id,
+            messageId: result.id,
             locale,
           }),
         });
@@ -84,7 +84,7 @@ const ContactForm = () => {
     } else {
       setSubmitStatus({
         type: "error",
-        message: result.error || t('errorMessage'),
+        message: t('errorMessage'),
       });
     }
 

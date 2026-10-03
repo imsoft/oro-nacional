@@ -6,42 +6,6 @@ export type OrderStatus = 'Pendiente' | 'Procesando' | 'Enviado' | 'Entregado' |
 export type PaymentMethod = 'Tarjeta';
 export type PaymentStatus = 'Pendiente' | 'Pagado' | 'Fallido' | 'Reembolsado';
 
-// Tipo para crear un nuevo pedido
-export interface CreateOrderData {
-  // Información del cliente
-  customer_name: string;
-  customer_email: string;
-  customer_phone: string;
-
-  // Dirección de envío
-  shipping_address: string;
-  shipping_city: string;
-  shipping_state: string;
-  shipping_zip_code: string;
-  shipping_country?: string;
-
-  // Método de pago
-  payment_method: PaymentMethod;
-
-  // Notas del cliente
-  customer_notes?: string;
-
-  // Items del pedido
-  items: CreateOrderItemData[];
-}
-
-export interface CreateOrderItemData {
-  product_id: string;
-  product_name: string;
-  product_slug: string;
-  product_sku?: string;
-  product_image?: string;
-  quantity: number;
-  unit_price: number;
-  size?: string;
-  material?: string;
-}
-
 // Tipo para un item del pedido
 export interface OrderItem {
   id: string;
@@ -53,6 +17,8 @@ export interface OrderItem {
   product_image: string | null;
   quantity: number;
   unit_price: number;
+  // Precio unitario en la moneda cobrada (ver Order.currency)
+  unit_price_charged?: number | null;
   size: string | null;
   material: string | null;
   subtotal: number;
@@ -82,6 +48,12 @@ export interface Order {
   shipping_cost: number;
   tax: number;
   total: number;
+
+  // Moneda cobrada al cliente (subtotal/total siempre están en MXN)
+  currency?: 'MXN' | 'USD';
+  total_charged?: number | null;
+  exchange_rate?: number | null;
+  confirmation_sent_at?: string | null;
 
   // Estado
   status: OrderStatus;

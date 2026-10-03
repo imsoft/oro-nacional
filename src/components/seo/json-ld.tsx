@@ -1,3 +1,24 @@
+import { SITE_CONTACT, SITE_OPENING_HOURS } from "@/lib/site-contact";
+
+type SchemaLocale = "es" | "en";
+
+const SCHEMA_DESCRIPTIONS: Record<SchemaLocale, { business: string; website: string }> = {
+  es: {
+    business: 'Joyería elegante desde el corazón de Jalisco. Especialistas en anillos, collares, aretes y esclavas de oro.',
+    website: 'Joyería elegante desde el corazón de Jalisco',
+  },
+  en: {
+    business: 'Elegant jewelry from the heart of Jalisco. Specialists in gold rings, necklaces, earrings and bracelets.',
+    website: 'Elegant jewelry from the heart of Jalisco',
+  },
+};
+
+// Teléfono en formato +52-33-2636-3714 a partir de la fuente única de contacto
+const SCHEMA_TELEPHONE = SITE_CONTACT.phoneE164.replace(
+  /^\+52(\d{2})(\d{4})(\d{4})$/,
+  '+52-$1-$2-$3'
+);
+
 interface JsonLdProps {
   data: Record<string, unknown>;
 }
@@ -12,7 +33,7 @@ export function JsonLd({ data }: JsonLdProps) {
 }
 
 // Organization Schema
-export function getOrganizationSchema() {
+export function getOrganizationSchema(locale: SchemaLocale = 'es') {
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
@@ -20,44 +41,37 @@ export function getOrganizationSchema() {
     legalName: 'Oro Nacional S.A. de C.V.',
     url: 'https://www.oronacional.com',
     logo: 'https://www.oronacional.com/logos/logo-oro-nacional.png',
-    description: 'Joyería elegante desde el corazón de Jalisco. Especialistas en anillos, collares, aretes y esclavas de oro.',
+    description: SCHEMA_DESCRIPTIONS[locale].business,
     foundingDate: '1990',
     address: {
       '@type': 'PostalAddress',
-      addressLocality: 'Guadalajara',
-      addressRegion: 'Jalisco',
-      addressCountry: 'MX',
+      streetAddress: SITE_CONTACT.streetAddress,
+      addressLocality: SITE_CONTACT.city,
+      addressRegion: SITE_CONTACT.state,
+      addressCountry: SITE_CONTACT.countryCode,
     },
     contactPoint: {
       '@type': 'ContactPoint',
-      telephone: '+52-33-1234-5678',
+      telephone: SCHEMA_TELEPHONE,
       contactType: 'customer service',
-      email: 'contacto@oronacional.com',
+      email: SITE_CONTACT.email,
       availableLanguage: ['Spanish', 'English'],
     },
-    sameAs: [
-      'https://www.facebook.com/profile.php?id=61579417826319',
-      'https://www.instagram.com/nacionaloro/',
-    ],
+    sameAs: [SITE_CONTACT.facebookUrl, SITE_CONTACT.instagramUrl],
   };
 }
 
 // Website Schema
-export function getWebsiteSchema() {
+export function getWebsiteSchema(locale: SchemaLocale = 'es') {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: 'Oro Nacional',
     url: 'https://www.oronacional.com',
-    description: 'Joyería elegante desde el corazón de Jalisco',
+    description: SCHEMA_DESCRIPTIONS[locale].website,
     publisher: {
       '@type': 'Organization',
       name: 'Oro Nacional',
-    },
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: 'https://www.oronacional.com/es/catalog?q={search_term_string}',
-      'query-input': 'required name=search_term_string',
     },
     inLanguage: ['es-MX', 'en-US'],
   };
@@ -125,49 +139,38 @@ export function getBreadcrumbSchema(items: Array<{ name: string; url: string }>)
 }
 
 // Local Business Schema
-export function getLocalBusinessSchema() {
+export function getLocalBusinessSchema(locale: SchemaLocale = 'es') {
   return {
     '@context': 'https://schema.org',
     '@type': 'LocalBusiness',
     '@id': 'https://www.oronacional.com',
     name: 'Oro Nacional',
     image: 'https://www.oronacional.com/logos/logo-oro-nacional.png',
-    description: 'Joyería elegante desde el corazón de Jalisco. Especialistas en anillos, collares, aretes y esclavas de oro.',
+    description: SCHEMA_DESCRIPTIONS[locale].business,
     url: 'https://www.oronacional.com',
-    telephone: '+52-33-1234-5678',
-    email: 'contacto@oronacional.com',
+    telephone: SCHEMA_TELEPHONE,
+    email: SITE_CONTACT.email,
     priceRange: '$$',
     address: {
       '@type': 'PostalAddress',
-      streetAddress: 'Guadalajara',
-      addressLocality: 'Guadalajara',
-      addressRegion: 'Jalisco',
-      postalCode: '',
-      addressCountry: 'MX',
+      streetAddress: SITE_CONTACT.streetAddress,
+      addressLocality: SITE_CONTACT.city,
+      addressRegion: SITE_CONTACT.state,
+      addressCountry: SITE_CONTACT.countryCode,
     },
     geo: {
       '@type': 'GeoCoordinates',
       latitude: 20.6597,
       longitude: -103.3496,
     },
-    openingHoursSpecification: [
-      {
-        '@type': 'OpeningHoursSpecification',
-        dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-        opens: '10:00',
-        closes: '19:00',
-      },
-      {
-        '@type': 'OpeningHoursSpecification',
-        dayOfWeek: 'Saturday',
-        opens: '10:00',
-        closes: '14:00',
-      },
-    ],
-    sameAs: [
-      'https://www.facebook.com/profile.php?id=61579417826319',
-      'https://www.instagram.com/nacionaloro/',
-    ],
+    // Mismo horario que muestra la página de contacto
+    openingHoursSpecification: SITE_OPENING_HOURS.map((hours) => ({
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: [...hours.days],
+      opens: hours.opens,
+      closes: hours.closes,
+    })),
+    sameAs: [SITE_CONTACT.facebookUrl, SITE_CONTACT.instagramUrl],
   };
 }
 

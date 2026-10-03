@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import ProductCard from "@/components/catalog/product-card";
 
 interface Product {
@@ -16,6 +17,8 @@ interface RelatedProductsProps {
 }
 
 const RelatedProducts = ({ products }: RelatedProductsProps) => {
+  const t = useTranslations("product");
+
   if (products.length === 0) return null;
 
   return (
@@ -23,10 +26,10 @@ const RelatedProducts = ({ products }: RelatedProductsProps) => {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mb-12">
           <h2 className="text-3xl font-semibold text-foreground">
-            Productos Relacionados
+            {t("relatedTitle")}
           </h2>
           <p className="mt-2 text-lg text-muted-foreground">
-            También te puede interesar
+            {t("relatedSubtitle")}
           </p>
         </div>
 

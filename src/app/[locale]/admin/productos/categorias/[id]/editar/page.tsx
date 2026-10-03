@@ -115,9 +115,8 @@ export default function EditProductCategoryPage({ params }: EditCategoryPageProp
 
       const categoryData = {
         name: formData.name,
-        description: formData.description.es || formData.description.en
-          ? formData.description
-          : undefined,
+        // Enviar siempre la descripción (vacía = limpiar)
+        description: formData.description,
       };
 
       await updateCategory(categoryId, categoryData);

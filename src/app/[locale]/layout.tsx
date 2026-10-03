@@ -1,9 +1,26 @@
+import { Geist, Geist_Mono } from "next/font/google";
+import "../globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import { CurrencyProvider } from '@/contexts/currency-context';
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
+import { GoogleAnalytics } from "@/components/analytics/google-analytics";
+import { ogLocale } from "@/lib/seo";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -39,15 +56,16 @@ export async function generateMetadata({
       title: titles[locale as 'es' | 'en'] || titles.es,
       description: descriptions[locale as 'es' | 'en'] || descriptions.es,
       type: "website",
-      locale: locale === 'en' ? 'en_US' : 'es_MX',
-      url: `https://www.oronacional.com/${locale}`,
+      locale: ogLocale(locale),
       siteName: 'Oro Nacional',
       images: [
         {
           url: '/logos/logo-oro-nacional.png',
           width: 1200,
           height: 630,
-          alt: 'Oro Nacional - Joyería Elegante en Jalisco',
+          alt: locale === 'en'
+            ? 'Oro Nacional - Elegant Jewelry in Jalisco'
+            : 'Oro Nacional - Joyería Elegante en Jalisco',
         },
       ],
     },
@@ -59,13 +77,9 @@ export async function generateMetadata({
       creator: '@OroNacional',
       site: '@OroNacional',
     },
-    alternates: {
-      canonical: `/${locale}`,
-      languages: {
-        'es-MX': '/es',
-        'en-US': '/en',
-      },
-    },
+    // Sin `alternates` ni `openGraph.url`: los heredaría cada ruta hija y
+    // todas declararían el inicio como canonical. Cada ruta define los suyos
+    // con buildAlternates() de src/lib/seo.ts (el inicio en [locale]/page.tsx).
   };
 }
 
@@ -88,10 +102,45 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <NextIntlClientProvider messages={messages}>
-      <CurrencyProvider>
-        {children}
-      </CurrencyProvider>
-    </NextIntlClientProvider>
+    <html lang={locale} suppressHydrationWarning>
+      <head>
+        {/* Favicon */}
+        <link rel="icon" href="/favicon.png" sizes="32x32" type="image/png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+        {/* Preconnect para recursos críticos */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="preconnect" href="https://www.google-analytics.com" />
+
+        {/* DNS Prefetch para recursos externos */}
+        <link rel="dns-prefetch" href="https://vercel.live" />
+        <link rel="dns-prefetch" href="https://vitals.vercel-insights.com" />
+
+        {/* Preconnect para Supabase */}
+        <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://xrcbrkgihksnzkntupxe.supabase.co'} />
+      </head>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <GoogleAnalytics />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          forcedTheme="light"
+          enableSystem={false}
+          disableTransitionOnChange
+        >
+          <NextIntlClientProvider messages={messages}>
+            <CurrencyProvider>
+              {children}
+            </CurrencyProvider>
+          </NextIntlClientProvider>
+          <Toaster />
+        </ThemeProvider>
+        <Analytics />
+      </body>
+    </html>
   );
 }

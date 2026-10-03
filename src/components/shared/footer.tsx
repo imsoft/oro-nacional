@@ -8,6 +8,7 @@ import { FacebookIcon, InstagramIcon } from "@/components/icons/social-brand-ico
 import { useState, useEffect } from "react";
 import { getStoreSettings, type StoreSettings } from "@/lib/supabase/settings";
 import { getCategories } from "@/lib/supabase/products-multilingual";
+import { SITE_CONTACT } from "@/lib/site-contact";
 
 interface Category {
   id: string | unknown;
@@ -108,7 +109,7 @@ const Footer = () => {
             </div>
             <div className="flex space-x-6">
               <Link
-                href="https://www.facebook.com/profile.php?id=61579417826319"
+                href={SITE_CONTACT.facebookUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground transition-colors hover:text-foreground"
@@ -118,7 +119,7 @@ const Footer = () => {
                 <FacebookIcon className="h-6 w-6" />
               </Link>
               <Link
-                href="https://www.instagram.com/nacionaloro/"
+                href={SITE_CONTACT.instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground transition-colors hover:text-foreground"
@@ -132,30 +133,30 @@ const Footer = () => {
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <MapPin className="h-4 w-4" />
                 <Link
-                  href="https://maps.app.goo.gl/GBnsUNi5fe9QNEDj8"
+                  href={SITE_CONTACT.mapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-foreground transition-colors"
                 >
-                  {settings?.address || t("location")}
+                  {settings?.address || SITE_CONTACT.streetAddress}
                 </Link>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Phone className="h-4 w-4" />
                 <Link
-                  href={`tel:${settings?.phone?.replace(/\s/g, '') || '+523312345678'}`}
+                  href={settings?.phone ? `tel:${settings.phone.replace(/\s/g, '')}` : SITE_CONTACT.phoneHref}
                   className="hover:text-foreground"
                 >
-                  {settings?.phone || t("phoneNumber")}
+                  {settings?.phone || SITE_CONTACT.phoneDisplay}
                 </Link>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Mail className="h-4 w-4" />
                 <Link
-                  href={`mailto:${settings?.contact_email || 'contacto@oronacional.com'}`}
+                  href={`mailto:${settings?.contact_email || SITE_CONTACT.email}`}
                   className="hover:text-foreground"
                 >
-                  {settings?.contact_email || t("emailAddress")}
+                  {settings?.contact_email || SITE_CONTACT.email}
                 </Link>
               </div>
             </div>

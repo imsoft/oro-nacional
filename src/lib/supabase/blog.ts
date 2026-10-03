@@ -3,6 +3,7 @@
 // ================================================
 
 import { supabase } from "./client";
+import { generateUniqueSlug } from "./products-multilingual";
 import type {
   BlogPost,
   BlogPostDetail,
@@ -122,6 +123,43 @@ export async function getOrCreateTags(tagNames: string[]): Promise<BlogTag[]> {
 }
 
 // ================================================
+// UTILIDADES
+// ================================================
+
+// Generar slug base a partir de un título
+function slugifyTitle(title: string): string {
+  return title
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+// Eliminar del storage (bucket blog-images) el archivo de una imagen destacada a partir de su URL pública
+async function deleteBlogImageFile(imageUrl: string | null | undefined): Promise<void> {
+  if (!imageUrl) return;
+
+  try {
+    const url = new URL(imageUrl);
+    const pathParts = url.pathname.split("/");
+    const bucketIndex = pathParts.findIndex((part) => part === "blog-images");
+
+    // URL externa o que no pertenece al bucket: no hay nada que eliminar
+    if (bucketIndex === -1 || bucketIndex >= pathParts.length - 1) return;
+
+    const filePath = decodeURIComponent(pathParts.slice(bucketIndex + 1).join("/"));
+    const { error } = await supabase.storage.from("blog-images").remove([filePath]);
+
+    if (error) {
+      console.error("Error deleting blog image from storage:", error);
+    }
+  } catch (error) {
+    console.error("Error parsing blog image URL:", error);
+  }
+}
+
+// ================================================
 // POSTS - CREATE
 // ================================================
 
@@ -133,13 +171,10 @@ export async function createBlogPost(
   authorId: string
 ): Promise<BlogPost | null> {
   try {
-    // 1. Generar slug del título
-    const slug = postData.title
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "");
+    // 1. Generar slug del título (único y nunca vacío)
+    const slug = await generateUniqueSlug("blog_posts", "slug", slugifyTitle(postData.title), {
+      fallback: `post-${Date.now().toString(36)}`,
+    });
 
     // 2. Subir imagen featured si existe
     let featuredImageUrl: string | undefined = undefined;
@@ -183,6 +218,8 @@ export async function createBlogPost(
 
     if (postError) {
       console.error("Error creating post:", postError);
+      // Evitar archivos huérfanos: eliminar la imagen subida si no se pudo crear el post
+      await deleteBlogImageFile(featuredImageUrl);
       throw postError;
     }
 
@@ -577,24 +614,43 @@ export async function incrementBlogPostViews(postId: string): Promise<void> {
 
 /**
  * Actualizar un post existente
+ * - options.removeFeaturedImage: quita la imagen destacada actual (y elimina su archivo)
+ * - Al reemplazar o quitar la imagen se elimina el archivo anterior del storage
+ * - Si falla la subida de la nueva imagen, la actualización falla (devuelve null)
  */
 export async function updateBlogPost(
   postId: string,
-  updates: UpdateBlogPostData
+  updates: UpdateBlogPostData,
+  options: { removeFeaturedImage?: boolean } = {}
 ): Promise<BlogPost | null> {
+  // Imagen recién subida (para limpiarla si la actualización falla)
+  let uploadedImageUrl: string | null = null;
+
   try {
     const dataToUpdate: Record<string, unknown> = {};
+
+    // Estado actual del post (título, slug, imagen, fecha de publicación)
+    const { data: currentPost, error: currentError } = await supabase
+      .from("blog_posts")
+      .select("title, slug, featured_image, published_at")
+      .eq("id", postId)
+      .maybeSingle();
+
+    if (currentError) {
+      console.error("Error fetching current post:", currentError);
+      throw currentError;
+    }
 
     // Actualizar campos básicos
     if (updates.title) {
       dataToUpdate.title = updates.title;
-      // Regenerar slug si cambia el título
-      dataToUpdate.slug = updates.title
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "");
+      // Regenerar slug solo si cambia el título (o si el slug actual está vacío)
+      if (!currentPost || currentPost.title !== updates.title || !currentPost.slug) {
+        dataToUpdate.slug = await generateUniqueSlug("blog_posts", "slug", slugifyTitle(updates.title), {
+          excludeId: postId,
+          fallback: `post-${postId.slice(0, 8)}`,
+        });
+      }
     }
 
     if (updates.excerpt !== undefined) dataToUpdate.excerpt = updates.excerpt;
@@ -606,28 +662,16 @@ export async function updateBlogPost(
     if (updates.status) {
       dataToUpdate.status = updates.status;
       // Si se publica por primera vez, establecer published_at
-      if (updates.status === "published") {
-        const { data: currentPost } = await supabase
-          .from("blog_posts")
-          .select("published_at")
-          .eq("id", postId)
-          .single();
-
-        if (currentPost && !currentPost.published_at) {
-          dataToUpdate.published_at = new Date().toISOString();
-        }
+      if (updates.status === "published" && currentPost && !currentPost.published_at) {
+        dataToUpdate.published_at = new Date().toISOString();
       }
     }
 
+    const previousImageUrl = (currentPost?.featured_image as string | null | undefined) || null;
+
     // Subir nueva imagen si existe
     if (updates.featured_image) {
-      const { data: currentPost } = await supabase
-        .from("blog_posts")
-        .select("slug")
-        .eq("id", postId)
-        .single();
-
-      const slug = currentPost?.slug || "post";
+      const slug = (dataToUpdate.slug as string | undefined) || currentPost?.slug || "post";
       const fileExt = updates.featured_image.name.split(".").pop();
       const fileName = `${Date.now()}-${slug}.${fileExt}`;
 
@@ -637,13 +681,19 @@ export async function updateBlogPost(
 
       if (uploadError) {
         console.error("Error uploading image:", uploadError);
-      } else {
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("blog-images").getPublicUrl(fileName);
-
-        dataToUpdate.featured_image = publicUrl;
+        // No reportar éxito si la imagen no se pudo subir
+        throw uploadError;
       }
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("blog-images").getPublicUrl(fileName);
+
+      uploadedImageUrl = publicUrl;
+      dataToUpdate.featured_image = publicUrl;
+    } else if (options.removeFeaturedImage) {
+      // Quitar la imagen destacada actual
+      dataToUpdate.featured_image = null;
     }
 
     // Actualizar el post
@@ -657,6 +707,15 @@ export async function updateBlogPost(
     if (updateError) {
       console.error("Error updating post:", updateError);
       throw updateError;
+    }
+
+    // La nueva imagen ya está referenciada por el post
+    const newImageUrl = uploadedImageUrl;
+    uploadedImageUrl = null;
+
+    // Eliminar el archivo anterior si la imagen fue reemplazada o quitada
+    if (previousImageUrl && (newImageUrl || options.removeFeaturedImage) && previousImageUrl !== newImageUrl) {
+      await deleteBlogImageFile(previousImageUrl);
     }
 
     // Actualizar tags si se proporcionaron
@@ -680,6 +739,10 @@ export async function updateBlogPost(
     return post;
   } catch (error) {
     console.error("Error in updateBlogPost:", error);
+    // Evitar archivos huérfanos: eliminar la imagen subida si la actualización falló
+    if (uploadedImageUrl) {
+      await deleteBlogImageFile(uploadedImageUrl);
+    }
     return null;
   }
 }
@@ -692,12 +755,26 @@ export async function updateBlogPost(
  * Eliminar un post (hard delete)
  */
 export async function deleteBlogPost(postId: string): Promise<boolean> {
+  // Obtener la imagen destacada para eliminarla del storage después de borrar el post
+  const { data: post, error: fetchError } = await supabase
+    .from("blog_posts")
+    .select("featured_image")
+    .eq("id", postId)
+    .maybeSingle();
+
+  if (fetchError) {
+    console.error("Error fetching post for deletion:", fetchError);
+  }
+
   const { error } = await supabase.from("blog_posts").delete().eq("id", postId);
 
   if (error) {
     console.error("Error deleting post:", error);
     return false;
   }
+
+  // Eliminar la imagen destacada del storage
+  await deleteBlogImageFile(post?.featured_image as string | null | undefined);
 
   return true;
 }

@@ -117,29 +117,26 @@ export async function updateUserRole(
 }
 
 /**
- * Delete a user (admin only)
- * Note: This will cascade delete related data based on foreign key constraints
+ * Delete a user (admin only) — NOT SUPPORTED FROM THE CLIENT.
+ *
+ * Deleting a user requires removing the row in `auth.users`, which can only
+ * be done with the service role key (`supabase.auth.admin.deleteUser`) from a
+ * server-side route that verifies the caller is an admin. The previous
+ * implementation only deleted the `profiles` row, leaving the auth user able
+ * to sign in with a broken account, so it was removed on purpose.
+ *
+ * This function has no callers. To support user deletion, add an
+ * admin-protected API route that calls `auth.admin.deleteUser(userId)` and
+ * let the foreign keys cascade to `profiles` and related data.
  */
 export async function deleteUser(
   userId: string
 ): Promise<{ success: boolean; error?: string }> {
-  try {
-    const { error } = await supabase.from("profiles").delete().eq("id", userId);
-
-    if (error) {
-      console.error("Error deleting user:", error);
-      return {
-        success: false,
-        error: error.message,
-      };
-    }
-
-    return { success: true };
-  } catch (error) {
-    console.error("Error in deleteUser:", error);
-    return {
-      success: false,
-      error: "Error al eliminar el usuario",
-    };
-  }
+  console.error(
+    `deleteUser(${userId}): deleting users is not supported from the client`
+  );
+  return {
+    success: false,
+    error: "Eliminar usuarios no está soportado desde el cliente",
+  };
 }

@@ -1,25 +1,59 @@
+import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { ArrowLeft } from "lucide-react";
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
+import { buildAlternates, localizedUrl, ogLocale, toSiteLocale } from "@/lib/seo";
 
-export const metadata = {
-  title: "Aviso Legal y Términos de Uso - Oro Nacional",
-  description: "Aviso legal y términos de uso del sitio web de Oro Nacional S.A. de C.V.",
-};
+type Params = Promise<{ locale: string }>;
 
-const TermsPage = () => {
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  const locale = toSiteLocale((await params).locale);
+
+  const content = {
+    es: {
+      title: "Aviso Legal y Términos de Uso - Oro Nacional",
+      description:
+        "Aviso legal y términos de uso del sitio web de Oro Nacional S.A. de C.V.",
+    },
+    en: {
+      title: "Legal Notice and Terms of Use - Oro Nacional",
+      description:
+        "Legal notice and terms of use of the Oro Nacional S.A. de C.V. website.",
+    },
+  }[locale];
+
+  return {
+    title: content.title,
+    description: content.description,
+    openGraph: {
+      title: content.title,
+      description: content.description,
+      type: "website",
+      locale: ogLocale(locale),
+      url: localizedUrl("/terms", locale),
+      siteName: "Oro Nacional",
+    },
+    alternates: buildAlternates("/terms", locale),
+  };
+}
+
+const TermsPage = async ({ params }: { params: Params }) => {
+  const locale = toSiteLocale((await params).locale);
+  const t = await getTranslations({ locale, namespace: "terms" });
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
-      <main className="flex-1 mx-auto max-w-4xl px-6 lg:px-8 py-24 lg:py-32">
+      <main className="flex-1 mx-auto max-w-4xl px-6 lg:px-8 pt-32 pb-24 lg:py-32">
         <Link
           href="/"
           className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Volver al inicio
+          {t("backHome")}
         </Link>
 
         <div className="text-center mb-12">
@@ -27,105 +61,96 @@ const TermsPage = () => {
             Oro Nacional S.A. de C.V.
           </h1>
           <h2 className="text-2xl font-semibold text-foreground">
-            AVISO LEGAL Y TÉRMINOS DE USO
+            {t("heading")}
           </h2>
         </div>
 
         <div className="prose prose-neutral max-w-none space-y-8">
           <section className="border-b border-border pb-8">
             <h3 className="text-xl font-semibold text-foreground mb-4">
-              1. Propiedad Intelectual
+              {t("s1Title")}
             </h3>
             <p className="text-muted-foreground leading-relaxed">
-              Todo el contenido del sitio web www.oronacional.mx, incluyendo logotipos, imágenes,
-              textos, fotografías, diseños, descripciones y código fuente, es propiedad exclusiva
-              de Oro Nacional S.A. de C.V.
+              {t("s1Text1")}
             </p>
             <p className="text-muted-foreground leading-relaxed mt-4">
-              Queda estrictamente prohibida su reproducción, distribución o uso sin autorización
-              expresa por escrito.
+              {t("s1Text2")}
             </p>
           </section>
 
           <section className="border-b border-border pb-8">
             <h3 className="text-xl font-semibold text-foreground mb-4">
-              2. Uso del Sitio Web
+              {t("s2Title")}
             </h3>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              El usuario se compromete a:
+              {t("s2Intro")}
             </p>
             <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4">
-              <li>Usar el sitio únicamente para fines lícitos.</li>
-              <li>No realizar actividades que afecten la seguridad o funcionalidad del sitio.</li>
-              <li>No copiar ni distribuir contenidos sin autorización.</li>
+              {(t.raw("s2Items") as string[]).map((item) => (
+                <li key={item}>{item}</li>
+              ))}
             </ul>
             <p className="text-muted-foreground leading-relaxed mt-4">
-              Oro Nacional se reserva el derecho de restringir el acceso o cancelar cuentas que
-              incumplan estos términos.
+              {t("s2Note")}
             </p>
           </section>
 
           <section className="border-b border-border pb-8">
             <h3 className="text-xl font-semibold text-foreground mb-4">
-              3. Enlaces a Sitios de Terceros
+              {t("s3Title")}
             </h3>
             <p className="text-muted-foreground leading-relaxed">
-              El sitio puede contener enlaces a páginas externas. Oro Nacional no se responsabiliza
-              por el contenido, políticas o prácticas de dichos sitios.
+              {t("s3Text")}
             </p>
           </section>
 
           <section className="border-b border-border pb-8">
             <h3 className="text-xl font-semibold text-foreground mb-4">
-              4. Exención de Responsabilidad
+              {t("s4Title")}
             </h3>
             <p className="text-muted-foreground leading-relaxed">
-              Oro Nacional no garantiza que el sitio web esté libre de errores o interrupciones.
+              {t("s4Text1")}
             </p>
             <p className="text-muted-foreground leading-relaxed mt-4">
-              No será responsable por pérdidas derivadas del uso del sitio, fallas tecnológicas,
-              errores tipográficos o información desactualizada.
+              {t("s4Text2")}
             </p>
           </section>
 
           <section className="border-b border-border pb-8">
             <h3 className="text-xl font-semibold text-foreground mb-4">
-              5. Modificaciones de los Términos
+              {t("s5Title")}
             </h3>
             <p className="text-muted-foreground leading-relaxed">
-              Oro Nacional podrá actualizar los presentes Términos de Uso en cualquier momento,
-              notificando los cambios en el sitio web. El uso continuo del sitio implica la
-              aceptación de las modificaciones.
+              {t("s5Text")}
             </p>
           </section>
 
           <section className="border-b border-border pb-8">
             <h3 className="text-xl font-semibold text-foreground mb-4">
-              6. Legislación Aplicable
+              {t("s6Title")}
             </h3>
             <p className="text-muted-foreground leading-relaxed">
-              Este Aviso Legal se rige por las leyes mexicanas. Cualquier disputa relacionada
-              con el uso del sitio será competencia de los tribunales de Guadalajara, Jalisco, México.
+              {t("s6Text")}
             </p>
           </section>
 
           <section className="mt-12 pt-8 border-t-2 border-border">
             <div className="text-center">
               <p className="text-muted-foreground mb-4">
-                Representante Legal
+                {t("legalRepresentative")}
               </p>
               <p className="text-foreground font-semibold mb-4">
                 Oro Nacional S.A. de C.V.
               </p>
               <p className="text-sm text-muted-foreground italic">
-                Firma y sello oficial
+                {t("signature")}
               </p>
             </div>
           </section>
 
           <footer className="mt-12 pt-8 border-t border-border text-center">
             <p className="text-sm text-muted-foreground">
-              © Oro Nacional S.A. de C.V. – Todos los derechos reservados 2025 | www.oronacional.mx
+              {t("copyright")}
             </p>
           </footer>
         </div>

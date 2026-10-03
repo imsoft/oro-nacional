@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, Link } from "@/i18n/routing";
-import { useTranslations } from 'next-intl';
-import { Mail, Lock, AlertCircle, Loader2, Eye, EyeOff, Send } from "lucide-react";
+import { useLocale, useTranslations } from 'next-intl';
+import { useSearchParams } from "next/navigation";
+import { Mail, Lock, AlertCircle, CheckCircle2, Loader2, Eye, EyeOff, Send } from "lucide-react";
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
 import { Button } from "@/components/ui/button";
@@ -11,9 +12,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/stores/auth-store";
 
-const LoginPage = () => {
+const LoginForm = () => {
   const t = useTranslations('auth.login');
+  const tVerification = useTranslations('auth.verification');
+  const tUpdatePassword = useTranslations('auth.updatePassword');
+  const locale = useLocale();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // Mensaje de éxito al volver de /update-password
+  const passwordUpdated = searchParams.get("passwordUpdated") === "1";
   const login = useAuthStore((state) => state.login);
 
   const [email, setEmail] = useState("");
@@ -64,15 +71,17 @@ const LoginPage = () => {
       const res = await fetch("/api/email/resend-verification", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, locale }),
       });
       if (res.ok) {
-        setResendMessage("Correo reenviado. Revisa tu bandeja de entrada.");
+        setResendMessage(tVerification('resent'));
+      } else if (res.status === 429) {
+        setResendMessage(tVerification('tooManyRequests'));
       } else {
-        setResendMessage("No se pudo reenviar. Intenta de nuevo.");
+        setResendMessage(tVerification('resendFailed'));
       }
     } catch {
-      setResendMessage("No se pudo reenviar. Intenta de nuevo.");
+      setResendMessage(tVerification('resendFailed'));
     } finally {
       setIsResending(false);
     }
@@ -143,6 +152,14 @@ const LoginPage = () => {
                 </div>
               </div>
 
+              {/* Password updated message */}
+              {passwordUpdated && !error && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 border border-green-200">
+                  <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0" />
+                  <p className="text-sm text-green-700">{tUpdatePassword('success')}</p>
+                </div>
+              )}
+
               {/* Error message */}
               {error && (
                 <div className="rounded-lg bg-red-50 border border-red-200 p-3 space-y-2">
@@ -164,9 +181,9 @@ const LoginPage = () => {
                           className="h-auto p-0 text-sm text-[#D4AF37] hover:text-[#B8941E] font-medium"
                         >
                           {isResending ? (
-                            <><Loader2 className="mr-1 h-3 w-3 animate-spin" />Reenviando...</>
+                            <><Loader2 className="mr-1 h-3 w-3 animate-spin" />{tVerification('resending')}</>
                           ) : (
-                            <><Send className="mr-1 h-3 w-3" />Reenviar correo de confirmación</>
+                            <><Send className="mr-1 h-3 w-3" />{tVerification('resendButton')}</>
                           )}
                         </Button>
                       )}
@@ -267,5 +284,12 @@ const LoginPage = () => {
     </div>
   );
 };
+
+// useSearchParams requiere un límite de Suspense
+const LoginPage = () => (
+  <Suspense fallback={null}>
+    <LoginForm />
+  </Suspense>
+);
 
 export default LoginPage;

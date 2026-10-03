@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { toast } from "sonner";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,7 @@ import { Heart, Share2, Loader2 } from "lucide-react";
 import { useFavoritesStore } from "@/stores/favorites-store";
 import { getProducts } from "@/lib/supabase/products";
 import type { Product } from "@/types/product";
-import { useCurrency } from "@/contexts/currency-context";
+import { getPrimaryImageUrl, useProductPriceLabel } from "@/components/catalog/product-display";
 
 interface DisplayProduct {
   id: string;
@@ -25,36 +26,45 @@ interface DisplayProduct {
 const FeaturedCollection = () => {
   const t = useTranslations("common");
   const { addFavorite, removeFavorite, isFavorite } = useFavoritesStore();
-  const { convertPrice, formatPrice } = useCurrency();
+  const tFeatured = useTranslations("featuredCollection");
+  const tProduct = useTranslations("product");
+  const locale = useLocale() as "es" | "en";
+  const getPriceLabel = useProductPriceLabel();
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadProducts();
-  }, []);
+    let cancelled = false;
 
-  const loadProducts = async () => {
-    setIsLoading(true);
-    const data = await getProducts();
-    // Get first 3 products or featured products
-    setProducts(data.slice(0, 3));
-    setIsLoading(false);
-  };
-
-  const displayProducts: DisplayProduct[] = products.map((product) => {
-    const primaryImage = product.images?.find((img) => img.is_primary)?.image_url;
-    const priceInCurrency = convertPrice(product.price, product.base_price_usd);
-    return {
-      id: product.id,
-      name: product.name,
-      description: product.description,
-      price: formatPrice(priceInCurrency),
-      category: product.category?.name || "Joyería",
-      material: product.material || "Oro",
-      image: primaryImage || "https://images.unsplash.com/photo-1605100804763-247f67b3557e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-      slug: product.slug,
+    const loadProducts = async () => {
+      setIsLoading(true);
+      try {
+        const data = await getProducts(locale);
+        // Get first 3 products or featured products
+        if (!cancelled) setProducts(data.slice(0, 3));
+      } catch (error) {
+        console.error("Error loading featured products:", error);
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
     };
-  });
+
+    loadProducts();
+    return () => {
+      cancelled = true;
+    };
+  }, [locale]);
+
+  const displayProducts: DisplayProduct[] = products.map((product) => ({
+    id: product.id,
+    name: product.name,
+    description: product.description ?? "",
+    price: getPriceLabel(product),
+    category: product.category?.name || tFeatured("defaultCategory"),
+    material: product.material || tFeatured("defaultMaterial"),
+    image: getPrimaryImageUrl(product.images),
+    slug: product.slug,
+  }));
 
   const handleToggleFavorite = (product: DisplayProduct, e: React.MouseEvent) => {
     e.preventDefault();
@@ -82,8 +92,8 @@ const FeaturedCollection = () => {
 
     const shareData = {
       title: `${product.name} - Oro Nacional`,
-      text: `${product.description} - ${product.price}`,
-      url: `${window.location.origin}/product/${product.slug}`,
+      text: [product.description, product.price].filter(Boolean).join(" - "),
+      url: `${window.location.origin}${locale === "es" ? "" : `/${locale}`}/product/${product.slug}`,
     };
 
     try {
@@ -91,7 +101,7 @@ const FeaturedCollection = () => {
         await navigator.share(shareData);
       } else {
         await navigator.clipboard.writeText(shareData.url);
-        alert("¡Enlace copiado al portapapeles!");
+        toast.success(tProduct("linkCopied"));
       }
     } catch (err) {
       console.log("Error sharing:", err);
@@ -115,7 +125,7 @@ const FeaturedCollection = () => {
       <section className="py-24 sm:py-32 bg-muted/30">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="flex justify-center items-center min-h-[400px]">
-            <p className="text-muted-foreground">No hay productos destacados disponibles en este momento.</p>
+            <p className="text-muted-foreground">{tFeatured("empty")}</p>
           </div>
         </div>
       </section>
@@ -127,10 +137,10 @@ const FeaturedCollection = () => {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-            Joyería de Oro Destacada - Colección Primavera 2025
+            {tFeatured("title")}
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Piezas únicas de joyería fina elaboradas con maestría artesanal jalisciense
+            {tFeatured("subtitle")}
           </p>
         </div>
 
@@ -182,7 +192,7 @@ const FeaturedCollection = () => {
                     size="sm"
                     className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white transition-all duration-300 hover:scale-105"
                   >
-                    <Link href={`/product/${product.slug}`}>Ver detalles</Link>
+                    <Link href={`/product/${product.slug}`}>{t("viewDetails")}</Link>
                   </Button>
                 </div>
               </div>
@@ -197,7 +207,7 @@ const FeaturedCollection = () => {
             variant="default"
             className="bg-[#D4AF37] hover:bg-[#B8941E] text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
           >
-            <Link href="/catalog">Ver toda la colección de joyería</Link>
+            <Link href="/catalog">{tFeatured("viewAll")}</Link>
           </Button>
         </div>
       </div>

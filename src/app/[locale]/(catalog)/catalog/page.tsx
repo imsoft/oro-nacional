@@ -1,23 +1,34 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
 import CatalogHeader from "@/components/catalog/catalog-header";
 import CatalogFilters, { type CatalogFiltersState, type CategoryOption } from "@/components/catalog/catalog-filters";
 import ProductsGrid from "@/components/catalog/products-grid";
+import {
+  getListingPrice,
+  getPriceSliderMax,
+  getPrimaryImageUrl,
+  useProductPriceLabel,
+} from "@/components/catalog/product-display";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Loader2 } from "lucide-react";
 import { getProducts } from "@/lib/supabase/products";
 import { getCategories } from "@/lib/supabase/products-multilingual";
 import type { Product } from "@/types/product";
+import { useCurrency } from "@/contexts/currency-context";
 
-const CatalogPage = ({ params }: { params: { locale: 'es' | 'en' } }) => {
+const CatalogPage = () => {
   const t = useTranslations('catalog');
+  const tProduct = useTranslations('product');
   const searchParams = useSearchParams();
-  const locale = params.locale || 'es';
+  const locale = useLocale() as 'es' | 'en';
+  const getPriceLabel = useProductPriceLabel();
+  // Recalcular los precios mostrados cuando cambia la moneda o la tasa de cambio
+  const { currency, exchangeRate } = useCurrency();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
@@ -25,61 +36,106 @@ const CatalogPage = ({ params }: { params: { locale: 'es' | 'en' } }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<string>("featured");
+  // Slug de categoría en el otro idioma -> slug en el idioma actual
+  const [slugAliases, setSlugAliases] = useState<Record<string, string>>({});
 
   // Obtener categoría de la URL si existe
   const categoryFromUrl = searchParams?.get('category') || null;
 
-  const [filters, setFilters] = useState<CatalogFiltersState>({
-    categories: categoryFromUrl ? [categoryFromUrl] : [],
-    priceRange: [0, 500000], // Rango amplio para incluir todos los productos
-  });
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(
+    categoryFromUrl ? [categoryFromUrl] : []
+  );
+  // null = sin filtro de precio (rango completo)
+  const [priceRange, setPriceRange] = useState<[number, number] | null>(null);
+
+  // Tope del filtro de precio derivado de los productos cargados (MXN)
+  const maxPrice = useMemo(
+    () => getPriceSliderMax(products.map((p) => getListingPrice(p).mxn)),
+    [products]
+  );
+
+  const filters: CatalogFiltersState = useMemo(
+    () => ({
+      // Aceptar el slug de la categoría en cualquiera de los dos idiomas
+      categories: selectedCategories.map((slug) => slugAliases[slug] ?? slug),
+      priceRange: priceRange ?? [0, maxPrice],
+    }),
+    [selectedCategories, slugAliases, priceRange, maxPrice]
+  );
+
+  const handleFiltersChange = (next: CatalogFiltersState) => {
+    setSelectedCategories(next.categories);
+    setPriceRange(
+      next.priceRange[0] <= 0 && next.priceRange[1] >= maxPrice ? null : next.priceRange
+    );
+  };
 
   useEffect(() => {
+    let cancelled = false;
+
+    const loadData = async () => {
+      setIsLoading(true);
+      const otherLocale = locale === 'es' ? 'en' : 'es';
+      try {
+        const [productsData, categoriesData, otherCategoriesData] = await Promise.all([
+          getProducts(locale),
+          getCategories(locale),
+          getCategories(otherLocale),
+        ]);
+        if (cancelled) return;
+
+        setProducts(productsData);
+
+        // Transformar las categorías al formato esperado por el componente de filtros
+        const formattedCategories: CategoryOption[] = categoriesData.map((cat) => ({
+          id: cat.id as string,
+          slug: cat.slug as string,
+          name: cat.name as string,
+        }));
+        setCategories(formattedCategories);
+
+        const aliases: Record<string, string> = {};
+        otherCategoriesData.forEach((other) => {
+          const match = formattedCategories.find((cat) => cat.id === other.id);
+          const otherSlug = other.slug as string;
+          if (match && otherSlug && otherSlug !== match.slug) {
+            aliases[otherSlug] = match.slug;
+          }
+        });
+        setSlugAliases(aliases);
+      } catch (error) {
+        console.error("Error loading catalog:", error);
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+
     loadData();
+    return () => {
+      cancelled = true;
+    };
   }, [locale]);
 
   // Actualizar filtros cuando cambia la categoría en la URL
-  useEffect(() => {
+  const [lastUrlCategory, setLastUrlCategory] = useState(categoryFromUrl);
+  if (categoryFromUrl !== lastUrlCategory) {
+    setLastUrlCategory(categoryFromUrl);
     if (categoryFromUrl) {
-      setFilters(prev => ({
-        ...prev,
-        categories: [categoryFromUrl],
-      }));
+      setSelectedCategories([categoryFromUrl]);
     }
-  }, [categoryFromUrl]);
-
-  const loadData = async () => {
-    setIsLoading(true);
-    const [productsData, categoriesData] = await Promise.all([
-      getProducts(locale),
-      getCategories(locale)
-    ]);
-
-    setProducts(productsData);
-
-    // Transformar las categorías al formato esperado por el componente de filtros
-    const formattedCategories: CategoryOption[] = categoriesData.map((cat: any) => ({
-      id: cat.id,
-      slug: cat.slug,
-      name: cat.name,
-    }));
-
-    setCategories(formattedCategories);
-    setIsLoading(false);
-  };
+  }
 
   // Filtrar, ordenar y agrupar productos por categoría
   const productsByCategory = useMemo(() => {
     let filtered = products.map((product) => {
-      const primaryImage = product.images?.find((img) => img.is_primary)?.image_url;
       return {
         id: product.id,
         name: product.name,
-        description: product.description,
-        price: product.price,
-        priceFormatted: `$${product.price.toLocaleString("es-MX")} MXN`,
-        image: primaryImage || "https://via.placeholder.com/600x600?text=Sin+Imagen",
-        category: product.category?.name || "Sin categoría",
+        description: product.description ?? "",
+        price: getListingPrice(product).mxn,
+        priceFormatted: getPriceLabel(product),
+        image: getPrimaryImageUrl(product.images),
+        category: product.category?.name || tProduct("uncategorized"),
         categorySlug: product.category?.slug || "",
         categoryId: product.category?.id || "",
         material: product.material || "",
@@ -92,7 +148,7 @@ const CatalogPage = ({ params }: { params: { locale: 'es' | 'en' } }) => {
       const search = searchTerm.toLowerCase();
       filtered = filtered.filter(
         (product) =>
-          product.name.toLowerCase().includes(search) ||
+          product.name?.toLowerCase().includes(search) ||
           product.description?.toLowerCase().includes(search)
       );
     }
@@ -114,7 +170,7 @@ const CatalogPage = ({ params }: { params: { locale: 'es' | 'en' } }) => {
 
     // Agrupar productos por categoría
     const grouped = filtered.reduce((acc, product) => {
-      const categoryName = product.category || "Sin categoría";
+      const categoryName = product.category;
       const categorySlug = product.categorySlug || "sin-categoria";
       const categoryId = product.categoryId || "sin-categoria";
 
@@ -183,7 +239,8 @@ const CatalogPage = ({ params }: { params: { locale: 'es' | 'en' } }) => {
       if (idxB === -1) return -1;
       return idxA - idxB;
     });
-  }, [products, filters, searchTerm, sortBy]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [products, categories, filters, searchTerm, sortBy, currency, exchangeRate, tProduct]);
 
   if (isLoading) {
     return (
@@ -216,8 +273,9 @@ const CatalogPage = ({ params }: { params: { locale: 'es' | 'en' } }) => {
           <div className="hidden lg:block">
             <CatalogFilters
               filters={filters}
-              onFiltersChange={setFilters}
+              onFiltersChange={handleFiltersChange}
               categories={categories}
+              maxPrice={maxPrice}
             />
           </div>
 
@@ -228,8 +286,9 @@ const CatalogPage = ({ params }: { params: { locale: 'es' | 'en' } }) => {
                 <h2 className="text-lg font-semibold mb-6">{t('filters')}</h2>
                 <CatalogFilters
                   filters={filters}
-                  onFiltersChange={setFilters}
+                  onFiltersChange={handleFiltersChange}
                   categories={categories}
+                  maxPrice={maxPrice}
                 />
               </div>
             </SheetContent>

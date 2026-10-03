@@ -5,6 +5,8 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { useCurrency } from "@/contexts/currency-context";
+import { PRICE_SLIDER_STEP } from "@/components/catalog/product-display";
 
 export interface CatalogFiltersState {
   categories: string[];
@@ -21,10 +23,13 @@ interface CatalogFiltersProps {
   filters: CatalogFiltersState;
   onFiltersChange: (filters: CatalogFiltersState) => void;
   categories: CategoryOption[];
+  // Tope del filtro de precio en MXN (derivado de los productos cargados)
+  maxPrice: number;
 }
 
-const CatalogFilters = ({ filters, onFiltersChange, categories }: CatalogFiltersProps) => {
+const CatalogFilters = ({ filters, onFiltersChange, categories, maxPrice }: CatalogFiltersProps) => {
   const t = useTranslations("catalog");
+  const { convertPrice, formatPrice: formatCurrency } = useCurrency();
 
   const handleCategoryChange = (categoryId: string, checked: boolean) => {
     const newCategories = checked
@@ -47,18 +52,12 @@ const CatalogFilters = ({ filters, onFiltersChange, categories }: CatalogFilters
   const handleClearFilters = () => {
     onFiltersChange({
       categories: [],
-      priceRange: [0, 500000],
+      priceRange: [0, maxPrice],
     });
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("es-MX", {
-      style: "currency",
-      currency: "MXN",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
+  // Los filtros trabajan en MXN; se muestran en la moneda activa
+  const formatPrice = (price: number) => formatCurrency(convertPrice(price));
 
   return (
     <aside className="w-full lg:w-64 space-y-8">
@@ -95,8 +94,8 @@ const CatalogFilters = ({ filters, onFiltersChange, categories }: CatalogFilters
           <Slider
             value={filters.priceRange}
             onValueChange={handlePriceRangeChange}
-            max={500000}
-            step={5000}
+            max={maxPrice}
+            step={PRICE_SLIDER_STEP}
             className="w-full"
           />
           <div className="flex items-center justify-between text-sm text-muted-foreground">

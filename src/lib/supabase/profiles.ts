@@ -265,19 +265,70 @@ export async function getCompleteUserProfile(): Promise<CompleteUserProfile> {
   };
 }
 
+export type UpdatePasswordErrorCode =
+  | "not_authenticated"
+  | "wrong_current_password"
+  | "same_password"
+  | "weak_password"
+  | "update_failed";
+
 /**
- * Update user password
+ * Update user password.
+ * Re-authenticates with the current password before changing it, so a
+ * hijacked/unattended session cannot change the password on its own.
+ * The UI should translate `errorCode`; `error` is a Spanish fallback.
  */
 export async function updateUserPassword(
+  currentPassword: string,
   newPassword: string
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; errorCode?: UpdatePasswordErrorCode }> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user?.email) {
+    return { success: false, error: "Usuario no autenticado", errorCode: "not_authenticated" };
+  }
+
+  // Verify the current password
+  const { error: reauthError } = await supabase.auth.signInWithPassword({
+    email: user.email,
+    password: currentPassword,
+  });
+
+  if (reauthError) {
+    if (reauthError.code === "invalid_credentials" || reauthError.message === "Invalid login credentials") {
+      return {
+        success: false,
+        error: "La contraseña actual es incorrecta",
+        errorCode: "wrong_current_password",
+      };
+    }
+    console.error("Error verifying current password:", reauthError);
+    return { success: false, error: "Error al actualizar la contraseña", errorCode: "update_failed" };
+  }
+
   const { error } = await supabase.auth.updateUser({
     password: newPassword,
   });
 
   if (error) {
     console.error("Error updating password:", error);
-    return { success: false, error: "Error al actualizar la contraseña" };
+    if (error.code === "same_password") {
+      return {
+        success: false,
+        error: "La nueva contraseña debe ser diferente a la actual",
+        errorCode: "same_password",
+      };
+    }
+    if (error.code === "weak_password") {
+      return {
+        success: false,
+        error: "La contraseña no cumple los requisitos de seguridad",
+        errorCode: "weak_password",
+      };
+    }
+    return { success: false, error: "Error al actualizar la contraseña", errorCode: "update_failed" };
   }
 
   return { success: true };

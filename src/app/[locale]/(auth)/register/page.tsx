@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, Link } from "@/i18n/routing";
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Mail, Lock, User, AlertCircle, Loader2, CheckCircle2, Eye, EyeOff, Send } from "lucide-react";
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
@@ -13,6 +13,8 @@ import { useAuthStore } from "@/stores/auth-store";
 
 const RegisterPage = () => {
   const t = useTranslations('auth.register');
+  const tVerification = useTranslations('auth.verification');
+  const locale = useLocale() === "en" ? "en" : "es";
   const router = useRouter();
   const register = useAuthStore((state) => state.register);
 
@@ -65,7 +67,7 @@ const RegisterPage = () => {
       return;
     }
 
-    const result = await register(name, email, password);
+    const result = await register(name, email, password, locale);
 
     if (result.success) {
       if (result.requiresEmailConfirmation) {
@@ -88,15 +90,17 @@ const RegisterPage = () => {
       const res = await fetch("/api/email/resend-verification", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: registeredEmail, name }),
+        body: JSON.stringify({ email: registeredEmail, locale }),
       });
       if (res.ok) {
-        setResendMessage("Correo reenviado. Revisa tu bandeja de entrada.");
+        setResendMessage(tVerification('resent'));
+      } else if (res.status === 429) {
+        setResendMessage(tVerification('tooManyRequests'));
       } else {
-        setResendMessage("No se pudo reenviar. Intenta de nuevo.");
+        setResendMessage(tVerification('resendFailed'));
       }
     } catch {
-      setResendMessage("No se pudo reenviar. Intenta de nuevo.");
+      setResendMessage(tVerification('resendFailed'));
     } finally {
       setIsResending(false);
     }
@@ -132,10 +136,10 @@ const RegisterPage = () => {
               </div>
             </div>
             <h1 className="text-3xl font-semibold text-foreground mb-3">
-              Revisa tu correo
+              {tVerification('checkEmailTitle')}
             </h1>
             <p className="text-muted-foreground mb-2">
-              Enviamos un enlace de confirmación a:
+              {tVerification('sentTo')}
             </p>
             <p className="text-foreground font-semibold text-lg mb-6">
               {registeredEmail}
@@ -144,19 +148,19 @@ const RegisterPage = () => {
               <div className="flex items-start gap-3 mb-4">
                 <CheckCircle2 className="h-5 w-5 text-[#D4AF37] mt-0.5 shrink-0" />
                 <p className="text-sm text-muted-foreground">
-                  Haz clic en el enlace del correo para activar tu cuenta.
+                  {tVerification('clickLink')}
                 </p>
               </div>
               <div className="flex items-start gap-3 mb-4">
                 <CheckCircle2 className="h-5 w-5 text-[#D4AF37] mt-0.5 shrink-0" />
                 <p className="text-sm text-muted-foreground">
-                  Si no lo ves, revisa tu carpeta de <strong>Spam</strong> o <strong>Correo no deseado</strong>.
+                  {tVerification('checkSpam')}
                 </p>
               </div>
               <div className="flex items-start gap-3">
                 <CheckCircle2 className="h-5 w-5 text-[#D4AF37] mt-0.5 shrink-0" />
                 <p className="text-sm text-muted-foreground">
-                  El enlace expira en 24 horas.
+                  {tVerification('linkExpires')}
                 </p>
               </div>
             </div>
@@ -172,14 +176,14 @@ const RegisterPage = () => {
               className="w-full border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white mb-4"
             >
               {isResending ? (
-                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Reenviando...</>
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{tVerification('resending')}</>
               ) : (
-                <><Send className="mr-2 h-4 w-4" />Reenviar correo de confirmación</>
+                <><Send className="mr-2 h-4 w-4" />{tVerification('resendButton')}</>
               )}
             </Button>
 
             <Button asChild variant="ghost" className="w-full text-muted-foreground">
-              <Link href="/login">Ir al inicio de sesión</Link>
+              <Link href="/login">{tVerification('goToLogin')}</Link>
             </Button>
           </div>
         </main>

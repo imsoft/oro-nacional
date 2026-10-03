@@ -1,20 +1,4 @@
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
-import { ThemeProvider } from "@/components/theme-provider";
-import { Toaster } from "@/components/ui/sonner";
-import { GoogleAnalytics } from "@/components/analytics/google-analytics";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.oronacional.com'),
@@ -46,13 +30,8 @@ export const metadata: Metadata = {
       'msvalidate.01': process.env.NEXT_PUBLIC_BING_VERIFICATION || '',
     },
   },
-  alternates: {
-    canonical: '/',
-    languages: {
-      'es-MX': '/es',
-      'en-US': '/en',
-    },
-  },
+  // Sin `alternates` aquí: el canonical y los hreflang se definen por ruta
+  // (ver src/lib/seo.ts) para que ninguna página herede el canonical del inicio.
   robots: {
     index: true,
     follow: true,
@@ -74,47 +53,13 @@ export const viewport: Viewport = {
   themeColor: '#D4AF37',
 };
 
+// Las etiquetas <html> y <body> se renderizan en src/app/[locale]/layout.tsx
+// para poder establecer `lang` con el locale activo (todas las rutas viven
+// bajo [locale]).
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <html suppressHydrationWarning>
-      <head>
-        {/* Favicon */}
-        <link rel="icon" href="/favicon.png" sizes="32x32" type="image/png" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-
-        {/* Preconnect para recursos críticos */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://www.googletagmanager.com" />
-        <link rel="preconnect" href="https://www.google-analytics.com" />
-
-        {/* DNS Prefetch para recursos externos */}
-        <link rel="dns-prefetch" href="https://vercel.live" />
-        <link rel="dns-prefetch" href="https://vitals.vercel-insights.com" />
-
-        {/* Preconnect para Supabase */}
-        <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://xrcbrkgihksnzkntupxe.supabase.co'} />
-      </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <GoogleAnalytics />
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          forcedTheme="light"
-          enableSystem={false}
-          disableTransitionOnChange
-        >
-          {children}
-          <Toaster />
-        </ThemeProvider>
-        <Analytics />
-      </body>
-    </html>
-  );
+  return children;
 }

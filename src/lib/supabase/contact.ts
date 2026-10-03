@@ -10,34 +10,43 @@ import type {
 /**
  * Submit a contact form message
  * Works for both authenticated and non-authenticated users
+ *
+ * The id is generated on the client and the row is inserted WITHOUT
+ * `.select()`: the SELECT policy on contact_messages only allows the owner or
+ * admins, so asking PostgREST to return the inserted row makes the whole
+ * request fail for logged-out visitors.
+ *
+ * On failure it returns an error code (not a user-facing string); the UI is
+ * responsible for showing a translated message.
  */
+export type CreateContactMessageError = "insert_failed";
+
 export async function createContactMessage(
   messageData: CreateContactMessageData
-): Promise<{ success: boolean; message?: ContactMessage; error?: string }> {
+): Promise<{ success: boolean; id?: string; error?: CreateContactMessageError }> {
   try {
     // Get current user if authenticated (optional)
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
-    const { data, error } = await supabase
-      .from("contact_messages")
-      .insert({
-        ...messageData,
-        user_id: user?.id || null,
-      })
-      .select()
-      .single();
+    const id = crypto.randomUUID();
+
+    const { error } = await supabase.from("contact_messages").insert({
+      id,
+      ...messageData,
+      user_id: user?.id || null,
+    });
 
     if (error) {
       console.error("Error creating contact message:", error);
-      return { success: false, error: "Error al enviar el mensaje" };
+      return { success: false, error: "insert_failed" };
     }
 
-    return { success: true, message: data as ContactMessage };
+    return { success: true, id };
   } catch (error) {
     console.error("Error creating contact message:", error);
-    return { success: false, error: "Error al enviar el mensaje" };
+    return { success: false, error: "insert_failed" };
   }
 }
 

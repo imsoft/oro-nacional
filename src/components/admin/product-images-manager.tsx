@@ -51,6 +51,9 @@ interface ProductImagesManagerProps {
   onNewImagesChange: (images: File[]) => void;
   onDeleteImage: (imageId: string, index: number) => void;
   productName?: string;
+  // Imagen nueva elegida como principal (controlada por el formulario para poder guardarla)
+  primaryNewImage?: File | null;
+  onPrimaryNewImageChange?: (file: File | null) => void;
 }
 
 function SortableImageItem({
@@ -171,6 +174,8 @@ export function ProductImagesManager({
   onNewImagesChange,
   onDeleteImage,
   productName,
+  primaryNewImage,
+  onPrimaryNewImageChange,
 }: ProductImagesManagerProps) {
   const t = useTranslations("admin");
   const [newImagesWithMetadata, setNewImagesWithMetadata] = useState<NewImageItem[]>([]);
@@ -188,7 +193,10 @@ export function ProductImagesManager({
         file,
         preview: URL.createObjectURL(file),
         display_order: index,
-        is_primary: existingItem?.is_primary ?? (index === 0 && existingImages.length === 0),
+        is_primary: primaryNewImage !== undefined
+          // Controlado por el formulario: la principal es el archivo elegido, o la primera si no hay existentes
+          ? (primaryNewImage ? file === primaryNewImage : (index === 0 && existingImages.length === 0))
+          : existingItem?.is_primary ?? (index === 0 && existingImages.length === 0),
       };
     });
 
@@ -198,7 +206,7 @@ export function ProductImagesManager({
     return () => {
       convertedImages.forEach(item => URL.revokeObjectURL(item.preview));
     };
-  }, [newImages, existingImages.length]);
+  }, [newImages, existingImages.length, primaryNewImage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Ensure all existing images have valid IDs for DnD
   const existingImagesWithIds: ExistingImageWithId[] = existingImages.map((img, index) => ({
@@ -257,6 +265,7 @@ export function ProductImagesManager({
         is_primary: img.id === imageId,
       }));
       setNewImagesWithMetadata(updatedNew);
+      onPrimaryNewImageChange?.(updatedNew.find((img) => img.is_primary)?.file ?? null);
 
       // Quitar primary de imágenes existentes
       if (existingImagesWithIds.length > 0) {
@@ -273,6 +282,7 @@ export function ProductImagesManager({
         is_primary: img.id === imageId,
       }));
       onExistingImagesChange(updatedExisting);
+      onPrimaryNewImageChange?.(null);
 
       // Quitar primary de nuevas imágenes
       if (newImagesWithMetadata.length > 0) {
@@ -291,6 +301,10 @@ export function ProductImagesManager({
 
   const handleDeleteNewImage = (index: number) => {
     const filtered = newImages.filter((_, i) => i !== index);
+    // Si se quita la imagen nueva marcada como principal, limpiar la selección
+    if (primaryNewImage && newImages[index] === primaryNewImage) {
+      onPrimaryNewImageChange?.(null);
+    }
     onNewImagesChange(filtered);
   };
 

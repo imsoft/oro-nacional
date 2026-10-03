@@ -5,6 +5,7 @@ import type {
   Locale
 } from "@/types/multilingual";
 import { getLocalizedText, getLocalizedContent, generateMultilingualSlug } from "@/types/multilingual";
+import { generateUniqueSlug } from "./products-multilingual";
 
 // ================================================
 // FUNCIONES DE BLOG MULTILINGÜES
@@ -425,8 +426,12 @@ export async function createBlogPost(
   authorId: string
 ) {
   try {
-    // Generar slugs multilingües
-    const slugs = generateMultilingualSlug(postData.title);
+    // Generar slugs multilingües (únicos y nunca vacíos)
+    const baseSlugs = generateMultilingualSlug(postData.title);
+    const slugFallback = `post-${Date.now().toString(36)}`;
+    const uniqueSlugEs = await generateUniqueSlug("blog_posts", "slug_es", baseSlugs.es, { fallback: slugFallback });
+    const uniqueSlugEn = await generateUniqueSlug("blog_posts", "slug_en", baseSlugs.en || baseSlugs.es, { fallback: uniqueSlugEs });
+    const slugs = { es: uniqueSlugEs, en: uniqueSlugEn };
 
     // Insertar el post
     const { data: post, error: postError } = await supabase
@@ -499,13 +504,37 @@ export async function updateBlogPost(
       // Columnas legacy (usar español como fallback)
       dataToUpdate.title = updates.title.es || updates.title.en || '';
       // Columnas multilingües (usar español como fallback si inglés está vacío)
-      dataToUpdate.title_es = updates.title.es;
-      dataToUpdate.title_en = updates.title.en || updates.title.es;
-      // Regenerar slugs
+      const titleEs = updates.title.es;
+      const titleEn = updates.title.en || updates.title.es;
+      dataToUpdate.title_es = titleEs;
+      dataToUpdate.title_en = titleEn;
+
+      // Regenerar slugs solo si el título cambió (o si el slug actual está vacío)
+      const { data: current, error: currentError } = await supabase
+        .from("blog_posts")
+        .select("title_es, title_en, slug_es, slug_en")
+        .eq("id", postId)
+        .maybeSingle();
+
+      if (currentError) {
+        console.error("Error fetching current blog post:", currentError);
+        throw currentError;
+      }
+
       const slugs = generateMultilingualSlug(updates.title);
-      dataToUpdate.slug = slugs.es || slugs.en || ''; // Columna legacy
-      dataToUpdate.slug_es = slugs.es;
-      dataToUpdate.slug_en = slugs.en || slugs.es;
+      const slugFallback = `post-${postId.slice(0, 8)}`;
+      let slugEs = current?.slug_es as string | undefined;
+      if (!current || current.title_es !== titleEs || !current.slug_es) {
+        slugEs = await generateUniqueSlug("blog_posts", "slug_es", slugs.es, { excludeId: postId, fallback: slugFallback });
+        dataToUpdate.slug = slugEs; // Columna legacy
+        dataToUpdate.slug_es = slugEs;
+      }
+      if (!current || current.title_en !== titleEn || !current.slug_en) {
+        dataToUpdate.slug_en = await generateUniqueSlug("blog_posts", "slug_en", slugs.en || slugs.es, {
+          excludeId: postId,
+          fallback: slugEs || slugFallback,
+        });
+      }
     }
 
     if (updates.excerpt) {
@@ -870,7 +899,12 @@ export async function createBlogCategory(
   }
 ) {
   try {
-    const slugs = generateMultilingualSlug(categoryData.name);
+    // Slugs únicos y nunca vacíos
+    const baseSlugs = generateMultilingualSlug(categoryData.name);
+    const slugFallback = `categoria-${Date.now().toString(36)}`;
+    const uniqueSlugEs = await generateUniqueSlug("blog_categories", "slug_es", baseSlugs.es, { fallback: slugFallback });
+    const uniqueSlugEn = await generateUniqueSlug("blog_categories", "slug_en", baseSlugs.en || baseSlugs.es, { fallback: uniqueSlugEs });
+    const slugs = { es: uniqueSlugEs, en: uniqueSlugEn };
 
     const { data, error } = await supabase
       .from("blog_categories")
@@ -919,13 +953,37 @@ export async function updateBlogCategory(
       // Columnas legacy (usar español como fallback)
       dataToUpdate.name = updates.name.es || updates.name.en || '';
       // Columnas multilingües (usar español como fallback si inglés está vacío)
-      dataToUpdate.name_es = updates.name.es;
-      dataToUpdate.name_en = updates.name.en || updates.name.es;
-      // Regenerar slugs
+      const nameEs = updates.name.es;
+      const nameEn = updates.name.en || updates.name.es;
+      dataToUpdate.name_es = nameEs;
+      dataToUpdate.name_en = nameEn;
+
+      // Regenerar slugs solo si el nombre cambió (o si el slug actual está vacío)
+      const { data: current, error: currentError } = await supabase
+        .from("blog_categories")
+        .select("name_es, name_en, slug_es, slug_en")
+        .eq("id", categoryId)
+        .maybeSingle();
+
+      if (currentError) {
+        console.error("Error fetching current blog category:", currentError);
+        throw currentError;
+      }
+
       const slugs = generateMultilingualSlug(updates.name);
-      dataToUpdate.slug = slugs.es || slugs.en || ''; // Columna legacy
-      dataToUpdate.slug_es = slugs.es;
-      dataToUpdate.slug_en = slugs.en || slugs.es;
+      const slugFallback = `categoria-${categoryId.slice(0, 8)}`;
+      let slugEs = current?.slug_es as string | undefined;
+      if (!current || current.name_es !== nameEs || !current.slug_es) {
+        slugEs = await generateUniqueSlug("blog_categories", "slug_es", slugs.es, { excludeId: categoryId, fallback: slugFallback });
+        dataToUpdate.slug = slugEs; // Columna legacy
+        dataToUpdate.slug_es = slugEs;
+      }
+      if (!current || current.name_en !== nameEn || !current.slug_en) {
+        dataToUpdate.slug_en = await generateUniqueSlug("blog_categories", "slug_en", slugs.en || slugs.es, {
+          excludeId: categoryId,
+          fallback: slugEs || slugFallback,
+        });
+      }
     }
 
     if (updates.description !== undefined) {

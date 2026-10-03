@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "@/i18n/routing";
-import { useLocale } from "next-intl";
+import { useEffect } from "react";
+import { useRouter } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 import { useAuthStore } from "@/stores/auth-store";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
@@ -13,36 +13,32 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const pathname = usePathname();
-  const locale = useLocale();
-  const { isAdmin, isAuthenticated, checkSession, isLoading } = useAuthStore();
-  const [isChecking, setIsChecking] = useState(true);
+  const t = useTranslations("auth.session");
+  // La sesión se verifica una sola vez (al cargar el store) y después se
+  // mantiene sincronizada con onAuthStateChange; no se vuelve a verificar en
+  // cada navegación para no desmontar todo el panel.
+  const { isAdmin, isAuthenticated, hasCheckedSession, profileLoadFailed } = useAuthStore();
 
-  // Verificar sesión al montar el componente y después de cada navegación
-  useEffect(() => {
-    const verifySession = async () => {
-      setIsChecking(true);
-      await checkSession();
-      setIsChecking(false);
-    };
-
-    verifySession();
-  }, [checkSession, pathname]);
+  // Hay sesión pero el perfil (y por tanto el rol) aún no se pudo cargar:
+  // el store reintenta en segundo plano, así que se espera en vez de redirigir.
+  const isWaitingForProfile = isAuthenticated && !isAdmin && profileLoadFailed;
 
   useEffect(() => {
-    // Si terminó de cargar y no está autenticado o no es admin, redirigir
-    if (!isLoading && !isChecking && (!isAuthenticated || !isAdmin)) {
-      router.push("/login", { locale: locale as 'es' | 'en' });
+    if (!hasCheckedSession || isWaitingForProfile) return;
+
+    // Si no está autenticado o no es admin, redirigir (conserva el idioma actual)
+    if (!isAuthenticated || !isAdmin) {
+      router.replace("/login");
     }
-  }, [isLoading, isChecking, isAuthenticated, isAdmin, router, locale]);
+  }, [hasCheckedSession, isWaitingForProfile, isAuthenticated, isAdmin, router]);
 
-  // Mostrar loading mientras se verifica la sesión
-  if (isLoading || isChecking) {
+  // Mostrar loading solo mientras se hace la primera verificación de sesión
+  if (!hasCheckedSession || isWaitingForProfile) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D4AF37] mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Verificando sesión...</p>
+          <p className="text-muted-foreground">{t("verifying")}</p>
         </div>
       </div>
     );

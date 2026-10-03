@@ -5,6 +5,64 @@ import type {
   Locale
 } from "@/types/multilingual";
 import { getLocalizedText, getLocalizedContent, generateMultilingualSlug } from "@/types/multilingual";
+import { addProductImages } from "./products";
+
+// ================================================
+// UTILIDADES DE SLUGS
+// ================================================
+
+/**
+ * Devuelve un slug único para la columna indicada.
+ * - Nunca devuelve un slug vacío (usa `fallback` si el slug base está vacío)
+ * - Si el slug ya existe en otra fila, agrega un sufijo numérico (-2, -3, ...)
+ * - `excludeId` permite ignorar la fila que se está editando
+ */
+export async function generateUniqueSlug(
+  table: string,
+  column: string,
+  baseSlug: string | null | undefined,
+  options: { excludeId?: string; fallback?: string } = {}
+): Promise<string> {
+  const base =
+    baseSlug && baseSlug.trim() !== ""
+      ? baseSlug.trim()
+      : options.fallback && options.fallback.trim() !== ""
+        ? options.fallback.trim()
+        : `item-${Date.now().toString(36)}`;
+
+  let query = supabase.from(table).select(`id, ${column}`).like(column, `${base}%`);
+  if (options.excludeId) {
+    query = query.neq("id", options.excludeId);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error(`Error checking slug uniqueness in ${table}.${column}:`, error);
+    return base;
+  }
+
+  const taken = new Set(
+    ((data || []) as unknown as Array<Record<string, unknown>>).map((row) => String(row[column] ?? ""))
+  );
+
+  if (!taken.has(base)) {
+    return base;
+  }
+
+  let suffix = 2;
+  while (taken.has(`${base}-${suffix}`)) {
+    suffix++;
+  }
+  return `${base}-${suffix}`;
+}
+
+// Extraer un mensaje legible de un error de Supabase o de JS
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  const message = (error as { message?: string } | null)?.message;
+  return message || "Error desconocido";
+}
 
 // ================================================
 // FUNCIONES DE PRODUCTOS MULTILINGÜES
@@ -447,13 +505,20 @@ export async function searchProducts(query: string, locale: Locale = 'es') {
 
 /**
  * Crear un nuevo producto con contenido multilingüe
+ * - options.primaryImageIndex: índice (dentro de productData.images) de la imagen principal elegida
+ * - Si fallan las especificaciones o las tallas, se revierte la creación y se lanza un error
+ * - Si falla alguna imagen, el producto se conserva y los errores se devuelven en `imageErrors`
  */
 export async function createProduct(
-  productData: CreateMultilingualProductData
+  productData: CreateMultilingualProductData,
+  options: { primaryImageIndex?: number | null } = {}
 ) {
   try {
-    // Generar slugs multilingües
+    // Generar slugs multilingües (únicos y nunca vacíos)
     const slugs = generateMultilingualSlug(productData.name);
+    const slugFallback = `producto-${Date.now().toString(36)}`;
+    const slugEs = await generateUniqueSlug("products", "slug_es", slugs.es, { fallback: slugFallback });
+    const slugEn = await generateUniqueSlug("products", "slug_en", slugs.en || slugs.es, { fallback: slugEs });
 
     // Insertar el producto
     const { data: product, error: productError } = await supabase
@@ -461,8 +526,8 @@ export async function createProduct(
       .insert({
         name_es: productData.name.es,
         name_en: productData.name.en || productData.name.es, // Usar español como fallback si inglés está vacío
-        slug_es: slugs.es,
-        slug_en: slugs.en || slugs.es, // Usar español como fallback
+        slug_es: slugEs,
+        slug_en: slugEn,
         description_es: productData.description.es,
         description_en: productData.description.en || productData.description.es, // Usar español como fallback
         material_es: productData.material.es,
@@ -482,6 +547,17 @@ export async function createProduct(
       console.error("Error creating product:", productError);
       throw productError;
     }
+
+    // Revertir la creación si fallan los datos relacionados (evita productos a medias y duplicados al reintentar)
+    const rollbackProduct = async () => {
+      const { error: rollbackError } = await supabase
+        .from("products")
+        .delete()
+        .eq("id", product.id);
+      if (rollbackError) {
+        console.error("Error rolling back product creation:", rollbackError);
+      }
+    };
 
     // Insertar especificaciones si existen (filtrar las vacías)
     if (productData.specifications && productData.specifications.length > 0) {
@@ -509,6 +585,8 @@ export async function createProduct(
 
         if (specsError) {
           console.error("Error creating specifications:", specsError);
+          await rollbackProduct();
+          throw new Error(`No se pudieron guardar las especificaciones: ${getErrorMessage(specsError)}`);
         }
       }
     }
@@ -531,11 +609,23 @@ export async function createProduct(
 
       if (sizesError) {
         console.error("Error creating sizes:", sizesError);
+        await rollbackProduct();
+        throw new Error(`No se pudieron guardar las tallas: ${getErrorMessage(sizesError)}`);
       }
     }
 
     // Subir imágenes si existen
+    const imageErrors: string[] = [];
     if (productData.images && productData.images.length > 0) {
+      // Respetar la imagen principal elegida en el formulario (por defecto la primera)
+      const primaryIndex =
+        typeof options.primaryImageIndex === "number" &&
+        options.primaryImageIndex >= 0 &&
+        options.primaryImageIndex < productData.images.length
+          ? options.primaryImageIndex
+          : 0;
+      const insertedImages: Array<{ id: string; is_primary: boolean }> = [];
+
       for (let i = 0; i < productData.images.length; i++) {
         const file = productData.images[i];
         const fileExt = file.name.split('.').pop();
@@ -548,6 +638,7 @@ export async function createProduct(
 
         if (uploadError) {
           console.error("Error uploading image:", uploadError);
+          imageErrors.push(`${file.name}: ${getErrorMessage(uploadError)}`);
           continue;
         }
 
@@ -557,22 +648,41 @@ export async function createProduct(
         } = supabase.storage.from("product-images").getPublicUrl(fileName);
 
         // Insertar registro en product_images
-        const { error: imageError } = await supabase
+        const { data: imageRow, error: imageError } = await supabase
           .from("product_images")
           .insert({
             product_id: product.id,
             image_url: publicUrl,
             display_order: i,
-            is_primary: i === 0, // Primera imagen es la principal
-          });
+            is_primary: i === primaryIndex,
+          })
+          .select("id, is_primary")
+          .single();
 
         if (imageError) {
           console.error("Error creating image record:", imageError);
+          imageErrors.push(`${file.name}: ${getErrorMessage(imageError)}`);
+          // Evitar archivos huérfanos si no se pudo crear el registro
+          await supabase.storage.from("product-images").remove([fileName]);
+          continue;
+        }
+
+        insertedImages.push(imageRow);
+      }
+
+      // Si la imagen principal no se pudo subir, promover la primera que sí se guardó
+      if (insertedImages.length > 0 && !insertedImages.some((img) => img.is_primary)) {
+        const { error: promoteError } = await supabase
+          .from("product_images")
+          .update({ is_primary: true })
+          .eq("id", insertedImages[0].id);
+        if (promoteError) {
+          console.error("Error setting primary image:", promoteError);
         }
       }
     }
 
-    return product;
+    return { ...product, imageErrors };
   } catch (error) {
     console.error("Error in createProduct:", error);
     throw error;
@@ -580,11 +690,90 @@ export async function createProduct(
 }
 
 /**
+ * Opciones de imágenes al actualizar un producto
+ */
+export interface UpdateProductImageOptions {
+  // Imágenes ya guardadas, en el orden en que deben mostrarse
+  existingImages?: Array<{ id?: string; is_primary: boolean }>;
+  // Archivos nuevos por subir (se agregan después de las existentes)
+  newImages?: File[];
+  // Índice (dentro de newImages) de la imagen principal, si la principal es una imagen nueva
+  primaryNewImageIndex?: number | null;
+}
+
+/**
+ * Persistir orden, imagen principal y nuevas imágenes de un producto
+ */
+async function saveProductImages(productId: string, imageOptions: UpdateProductImageOptions) {
+  const existing = (imageOptions.existingImages || []).filter(
+    (img): img is { id: string; is_primary: boolean } => typeof img.id === "string" && img.id !== ""
+  );
+  const newImages = imageOptions.newImages || [];
+
+  let primaryNewIndex: number | null =
+    typeof imageOptions.primaryNewImageIndex === "number" &&
+    imageOptions.primaryNewImageIndex >= 0 &&
+    imageOptions.primaryNewImageIndex < newImages.length
+      ? imageOptions.primaryNewImageIndex
+      : null;
+  let primaryExistingId: string | null =
+    primaryNewIndex === null ? existing.find((img) => img.is_primary)?.id ?? null : null;
+
+  // Garantizar que siempre haya una imagen principal
+  if (primaryNewIndex === null && primaryExistingId === null) {
+    if (existing.length > 0) {
+      primaryExistingId = existing[0].id;
+    } else if (newImages.length > 0) {
+      primaryNewIndex = 0;
+    }
+  }
+
+  // Actualizar orden e imagen principal de las existentes
+  // (primero las no principales, para no tener dos principales al mismo tiempo)
+  const existingUpdates = existing
+    .map((img, index) => ({ id: img.id, display_order: index, is_primary: img.id === primaryExistingId }))
+    .sort((a, b) => Number(a.is_primary) - Number(b.is_primary));
+
+  for (const img of existingUpdates) {
+    const { error } = await supabase
+      .from("product_images")
+      .update({ display_order: img.display_order, is_primary: img.is_primary })
+      .eq("id", img.id)
+      .eq("product_id", productId);
+
+    if (error) {
+      console.error("Error updating product image:", error);
+      throw new Error(`No se pudo actualizar el orden de las imágenes: ${getErrorMessage(error)}`);
+    }
+  }
+
+  // Subir las imágenes nuevas
+  if (newImages.length > 0) {
+    try {
+      await addProductImages(
+        productId,
+        newImages.map((file, index) => ({
+          file,
+          isPrimary: index === primaryNewIndex,
+          displayOrder: existing.length + index,
+        }))
+      );
+    } catch (error) {
+      console.error("Error uploading new product images:", error);
+      throw new Error(`No se pudieron subir las imágenes nuevas: ${getErrorMessage(error)}`);
+    }
+  }
+}
+
+/**
  * Actualizar un producto existente
+ * - imageOptions (opcional): persiste orden, imagen principal y nuevas imágenes
+ * - Lanza un error si falla el guardado de especificaciones, tallas o imágenes
  */
 export async function updateProduct(
   productId: string,
-  updates: UpdateMultilingualProductData
+  updates: UpdateMultilingualProductData,
+  imageOptions?: UpdateProductImageOptions
 ) {
   try {
     // Validar que productId sea un UUID válido
@@ -596,12 +785,39 @@ export async function updateProduct(
 
     // Actualizar campos básicos
     if (updates.name) {
-      dataToUpdate.name_es = updates.name.es;
-      dataToUpdate.name_en = updates.name.en || updates.name.es; // Usar español como fallback
-      // Regenerar slugs
+      const nameEs = updates.name.es;
+      const nameEn = updates.name.en || updates.name.es; // Usar español como fallback
+      dataToUpdate.name_es = nameEs;
+      dataToUpdate.name_en = nameEn;
+
+      // Regenerar slugs solo si el nombre cambió (o si el slug actual está vacío)
+      const { data: current, error: currentError } = await supabase
+        .from("products")
+        .select("name_es, name_en, slug_es, slug_en")
+        .eq("id", productId)
+        .maybeSingle();
+
+      if (currentError) {
+        console.error("Error fetching current product:", currentError);
+        throw currentError;
+      }
+
       const slugs = generateMultilingualSlug(updates.name);
-      dataToUpdate.slug_es = slugs.es;
-      dataToUpdate.slug_en = slugs.en || slugs.es; // Usar español como fallback
+      const slugFallback = `producto-${productId.slice(0, 8)}`;
+      const esChanged = !current || current.name_es !== nameEs || !current.slug_es;
+      const enChanged = !current || current.name_en !== nameEn || !current.slug_en;
+
+      let slugEs = current?.slug_es as string | undefined;
+      if (esChanged) {
+        slugEs = await generateUniqueSlug("products", "slug_es", slugs.es, { excludeId: productId, fallback: slugFallback });
+        dataToUpdate.slug_es = slugEs;
+      }
+      if (enChanged) {
+        dataToUpdate.slug_en = await generateUniqueSlug("products", "slug_en", slugs.en || slugs.es, {
+          excludeId: productId,
+          fallback: slugEs || slugFallback,
+        });
+      }
     }
 
     if (updates.description) {
@@ -647,6 +863,17 @@ export async function updateProduct(
 
     // Actualizar especificaciones si se proporcionaron
     if (updates.specifications !== undefined) {
+      // Guardar las especificaciones actuales para poder restaurarlas si falla la inserción
+      const { data: previousSpecs, error: previousSpecsError } = await supabase
+        .from("product_specifications")
+        .select("*")
+        .eq("product_id", productId);
+
+      if (previousSpecsError) {
+        console.error("Error fetching old specifications:", previousSpecsError);
+        throw new Error(`No se pudieron actualizar las especificaciones: ${getErrorMessage(previousSpecsError)}`);
+      }
+
       // Eliminar especificaciones existentes
       const { error: deleteSpecsError } = await supabase
         .from("product_specifications")
@@ -655,6 +882,7 @@ export async function updateProduct(
 
       if (deleteSpecsError) {
         console.error("Error deleting old specifications:", deleteSpecsError);
+        throw new Error(`No se pudieron actualizar las especificaciones: ${getErrorMessage(deleteSpecsError)}`);
       }
 
       // Insertar nuevas especificaciones si hay alguna (filtrar las vacías)
@@ -683,6 +911,16 @@ export async function updateProduct(
 
           if (insertSpecsError) {
             console.error("Error inserting specifications:", insertSpecsError);
+            // Restaurar las especificaciones anteriores para no dejar el producto sin datos
+            if (previousSpecs && previousSpecs.length > 0) {
+              const { error: restoreError } = await supabase
+                .from("product_specifications")
+                .insert(previousSpecs);
+              if (restoreError) {
+                console.error("Error restoring old specifications:", restoreError);
+              }
+            }
+            throw new Error(`No se pudieron guardar las especificaciones: ${getErrorMessage(insertSpecsError)}`);
           }
         }
       }
@@ -690,6 +928,17 @@ export async function updateProduct(
 
     // Actualizar tallas si se proporcionaron
     if (updates.sizes !== undefined) {
+      // Guardar las tallas actuales para poder restaurarlas si falla la inserción
+      const { data: previousSizes, error: previousSizesError } = await supabase
+        .from("product_sizes")
+        .select("*")
+        .eq("product_id", productId);
+
+      if (previousSizesError) {
+        console.error("Error fetching old sizes:", previousSizesError);
+        throw new Error(`No se pudieron actualizar las tallas: ${getErrorMessage(previousSizesError)}`);
+      }
+
       // Eliminar tallas existentes
       const { error: deleteSizesError } = await supabase
         .from("product_sizes")
@@ -698,6 +947,7 @@ export async function updateProduct(
 
       if (deleteSizesError) {
         console.error("Error deleting old sizes:", deleteSizesError);
+        throw new Error(`No se pudieron actualizar las tallas: ${getErrorMessage(deleteSizesError)}`);
       }
 
       // Insertar nuevas tallas si hay alguna
@@ -718,8 +968,23 @@ export async function updateProduct(
 
         if (insertSizesError) {
           console.error("Error inserting sizes:", insertSizesError);
+          // Restaurar las tallas anteriores para no dejar el producto sin tallas
+          if (previousSizes && previousSizes.length > 0) {
+            const { error: restoreError } = await supabase
+              .from("product_sizes")
+              .insert(previousSizes);
+            if (restoreError) {
+              console.error("Error restoring old sizes:", restoreError);
+            }
+          }
+          throw new Error(`No se pudieron guardar las tallas: ${getErrorMessage(insertSizesError)}`);
         }
       }
+    }
+
+    // Persistir imágenes (orden, principal y nuevas) si se proporcionaron
+    if (imageOptions) {
+      await saveProductImages(productId, imageOptions);
     }
 
     return data;
@@ -906,7 +1171,12 @@ export async function createCategory(
   }
 ) {
   try {
-    const slugs = generateMultilingualSlug(categoryData.name);
+    const baseSlugs = generateMultilingualSlug(categoryData.name);
+    // Slugs únicos y nunca vacíos
+    const slugFallback = `categoria-${Date.now().toString(36)}`;
+    const slugEs = await generateUniqueSlug("product_categories", "slug_es", baseSlugs.es, { fallback: slugFallback });
+    const slugEn = await generateUniqueSlug("product_categories", "slug_en", baseSlugs.en || baseSlugs.es, { fallback: slugEs });
+    const slugs = { es: slugEs, en: slugEn };
 
     const { data, error } = await supabase
       .from("product_categories")
@@ -957,17 +1227,46 @@ export async function updateCategory(
       // Columnas legacy (usar español como fallback)
       dataToUpdate.name = updates.name.es || updates.name.en || '';
       // Columnas multilingües (usar español como fallback si inglés está vacío)
-      dataToUpdate.name_es = updates.name.es;
-      dataToUpdate.name_en = updates.name.en || updates.name.es;
+      const nameEs = updates.name.es;
+      const nameEn = updates.name.en || updates.name.es;
+      dataToUpdate.name_es = nameEs;
+      dataToUpdate.name_en = nameEn;
+
+      // Regenerar slugs solo si el nombre cambió (o si el slug actual está vacío)
+      const { data: current, error: currentError } = await supabase
+        .from("product_categories")
+        .select("name_es, name_en, slug_es, slug_en")
+        .eq("id", categoryId)
+        .maybeSingle();
+
+      if (currentError) {
+        console.error("Error fetching current category:", currentError);
+        throw currentError;
+      }
+
       const slugs = generateMultilingualSlug(updates.name);
-      dataToUpdate.slug = slugs.es || slugs.en || ''; // Columna legacy
-      dataToUpdate.slug_es = slugs.es;
-      dataToUpdate.slug_en = slugs.en || slugs.es;
+      const slugFallback = `categoria-${categoryId.slice(0, 8)}`;
+      const esChanged = !current || current.name_es !== nameEs || !current.slug_es;
+      const enChanged = !current || current.name_en !== nameEn || !current.slug_en;
+
+      let slugEs = current?.slug_es as string | undefined;
+      if (esChanged) {
+        slugEs = await generateUniqueSlug("product_categories", "slug_es", slugs.es, { excludeId: categoryId, fallback: slugFallback });
+        dataToUpdate.slug = slugEs; // Columna legacy
+        dataToUpdate.slug_es = slugEs;
+      }
+      if (enChanged) {
+        dataToUpdate.slug_en = await generateUniqueSlug("product_categories", "slug_en", slugs.en || slugs.es, {
+          excludeId: categoryId,
+          fallback: slugEs || slugFallback,
+        });
+      }
     }
 
-    if (updates.description) {
+    // `!== undefined` para permitir limpiar la descripción enviando strings vacíos
+    if (updates.description !== undefined) {
       dataToUpdate.description = updates.description.es || updates.description.en || null; // Columna legacy
-      dataToUpdate.description_es = updates.description.es;
+      dataToUpdate.description_es = updates.description.es || null;
       dataToUpdate.description_en = updates.description.en || updates.description.es || null;
     }
 

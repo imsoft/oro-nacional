@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { useAuthStore } from "@/stores/auth-store";
 import { Button } from "@/components/ui/button";
@@ -53,7 +53,7 @@ import type { ContactMessage, MessageStatus, ContactMessageStats } from "@/types
 const MessagesPage = () => {
   const router = useRouter();
   const t = useTranslations('admin.messages');
-  const { isAuthenticated, isAdmin } = useAuthStore();
+  const { isAuthenticated, isAdmin, hasCheckedSession } = useAuthStore();
   const [isLoading, setIsLoading] = useState(true);
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [filteredMessages, setFilteredMessages] = useState<ContactMessage[]>([]);
@@ -71,12 +71,15 @@ const MessagesPage = () => {
   const [adminNotes, setAdminNotes] = useState("");
 
   useEffect(() => {
+    // Esperar a que termine la verificación de sesión antes de decidir
+    if (!hasCheckedSession) return;
+
     if (!isAuthenticated || !isAdmin) {
-      router.push("/login");
+      router.replace("/login");
     } else {
       loadData();
     }
-  }, [isAuthenticated, isAdmin, router]);
+  }, [hasCheckedSession, isAuthenticated, isAdmin, router]);
 
   const filterMessages = useCallback(() => {
     let filtered = messages;
@@ -199,7 +202,7 @@ const MessagesPage = () => {
     });
   };
 
-  if (!isAuthenticated || !isAdmin) {
+  if (!hasCheckedSession || !isAuthenticated || !isAdmin) {
     return null;
   }
 

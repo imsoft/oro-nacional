@@ -6,6 +6,7 @@ import { FacebookIcon, InstagramIcon } from "@/components/icons/social-brand-ico
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { getStoreSettings, type StoreSettings } from "@/lib/supabase/settings";
+import { SITE_CONTACT } from "@/lib/site-contact";
 
 const ContactInfo = () => {
   const t = useTranslations('contact');
@@ -37,7 +38,7 @@ const ContactInfo = () => {
             <div>
               <p className="font-semibold text-foreground">{t('address')}</p>
               <a
-                href="https://maps.app.goo.gl/GBnsUNi5fe9QNEDj8"
+                href={SITE_CONTACT.mapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-1 text-sm text-muted-foreground hover:text-[#D4AF37] transition-colors whitespace-pre-line block"
@@ -55,10 +56,10 @@ const ContactInfo = () => {
             <div>
               <p className="font-semibold text-foreground">{t('phoneNumber')}</p>
               <a
-                href={`tel:${settings?.phone?.replace(/\s/g, '') || '+523312345678'}`}
+                href={settings?.phone ? `tel:${settings.phone.replace(/\s/g, '')}` : SITE_CONTACT.phoneHref}
                 className="mt-1 text-sm text-muted-foreground hover:text-[#D4AF37] transition-colors"
               >
-                {settings?.phone || '+52 33 1234 5678'}
+                {settings?.phone || SITE_CONTACT.phoneDisplay}
               </a>
               <p className="text-xs text-muted-foreground mt-1">
                 {t('phoneHours')}
@@ -74,10 +75,10 @@ const ContactInfo = () => {
             <div>
               <p className="font-semibold text-foreground">{t('emailAddress')}</p>
               <a
-                href={`mailto:${settings?.contact_email || 'contacto@oronacional.com'}`}
+                href={`mailto:${settings?.contact_email || SITE_CONTACT.email}`}
                 className="mt-1 text-sm text-muted-foreground hover:text-[#D4AF37] transition-colors"
               >
-                {settings?.contact_email || 'contacto@oronacional.com'}
+                {settings?.contact_email || SITE_CONTACT.email}
               </a>
               <p className="text-xs text-muted-foreground mt-1">
                 {t('emailResponse')}
@@ -109,7 +110,7 @@ const ContactInfo = () => {
         </h3>
         <div className="space-y-3">
           <a
-            href="https://facebook.com/oronacional"
+            href={SITE_CONTACT.facebookUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors group"
@@ -119,12 +120,12 @@ const ContactInfo = () => {
               <p className="text-sm font-medium text-foreground group-hover:text-[#D4AF37] transition-colors">
                 {t('facebook')}
               </p>
-              <p className="text-xs text-muted-foreground">@OroNacional</p>
+              <p className="text-xs text-muted-foreground">Oro Nacional</p>
             </div>
           </a>
 
           <a
-            href="https://instagram.com/oronacional"
+            href={SITE_CONTACT.instagramUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors group"
@@ -134,7 +135,7 @@ const ContactInfo = () => {
               <p className="text-sm font-medium text-foreground group-hover:text-[#D4AF37] transition-colors">
                 {t('instagram')}
               </p>
-              <p className="text-xs text-muted-foreground">@OroNacional</p>
+              <p className="text-xs text-muted-foreground">{SITE_CONTACT.instagramHandle}</p>
             </div>
           </a>
         </div>

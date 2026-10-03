@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useRouter } from "@/i18n/routing";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -28,8 +28,10 @@ import type { BlogCategory, BlogPostDetail } from "@/types/blog";
 export default function EditPostPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  // En Next 16 `params` es una Promise
+  const { id } = use(params);
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
 
@@ -44,6 +46,8 @@ export default function EditPostPage({
   const [currentFeaturedImage, setCurrentFeaturedImage] = useState<string | null>(null);
   const [newFeaturedImage, setNewFeaturedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  // El admin pidió quitar la imagen actual (se elimina al guardar)
+  const [removeCurrentImage, setRemoveCurrentImage] = useState(false);
 
   // Data state
   const [categories, setCategories] = useState<BlogCategory[]>([]);
@@ -55,13 +59,13 @@ export default function EditPostPage({
   useEffect(() => {
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.id]);
+  }, [id]);
 
   const loadData = async () => {
     setIsLoading(true);
     try {
       const [postData, categoriesData] = await Promise.all([
-        getBlogPostById(params.id),
+        getBlogPostById(id),
         getBlogCategories(),
       ]);
 
@@ -116,6 +120,7 @@ export default function EditPostPage({
   // Eliminar imagen actual
   const handleRemoveCurrentImage = () => {
     setCurrentFeaturedImage(null);
+    setRemoveCurrentImage(true);
   };
 
   // Enviar formulario
@@ -148,7 +153,7 @@ export default function EditPostPage({
     try {
       const updates = {
         title: title.trim(),
-        excerpt: excerpt.trim() || undefined,
+        excerpt: excerpt.trim(), // "" permite limpiar el extracto
         content: content.trim(),
         featured_image: newFeaturedImage || undefined,
         category_id: categoryId || undefined,
@@ -160,7 +165,9 @@ export default function EditPostPage({
         available_languages: availableLanguages,
       };
 
-      const result = await updateBlogPost(params.id, updates);
+      const result = await updateBlogPost(id, updates, {
+        removeFeaturedImage: removeCurrentImage && !newFeaturedImage,
+      });
 
       if (result) {
         toast.success("Post actualizado", {
@@ -169,7 +176,9 @@ export default function EditPostPage({
         router.push("/admin/blog");
       } else {
         toast.error("Error al actualizar", {
-          description: "No se pudo actualizar el post. Por favor intenta de nuevo.",
+          description: newFeaturedImage
+            ? "No se pudo actualizar el post. Verifica que la imagen se pueda subir e intenta de nuevo."
+            : "No se pudo actualizar el post. Por favor intenta de nuevo.",
         });
       }
     } catch (error) {

@@ -23,6 +23,7 @@ import {
 import { getAllOrders, getOrderStats, updateOrderStatus, getOrderById } from "@/lib/supabase/orders";
 import type { OrderListItem, OrderStatus, OrderStats, Order } from "@/types/order";
 import Image from "next/image";
+import { toast } from "sonner";
 
 export default function OrdersAdmin() {
   const t = useTranslations('admin.orders');
@@ -64,6 +65,12 @@ export default function OrdersAdmin() {
   const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
     const result = await updateOrderStatus(orderId, { status: newStatus });
     if (result.success) {
+      loadData();
+    } else {
+      toast.error("Error al actualizar el estado", {
+        description: result.error || "No se pudo actualizar el estado del pedido. Por favor intenta de nuevo.",
+      });
+      // Recargar para que el selector vuelva a mostrar el estado real
       loadData();
     }
   };
