@@ -16,11 +16,12 @@ export default function robots(): MetadataRoute.Robots {
     '/my-orders',
     '/favorites',
     '/reset-password',
+    '/update-password',
+    '/pago',
   ];
 
   const disallow = [
     '/api/',
-    '/_next/',
     ...privateRoutes,
     ...privateRoutes.map((route) => `/en${route}`),
   ];

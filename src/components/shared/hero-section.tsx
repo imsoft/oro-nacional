@@ -26,7 +26,7 @@ const HeroSection = () => {
       <div className="bg-background flex flex-col">
         <Navbar />
 
-        <div className="relative isolate overflow-hidden flex items-center min-h-[48vh] lg:min-h-[54vh] pt-24 lg:pt-28">
+        <div className="relative isolate overflow-hidden flex items-center min-h-[48vh] lg:min-h-[54vh] pt-28 lg:pt-28">
           <HeroCarousel images={heroImages} imageAlt={t('imageAlt')} />
           <div
             aria-hidden="true"

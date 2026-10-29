@@ -942,7 +942,7 @@
     "grams": "{count} gramos",
     "pairs": "{count, plural, one {# par} other {# pares}}",
     "certificateTitle": "Certificado de Autenticidad",
-    "certificateDescription": "Oro {material} certificado",
+    "certificateDescription": "{material} certificado",
     "secureShippingTitle": "Envío Seguro Gratis",
     "secureShippingDescription": "A toda la República Mexicana",
     "warrantyTitle": "Garantía de Manufactura",
@@ -1233,7 +1233,7 @@
       "category": "Categoría",
       "status": "Estado",
       "draft": "Borrador",
-      "published": "Publicados",
+      "published": "Publicado",
       "tags": "Etiquetas",
       "availableTags": "Etiquetas Disponibles",
       "selectedTags": "Etiquetas Seleccionadas",
@@ -1595,5 +1595,11 @@
     "noOrder": "Tu pago fue recibido correctamente.",
     "backHome": "Volver al inicio",
     "contact": "¿Tienes dudas? Escríbenos"
+  },
+  "notFound": {
+    "title": "Página no encontrada",
+    "description": "La página que buscas no existe o fue movida. Revisa la dirección o vuelve al inicio.",
+    "goHome": "Ir al inicio",
+    "viewCatalog": "Ver catálogo"
   }
 }

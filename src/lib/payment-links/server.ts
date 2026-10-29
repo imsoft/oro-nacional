@@ -81,9 +81,10 @@ export async function requireAdmin(
 
 function buildCustomer(input: PaymentLinkCustomerInput, description: string) {
   return {
-    customer_name: input.customer_name || description || PLACEHOLDER_NAME,
+    customer_name: input.customer_name || PLACEHOLDER_NAME,
     customer_email: (input.customer_email || placeholderEmail()).toLowerCase(),
     customer_phone: input.customer_whatsapp || PLACEHOLDER_PHONE,
+    customer_whatsapp: input.customer_whatsapp || null,
     shipping_address: PLACEHOLDER_ADDRESS,
     shipping_city: PLACEHOLDER_ADDRESS,
     shipping_state: PLACEHOLDER_ADDRESS,
@@ -156,6 +157,9 @@ export async function createAmountLinkOrder(
     .limit(1)
     .maybeSingle();
   const exchangeRate = Number(settings?.exchange_rate) > 0 ? Number(settings?.exchange_rate) : null;
+  // Equivalente en MXN para las columnas de reporte del admin
+  const amountMXN =
+    params.currency === 'USD' && exchangeRate ? round2(amount * exchangeRate) : amount;
 
   let order: PaymentLinkOrder | null = null;
   for (let attempt = 0; attempt < 3 && !order; attempt++) {
@@ -173,10 +177,11 @@ export async function createAmountLinkOrder(
         order_number: orderNumber,
         user_id: null,
         ...customer,
-        subtotal: amount,
+        // subtotal/total siempre en MXN; total_charged en la moneda cobrada
+        subtotal: amountMXN,
         shipping_cost: 0,
         tax: 0,
-        total: amount,
+        total: amountMXN,
         currency: params.currency,
         total_charged: amount,
         exchange_rate: exchangeRate,
@@ -207,11 +212,11 @@ export async function createAmountLinkOrder(
     product_sku: null,
     product_image: null,
     quantity: 1,
-    unit_price: amount,
+    unit_price: amountMXN,
     unit_price_charged: amount,
     size: null,
     material: null,
-    subtotal: amount,
+    subtotal: amountMXN,
   });
 
   if (itemError) {

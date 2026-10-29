@@ -53,6 +53,7 @@ const translations = {
     tax: 'IVA (16%)',
     total: 'Total',
     shippingInfo: 'Información de Envío',
+    shippingPending: 'Por confirmar con el cliente por WhatsApp.',
     address: 'Dirección',
     city: 'Ciudad',
     state: 'Estado',
@@ -82,6 +83,7 @@ const translations = {
     tax: 'Tax (16%)',
     total: 'Total',
     shippingInfo: 'Shipping Information',
+    shippingPending: 'To be confirmed with the customer via WhatsApp.',
     address: 'Address',
     city: 'City',
     state: 'State',
@@ -200,10 +202,17 @@ export const OrderConfirmationEmail = ({
 
           <Section style={section}>
             <Heading style={h2}>{t.shippingInfo}</Heading>
-            <Text style={text}>{shippingAddress}</Text>
-            <Text style={text}>
-              {shippingCity}, {shippingState} {shippingZipCode}
-            </Text>
+            {shippingAddress === 'Por confirmar' ? (
+              // Pedidos por enlace de pago: la dirección se acuerda por WhatsApp
+              <Text style={text}>{t.shippingPending}</Text>
+            ) : (
+              <>
+                <Text style={text}>{shippingAddress}</Text>
+                <Text style={text}>
+                  {shippingCity}, {shippingState} {shippingZipCode}
+                </Text>
+              </>
+            )}
           </Section>
 
           <Section style={section}>

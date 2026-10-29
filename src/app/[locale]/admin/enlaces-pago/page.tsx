@@ -40,6 +40,7 @@ import { getAllProducts } from "@/lib/supabase/products";
 import { getStoreSettings } from "@/lib/supabase/settings";
 import type { ProductListItem, ProductSize } from "@/types/product";
 import { toast } from "sonner";
+import { normalizeWhatsAppNumber } from "@/lib/whatsapp";
 
 type Currency = "MXN" | "USD";
 type Mode = "products" | "amount";
@@ -243,7 +244,7 @@ export default function PaymentLinksAdmin() {
     name: string,
     phone: string
   ) => {
-    const digits = phone.replace(/\D/g, "");
+    const digits = normalizeWhatsAppNumber(phone);
     const values = {
       name: name.trim(),
       total: formatMoney(link.total, link.currency),
@@ -301,7 +302,7 @@ export default function PaymentLinksAdmin() {
                 items: selected.map((item) => ({
                   product_id: item.product.id,
                   size: item.size,
-                  quantity: item.quantity,
+                  quantity: Math.max(1, item.quantity),
                 })),
               }),
         }),
@@ -333,11 +334,12 @@ export default function PaymentLinksAdmin() {
     if (link.paymentStatus === "Fallido") {
       return { label: t("statusFailed"), className: "bg-red-100 text-red-800 border-red-200" };
     }
-    if (link.status === "Cancelado") {
-      return { label: t("statusCancelled"), className: "bg-gray-100 text-gray-700 border-gray-200" };
-    }
+    // Un enlace vencido queda Cancelado por el webhook; mostrarlo como Vencido
     if (link.expiresAt && new Date(link.expiresAt).getTime() < now) {
       return { label: t("statusExpired"), className: "bg-gray-100 text-gray-700 border-gray-200" };
+    }
+    if (link.status === "Cancelado") {
+      return { label: t("statusCancelled"), className: "bg-gray-100 text-gray-700 border-gray-200" };
     }
     return { label: t("statusPending"), className: "bg-amber-100 text-amber-800 border-amber-200" };
   };
@@ -463,12 +465,16 @@ export default function PaymentLinksAdmin() {
                                   type="number"
                                   min={1}
                                   max={99}
-                                  value={item.quantity}
+                                  value={item.quantity === 0 ? "" : item.quantity}
                                   onChange={(e) =>
+                                    // Permitir borrar el campo mientras se escribe; se corrige al salir
                                     updateItem(item.key, {
-                                      quantity: Math.min(99, Math.max(1, Math.floor(Number(e.target.value) || 1))),
+                                      quantity: e.target.value === "" ? 0 : Math.min(99, Math.floor(Number(e.target.value) || 0)),
                                     })
                                   }
+                                  onBlur={() => {
+                                    if (item.quantity < 1) updateItem(item.key, { quantity: 1 });
+                                  }}
                                   className="w-20"
                                 />
                               </TableCell>

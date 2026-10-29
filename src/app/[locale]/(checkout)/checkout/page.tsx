@@ -143,6 +143,12 @@ const CheckoutPage = () => {
       return false;
     }
 
+    const whatsappDigits = shippingData.whatsapp.replace(/\D/g, "");
+    if (whatsappDigits.length < 8 || whatsappDigits.length > 15) {
+      setError("Escribe un número de WhatsApp válido (10 dígitos, por ejemplo 33 1234 5678)");
+      return false;
+    }
+
     return true;
   };
 

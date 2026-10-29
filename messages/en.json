@@ -950,7 +950,7 @@
     "grams": "{count} grams",
     "pairs": "{count, plural, one {# pair} other {# pairs}}",
     "certificateTitle": "Certificate of Authenticity",
-    "certificateDescription": "Certified gold: {material}",
+    "certificateDescription": "Certified {material}",
     "secureShippingTitle": "Free Insured Shipping",
     "secureShippingDescription": "Anywhere in Mexico",
     "warrantyTitle": "Manufacturing Warranty",
@@ -1603,5 +1603,11 @@
     "noOrder": "Your payment was received successfully.",
     "backHome": "Back to home",
     "contact": "Questions? Write to us"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page you are looking for does not exist or was moved. Check the address or go back home.",
+    "goHome": "Go home",
+    "viewCatalog": "View catalog"
   }
 }

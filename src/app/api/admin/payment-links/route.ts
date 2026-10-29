@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { normalizeWhatsAppNumber } from '@/lib/whatsapp';
 import { getStripe, isStripeConfigured } from '@/lib/stripe/config';
 import { createAdminClient } from '@/lib/supabase/admin';
 import {
@@ -28,8 +29,10 @@ const parseAmount = (value: unknown): number | null => {
   const amount = typeof value === 'string' ? Number(value) : value;
   if (typeof amount !== 'number' || !Number.isFinite(amount)) return null;
   if (amount <= 0 || amount > MAX_AMOUNT) return null;
-  if (Math.round(amount * 100) !== amount * 100) return null;
-  return amount;
+  // Comparar en centavos con tolerancia: 19.99 * 100 no es exacto en flotante
+  const cents = Math.round(amount * 100);
+  if (Math.abs(cents - amount * 100) > 1e-6) return null;
+  return cents / 100;
 };
 
 async function getContext(request: NextRequest) {
@@ -137,7 +140,7 @@ export async function POST(request: NextRequest) {
     const customer: PaymentLinkCustomerInput = {
       customer_name: text(body.customer_name, 200) || undefined,
       customer_email: customerEmail || undefined,
-      customer_whatsapp: whatsappDigits ? `+${whatsappDigits}` : undefined,
+      customer_whatsapp: whatsappDigits ? normalizeWhatsAppNumber(whatsappDigits) : undefined,
     };
 
     let order;
@@ -146,6 +149,14 @@ export async function POST(request: NextRequest) {
       if (amount === null) {
         return NextResponse.json(
           { error: 'El monto debe ser mayor a cero y tener máximo dos decimales' },
+          { status: 400 }
+        );
+      }
+      // Mínimo que acepta Stripe por moneda
+      const minAmount = currency === 'USD' ? 0.5 : 10;
+      if (amount < minAmount) {
+        return NextResponse.json(
+          { error: `El monto mínimo es ${minAmount} ${currency}` },
           { status: 400 }
         );
       }
