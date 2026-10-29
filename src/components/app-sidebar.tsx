@@ -17,6 +17,7 @@ import {
   Scale,
   Gem,
   Folder,
+  Link2,
 } from "lucide-react";
 import {
   Sidebar,
@@ -67,6 +68,7 @@ export function AppSidebar() {
       icon: FileText,
     },
     { name: t("orders"), href: "/admin/pedidos", icon: ShoppingCart },
+    { name: t("paymentLinks"), href: "/admin/enlaces-pago", icon: Link2 },
     { name: t("users"), href: "/admin/usuarios", icon: Users },
     { name: t("internalCategories"), href: "/admin/categorias-internas", icon: Folder },
   ];

@@ -51,6 +51,7 @@ const CheckoutPage = () => {
     fullName: user?.name || "",
     email: user?.email || "",
     phone: "",
+    whatsapp: "",
     street: "",
     number: "",
     colony: "",
@@ -76,7 +77,7 @@ const CheckoutPage = () => {
   });
 
   const isShippingComplete = Boolean(
-    shippingData.fullName && shippingData.email && shippingData.phone &&
+    shippingData.fullName && shippingData.email && shippingData.phone && shippingData.whatsapp &&
     shippingData.street && shippingData.number && shippingData.colony &&
     shippingData.city && shippingData.state && shippingData.zipCode
   );
@@ -186,6 +187,7 @@ const CheckoutPage = () => {
           customer_name: shippingData.fullName,
           customer_email: shippingData.email,
           customer_phone: shippingData.phone,
+          customer_whatsapp: shippingData.whatsapp,
           shipping_address: `${shippingData.street} ${shippingData.number}, ${shippingData.colony}`,
           shipping_city: shippingData.city,
           shipping_state: shippingData.state,
@@ -374,6 +376,22 @@ const CheckoutPage = () => {
                       placeholder="33 1234 5678"
                       required
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="whatsapp">WhatsApp *</Label>
+                    <Input
+                      disabled={Boolean(pending)}
+                      id="whatsapp"
+                      type="tel"
+                      value={shippingData.whatsapp}
+                      onChange={(e) => handleShippingChange("whatsapp", e.target.value)}
+                      placeholder="33 1234 5678"
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Te contactaremos por WhatsApp para confirmar tu pedido y el envío.
+                    </p>
                   </div>
 
                   <div className="space-y-2">

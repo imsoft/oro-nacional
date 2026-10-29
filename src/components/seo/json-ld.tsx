@@ -57,7 +57,7 @@ export function getOrganizationSchema(locale: SchemaLocale = 'es') {
       email: SITE_CONTACT.email,
       availableLanguage: ['Spanish', 'English'],
     },
-    sameAs: [SITE_CONTACT.facebookUrl, SITE_CONTACT.instagramUrl],
+    sameAs: [SITE_CONTACT.facebookUrl, SITE_CONTACT.instagramUrl, SITE_CONTACT.tiktokUrl],
   };
 }
 
@@ -170,7 +170,7 @@ export function getLocalBusinessSchema(locale: SchemaLocale = 'es') {
       opens: hours.opens,
       closes: hours.closes,
     })),
-    sameAs: [SITE_CONTACT.facebookUrl, SITE_CONTACT.instagramUrl],
+    sameAs: [SITE_CONTACT.facebookUrl, SITE_CONTACT.instagramUrl, SITE_CONTACT.tiktokUrl],
   };
 }
 

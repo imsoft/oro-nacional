@@ -2,12 +2,14 @@
 
 import { useTranslations } from "next-intl";
 import ProductCard from "./product-card";
+import type { ProductPriceRangeDisplay } from "@/components/catalog/product-display";
 
 interface Product {
   id: string;
   name: string;
   description: string;
   price: string;
+  priceDisplay?: ProductPriceRangeDisplay;
   image: string;
   category: string;
   material: string;

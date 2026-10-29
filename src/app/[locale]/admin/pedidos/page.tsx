@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { Search, Eye, Loader2, Package, DollarSign, TrendingUp, ShoppingCart } from "lucide-react";
+import { Search, Eye, Loader2, Package, DollarSign, TrendingUp, ShoppingCart, Trash2, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -20,7 +20,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { getAllOrders, getOrderStats, updateOrderStatus, getOrderById } from "@/lib/supabase/orders";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { getAllOrders, getOrderStats, updateOrderStatus, getOrderById, deleteOrderPermanently } from "@/lib/supabase/orders";
+import { getWhatsAppHref } from "@/lib/whatsapp";
 import type { OrderListItem, OrderStatus, OrderStats, Order } from "@/types/order";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -34,6 +45,10 @@ export default function OrdersAdmin() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isLoadingOrder, setIsLoadingOrder] = useState(false);
+  // Pedido pendiente de borrar (diálogo de confirmación)
+  const [orderToDelete, setOrderToDelete] = useState<OrderListItem | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -72,6 +87,26 @@ export default function OrdersAdmin() {
       });
       // Recargar para que el selector vuelva a mostrar el estado real
       loadData();
+    }
+  };
+
+  // Un pedido pagado exige escribir su número para confirmar el borrado
+  const deleteNeedsTyping = orderToDelete?.payment_status === "Pagado";
+  const canConfirmDelete =
+    !!orderToDelete && (!deleteNeedsTyping || deleteConfirmText.trim() === orderToDelete.order_number);
+
+  const handleDeleteOrder = async () => {
+    if (!orderToDelete || !canConfirmDelete) return;
+    setIsDeleting(true);
+    const result = await deleteOrderPermanently(orderToDelete.id);
+    setIsDeleting(false);
+    if (result.success) {
+      toast.success(t("deleted"), { description: orderToDelete.order_number });
+      setOrderToDelete(null);
+      setDeleteConfirmText("");
+      loadData();
+    } else {
+      toast.error(t("deleteError"), { description: result.error });
     }
   };
 
@@ -318,6 +353,23 @@ export default function OrdersAdmin() {
                                 {selectedOrder.customer_phone && (
                                   <p className="text-sm text-muted-foreground">{selectedOrder.customer_phone}</p>
                                 )}
+                                {selectedOrder.customer_whatsapp && (
+                                  <p className="text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
+                                    <span>{t('whatsapp')}: {selectedOrder.customer_whatsapp}</span>
+                                    <a
+                                      href={getWhatsAppHref(
+                                        selectedOrder.customer_whatsapp,
+                                        `Hola ${selectedOrder.customer_name}, te escribimos de Oro Nacional sobre tu pedido ${selectedOrder.order_number}.`
+                                      ) ?? undefined}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-1 rounded-full bg-[#25D366] px-3 py-1 text-xs font-medium text-white hover:bg-[#1ebe5d] transition-colors"
+                                    >
+                                      <MessageCircle className="h-3.5 w-3.5" />
+                                      {t('openWhatsapp')}
+                                    </a>
+                                  </p>
+                                )}
                               </div>
 
                               {/* Shipping Address */}
@@ -438,6 +490,18 @@ export default function OrdersAdmin() {
                           )}
                         </DialogContent>
                       </Dialog>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        aria-label={t('deleteOrder')}
+                        onClick={() => {
+                          setDeleteConfirmText("");
+                          setOrderToDelete(order);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </td>
                   </tr>
                 ))
@@ -446,6 +510,50 @@ export default function OrdersAdmin() {
           </table>
         </div>
       </div>
+
+      {/* Confirmación de borrado definitivo */}
+      <AlertDialog
+        open={!!orderToDelete}
+        onOpenChange={(open) => {
+          if (!open && !isDeleting) {
+            setOrderToDelete(null);
+            setDeleteConfirmText("");
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('deleteTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('deleteDescription', { number: orderToDelete?.order_number ?? "" })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {deleteNeedsTyping && (
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-red-600">{t('deletePaidWarning')}</p>
+              <Input
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder={t('deleteConfirmPlaceholder', { number: orderToDelete?.order_number ?? "" })}
+                autoComplete="off"
+              />
+            </div>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>{t('deleteCancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={!canConfirmDelete || isDeleting}
+              onClick={(e) => {
+                e.preventDefault();
+                handleDeleteOrder();
+              }}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {isDeleting ? t('deleting') : t('deleteConfirm')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

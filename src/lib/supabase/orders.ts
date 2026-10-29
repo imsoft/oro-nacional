@@ -225,6 +225,31 @@ export async function softDeleteOrder(
   }
 }
 
+// Eliminar un pedido definitivamente (admin). Borra también sus items por
+// la relación ON DELETE CASCADE. No se puede deshacer.
+export async function deleteOrderPermanently(
+  orderId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // RLS no da error si filtra la fila: confirmar que sí se borró
+    const { data, error } = await supabase
+      .from("orders")
+      .delete()
+      .eq("id", orderId)
+      .select("id");
+
+    if (error || !data || data.length === 0) {
+      console.error("Error deleting order:", error);
+      return { success: false, error: "Error al eliminar el pedido" };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error in deleteOrderPermanently:", error);
+    return { success: false, error: "Error inesperado al eliminar" };
+  }
+}
+
 // Obtener estadísticas de pedidos (admin)
 export async function getOrderStats(): Promise<OrderStats | null> {
   try {

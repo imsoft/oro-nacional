@@ -122,6 +122,10 @@ export const EmailLayout = ({
                 Instagram
               </Link>
               {'  ·  '}
+              <Link href={SITE_CONTACT.tiktokUrl} style={footerLink}>
+                TikTok
+              </Link>
+              {'  ·  '}
               <Link href={siteUrl} style={footerLink}>
                 {SITE_CONTACT.website}
               </Link>

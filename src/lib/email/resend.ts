@@ -320,6 +320,7 @@ export async function sendOrderNotificationEmail(
         customerName: order.customer_name,
         customerEmail: order.customer_email,
         customerPhone: order.customer_phone,
+        customerWhatsapp: order.customer_whatsapp ?? null,
         items: order.items.map((item) => ({
           product_name: item.product_name,
           quantity: item.quantity,

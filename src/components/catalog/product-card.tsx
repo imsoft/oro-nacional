@@ -7,13 +7,19 @@ import { toast } from "sonner";
 import { Heart, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useFavoritesStore } from "@/stores/favorites-store";
-import { PRODUCT_PLACEHOLDER_IMAGE } from "@/components/catalog/product-display";
+import {
+  PRODUCT_PLACEHOLDER_IMAGE,
+  type ProductPriceRangeDisplay,
+} from "@/components/catalog/product-display";
 
 interface ProductCardProps {
   id: string;
   name: string;
   description: string;
+  /** Etiqueta de precio completa (p. ej. "desde $1,000"); se usa en favoritos y al compartir */
   price: string;
+  /** Rango de precios desglosado para mostrarlo en la tarjeta; si falta se muestra `price` tal cual */
+  priceDisplay?: ProductPriceRangeDisplay;
   image: string;
   category: string;
   material: string;
@@ -25,6 +31,7 @@ const ProductCard = ({
   name,
   description,
   price,
+  priceDisplay,
   image,
   category,
   material,
@@ -130,6 +137,15 @@ const ProductCard = ({
         <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
           {description}
         </p>
+        {/* Rango de precios según las tallas, en la moneda activa */}
+        <div className="mt-4 flex flex-wrap items-baseline gap-x-1.5">
+          {priceDisplay?.prefix && (
+            <span className="text-xs text-muted-foreground">{priceDisplay.prefix}</span>
+          )}
+          <span className="text-lg font-semibold text-[#D4AF37]">
+            {priceDisplay ? priceDisplay.amount : price}
+          </span>
+        </div>
         <div className="mt-auto pt-4 flex items-center justify-end">
           <Button
             asChild

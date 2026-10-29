@@ -35,6 +35,8 @@ export interface Order {
   customer_name: string;
   customer_email: string;
   customer_phone: string;
+  // WhatsApp capturado en el checkout
+  customer_whatsapp?: string | null;
 
   // Dirección de envío
   shipping_address: string;
@@ -66,6 +68,13 @@ export interface Order {
 
   // Stripe
   stripe_payment_intent_id: string | null;
+
+  // Enlaces de pago (ver src/lib/payment-links/server.ts)
+  source?: 'web' | 'payment_link';
+  stripe_checkout_session_id?: string | null;
+  payment_link_url?: string | null;
+  payment_link_description?: string | null;
+  payment_link_expires_at?: string | null;
 
   // Timestamps
   created_at: string;

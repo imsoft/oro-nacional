@@ -47,6 +47,7 @@ export async function POST(request: NextRequest) {
       customer_name: text(body.customer_name, 200),
       customer_email: text(body.customer_email, 200).toLowerCase(),
       customer_phone: text(body.customer_phone, 40),
+      customer_whatsapp: text(body.customer_whatsapp, 40),
       shipping_address: text(body.shipping_address, 400),
       shipping_city: text(body.shipping_city, 120),
       shipping_state: text(body.shipping_state, 120),
@@ -59,6 +60,7 @@ export async function POST(request: NextRequest) {
       !customer.customer_name ||
       !EMAIL_REGEX.test(customer.customer_email) ||
       !customer.customer_phone ||
+      !customer.customer_whatsapp ||
       !customer.shipping_address ||
       !customer.shipping_city ||
       !customer.shipping_state ||

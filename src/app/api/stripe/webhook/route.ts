@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getStripe, isStripeConfigured } from '@/lib/stripe/config';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { finalizePaidOrder } from '@/lib/orders/server';
+import {
+  cancelExpiredLinkOrder,
+  syncCustomerFromPaymentIntent,
+  syncCustomerFromSession,
+} from '@/lib/payment-links/server';
 import Stripe from 'stripe';
 
 export async function POST(request: NextRequest) {
@@ -57,6 +62,9 @@ export async function POST(request: NextRequest) {
     switch (event.type) {
       case 'payment_intent.succeeded': {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        // Pedidos de enlace de pago: completar los datos del cliente que
+        // Stripe recogió en el Checkout antes de mandar los correos.
+        await syncCustomerFromPaymentIntent(stripe, admin, paymentIntent);
         const result = await finalizePaidOrder(admin, paymentIntent);
 
         if (!result.ok) {
@@ -123,6 +131,83 @@ export async function POST(request: NextRequest) {
               { status: 500 }
             );
           }
+        }
+        break;
+      }
+
+      // Enlaces de pago (Stripe Checkout). Stripe también manda
+      // payment_intent.succeeded, pero finalizePaidOrder es idempotente.
+      case 'checkout.session.completed':
+      case 'checkout.session.async_payment_succeeded': {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const orderId = session.metadata?.orderId;
+        if (!orderId) break;
+
+        // Datos reales del cliente antes de que se envíen los correos
+        await syncCustomerFromSession(admin, orderId, session);
+
+        if (session.payment_status !== 'paid') {
+          // Pago diferido (p. ej. OXXO): llegará async_payment_succeeded
+          break;
+        }
+
+        const paymentIntentId =
+          typeof session.payment_intent === 'string'
+            ? session.payment_intent
+            : session.payment_intent?.id;
+        if (!paymentIntentId) break;
+
+        const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+        // El PaymentIntent lleva el orderId en metadata (payment_intent_data);
+        // por si acaso, garantizarlo a partir de la sesión.
+        if (!paymentIntent.metadata?.orderId) {
+          paymentIntent.metadata = { ...paymentIntent.metadata, orderId, locale: 'es' };
+        }
+
+        const result = await finalizePaidOrder(admin, paymentIntent);
+        if (!result.ok) {
+          console.error(
+            `[Stripe webhook] Could not finalize checkout session ${session.id}: ${result.reason}`
+          );
+          if (result.reason === 'db_error') {
+            return NextResponse.json(
+              { error: 'Could not update order' },
+              { status: 500 }
+            );
+          }
+        }
+        break;
+      }
+
+      case 'checkout.session.async_payment_failed': {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const orderId = session.metadata?.orderId;
+        if (orderId) {
+          const { error } = await admin
+            .from('orders')
+            .update({ payment_status: 'Fallido' })
+            .eq('id', orderId)
+            .eq('payment_status', 'Pendiente');
+          if (error) {
+            console.error('Error updating order:', error);
+            return NextResponse.json(
+              { error: 'Could not update order' },
+              { status: 500 }
+            );
+          }
+        }
+        break;
+      }
+
+      case 'checkout.session.expired': {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const { error } = await cancelExpiredLinkOrder(admin, session);
+        if (error) {
+          console.error('Error cancelling expired payment link order:', error);
+          return NextResponse.json(
+            { error: 'Could not update order' },
+            { status: 500 }
+          );
         }
         break;
       }

@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Mail, Phone, MapPin, Clock } from "lucide-react";
-import { FacebookIcon, InstagramIcon } from "@/components/icons/social-brand-icons";
+import { FacebookIcon, InstagramIcon, TikTokIcon } from "@/components/icons/social-brand-icons";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { getStoreSettings, type StoreSettings } from "@/lib/supabase/settings";
@@ -136,6 +136,21 @@ const ContactInfo = () => {
                 {t('instagram')}
               </p>
               <p className="text-xs text-muted-foreground">{SITE_CONTACT.instagramHandle}</p>
+            </div>
+          </a>
+
+          <a
+            href={SITE_CONTACT.tiktokUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors group"
+          >
+            <TikTokIcon className="h-5 w-5 text-foreground" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-foreground group-hover:text-[#D4AF37] transition-colors">
+                {t('tiktok')}
+              </p>
+              <p className="text-xs text-muted-foreground">{SITE_CONTACT.tiktokHandle}</p>
             </div>
           </a>
         </div>

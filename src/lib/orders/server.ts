@@ -24,6 +24,7 @@ export interface CheckoutCustomerInput {
   customer_name: string;
   customer_email: string;
   customer_phone: string;
+  customer_whatsapp?: string | null;
   shipping_address: string;
   shipping_city: string;
   shipping_state: string;
@@ -263,6 +264,7 @@ export async function createCheckoutOrder(
         customer_name: customer.customer_name,
         customer_email: customer.customer_email,
         customer_phone: customer.customer_phone,
+        customer_whatsapp: customer.customer_whatsapp || null,
         shipping_address: customer.shipping_address,
         shipping_city: customer.shipping_city,
         shipping_state: customer.shipping_state,

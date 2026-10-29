@@ -82,7 +82,6 @@
     "service": {
       "title": "Service",
       "shipping": "Shipping",
-      
       "care": "Care",
       "faq": "FAQ"
     },
@@ -110,7 +109,8 @@
       "follow": "Follow us on social media",
       "facebook": "Facebook",
       "instagram": "Instagram",
-      "twitter": "Twitter"
+      "twitter": "Twitter",
+      "tiktok": "TikTok"
     },
     "location": "Guadalajara, Jalisco, Mexico",
     "phoneNumber": "33 2636 3714",
@@ -315,7 +315,8 @@
     "faq3Q": "Do you ship throughout Mexico?",
     "faq3A": "Yes, we ship throughout Mexico with secure and trackable shipping. Shipping is free on purchases over $5,000 MXN. All our shipments are insured.",
     "faq4Q": "How long does it take to respond to my messages?",
-    "faq4A": "We respond to all messages within 24 hours on business days. By phone, response time is generally immediate during our business hours."
+    "faq4A": "We respond to all messages within 24 hours on business days. By phone, response time is generally immediate during our business hours.",
+    "tiktok": "TikTok"
   },
   "faq": {
     "title": "Frequently Asked Questions",
@@ -330,7 +331,6 @@
       "purchase": "Purchase and Payment",
       "shipping": "Shipping and Delivery",
       "returns": "Returns and Exchanges",
-      
       "about": "About Oro Nacional"
     },
     "questions": {
@@ -929,6 +929,7 @@
     "size": "Size",
     "taxIncluded": "VAT included",
     "priceOnRequest": "Price on request",
+    "priceFrom": "from",
     "priceOnRequestHint": "Contact us to get the price of this piece.",
     "contactUs": "Contact us",
     "uncategorized": "Uncategorized",
@@ -996,10 +997,12 @@
     "relatedSubtitle": "You may also like"
   },
   "featuredCollection": {
-    "title": "Featured Gold Jewelry Collection",
-    "subtitle": "Unique fine jewelry pieces crafted with Jalisco's artisan mastery",
+    "title": "Our Gold Jewelry Collection",
+    "subtitle": "Explore all of our fine jewelry pieces crafted with Jalisco's artisan mastery",
     "viewAll": "View the entire jewelry collection",
-    "empty": "No featured products are available at the moment.",
+    "loadMore": "Load more pieces",
+    "showing": "Showing {shown} of {total} pieces",
+    "empty": "No products are available at the moment.",
     "defaultCategory": "Jewelry",
     "defaultMaterial": "Gold"
   },
@@ -1024,7 +1027,8 @@
       "orders": "Orders",
       "users": "Users",
       "internalCategories": "Internal Categories",
-      "settings": "Settings"
+      "settings": "Settings",
+      "paymentLinks": "Payment links"
     },
     "dashboard": {
       "title": "Dashboard",
@@ -1040,7 +1044,6 @@
       "orderId": "Order ID",
       "customer": "Customer",
       "product": "Product",
-      "products": "Products",
       "amount": "Amount",
       "status": "Status",
       "delivered": "Delivered",
@@ -1057,9 +1060,7 @@
       "paymentMethod": "Payment Method",
       "date": "Date",
       "moreItems": "more items",
-      "noItems": "No items",
-      "paid": "Paid",
-      "failed": "Failed"
+      "noItems": "No items"
     },
     "hero": {
       "title": "Hero Images",
@@ -1185,7 +1186,6 @@
       "specialCodePlaceholder": "Ex: ABC123",
       "addSubcategoryDescription": "Enter the name and special code for the new subcategory",
       "optional": "optional",
-      "cancel": "Cancel",
       "add": "Add",
       "createSubcategoryError": "Error creating subcategory",
       "updateSubcategoryError": "Error updating subcategory",
@@ -1215,7 +1215,19 @@
       "averageTicket": "Average Ticket",
       "pendingOrders": "Pending",
       "orderDetails": "Order Details",
-      "paymentStatus": "Payment Status"
+      "paymentStatus": "Payment Status",
+      "whatsapp": "WhatsApp",
+      "openWhatsapp": "Open WhatsApp chat",
+      "deleteOrder": "Delete order",
+      "deleteTitle": "Delete this order permanently?",
+      "deleteDescription": "Order {number} and its items will be removed from the database. This cannot be undone.",
+      "deletePaidWarning": "This order is marked as PAID. The Stripe charge is not removed; deleting it leaves a payment without an order. Type the order number to confirm.",
+      "deleteConfirmPlaceholder": "Type {number}",
+      "deleteConfirm": "Yes, delete",
+      "deleteCancel": "Cancel",
+      "deleted": "Order deleted",
+      "deleteError": "The order could not be deleted",
+      "deleting": "Deleting..."
     },
     "blog": {
       "title": "Blog",
@@ -1260,7 +1272,6 @@
       "noPostsFound": "No posts found matching your search",
       "noPosts": "No posts registered. Create your first post.",
       "totalPosts": "Total Posts",
-      "published": "Published",
       "drafts": "Drafts",
       "totalViews": "Total Views",
       "noCategory": "No category",
@@ -1380,7 +1391,7 @@
       "noName": "No name",
       "noMaterial": "No material",
       "noDescription": "No description",
-      "description": "Description:",
+      "description": "Description",
       "price": "Price:",
       "specifications": "Specifications:",
       "availableSizes": "Available Sizes:",
@@ -1392,7 +1403,6 @@
       "preview": "Preview",
       "basicInfo": "Basic Information",
       "productName": "Product Name",
-      "description": "Description",
       "material": "Material",
       "productDetails": "Product Details",
       "internalCategories": "Internal Category",
@@ -1522,6 +1532,76 @@
       "delete": "Delete",
       "deleteConfirm": "Are you sure you want to delete this message?",
       "close": "Close"
+    },
+    "paymentLinks": {
+      "title": "Payment links",
+      "subtitle": "Generate a Stripe payment link to charge via WhatsApp",
+      "tabProducts": "Products",
+      "tabAmount": "Custom amount",
+      "searchProducts": "Search product by name...",
+      "noProducts": "No products found",
+      "loadingProducts": "Loading products...",
+      "add": "Add",
+      "selectedProducts": "Selected products",
+      "noSelected": "You haven't added any products yet",
+      "product": "Product",
+      "size": "Size",
+      "noSize": "No size",
+      "quantity": "Quantity",
+      "unitPrice": "Unit price",
+      "remove": "Remove",
+      "amount": "Amount to charge",
+      "description": "Description",
+      "descriptionPlaceholder": "E.g. Engagement ring deposit",
+      "descriptionOptionalPlaceholder": "E.g. Mariana's special order (optional)",
+      "currency": "Currency",
+      "customerData": "Customer details (optional)",
+      "customerName": "Name",
+      "customerEmail": "Email",
+      "customerWhatsapp": "WhatsApp",
+      "whatsappHint": "With country code, e.g. 5213312345678",
+      "estimatedTotal": "Estimated total",
+      "previewNote": "Preview: the final total is calculated on the server with current prices.",
+      "generate": "Generate payment link",
+      "generating": "Generating...",
+      "linkReady": "Link generated",
+      "order": "Order",
+      "copy": "Copy",
+      "copied": "Link copied",
+      "sendWhatsapp": "Send via WhatsApp",
+      "expiresAt": "Expires on {date}",
+      "whatsappMessage": "Hola {name}, aquí está tu enlace de pago de Oro Nacional por {total}: {url}. El enlace vence el {date}.",
+      "whatsappMessageNoName": "Hola, aquí está tu enlace de pago de Oro Nacional por {total}: {url}. El enlace vence el {date}.",
+      "history": "Generated links",
+      "colNumber": "Order",
+      "colDescription": "Description",
+      "colCustomer": "Customer",
+      "colTotal": "Total",
+      "colStatus": "Status",
+      "colExpires": "Expires",
+      "colActions": "Actions",
+      "statusPending": "Pending",
+      "statusPaid": "Paid",
+      "statusExpired": "Expired",
+      "statusCancelled": "Cancelled",
+      "statusFailed": "Failed",
+      "viewOrders": "View in orders",
+      "noLinks": "You haven't generated any payment links yet",
+      "loadError": "Could not load the links",
+      "createError": "Could not generate the link",
+      "sessionError": "Your session expired. Please sign in again.",
+      "validationItems": "Add at least one product",
+      "validationAmount": "Enter an amount greater than zero",
+      "validationDescription": "Enter a description for the charge",
+      "resultHint": "The link will appear here once you generate it."
     }
+  },
+  "paymentLink": {
+    "title": "Thank you for your payment!",
+    "order": "Order {number}",
+    "notice": "You will receive a confirmation email with the details of your purchase. We will contact you to coordinate delivery.",
+    "noOrder": "Your payment was received successfully.",
+    "backHome": "Back to home",
+    "contact": "Questions? Write to us"
   }
 }

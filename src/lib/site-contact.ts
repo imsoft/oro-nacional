@@ -21,6 +21,8 @@ export const SITE_CONTACT = {
   facebookUrl: "https://www.facebook.com/profile.php?id=61579417826319",
   instagramUrl: "https://www.instagram.com/nacionaloro/",
   instagramHandle: "@nacionaloro",
+  tiktokUrl: "https://www.tiktok.com/@oro.nacional0",
+  tiktokHandle: "@oro.nacional0",
 } as const;
 
 /**

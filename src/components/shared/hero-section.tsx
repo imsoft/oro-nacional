@@ -23,10 +23,10 @@ const HeroSection = () => {
 
   return (
     <>
-      <div className="bg-background min-h-screen flex flex-col">
+      <div className="bg-background flex flex-col">
         <Navbar />
 
-        <div className="relative isolate overflow-hidden flex-1 flex items-center">
+        <div className="relative isolate overflow-hidden flex items-center min-h-[48vh] lg:min-h-[54vh] pt-24 lg:pt-28">
           <HeroCarousel images={heroImages} imageAlt={t('imageAlt')} />
           <div
             aria-hidden="true"
@@ -41,8 +41,8 @@ const HeroSection = () => {
             />
           </div>
           <div className="mx-auto max-w-7xl px-6 lg:px-8 w-full">
-            <div className="mx-auto max-w-3xl py-12 sm:py-16 lg:py-20">
-              <div className="hidden sm:mb-8 sm:flex sm:justify-center animate-[fade-in-down_1s_ease-out]">
+            <div className="mx-auto max-w-3xl py-6 sm:py-8">
+              <div className="hidden sm:mb-4 sm:flex sm:justify-center animate-[fade-in-down_1s_ease-out]">
                 <div className="relative rounded-full px-3 py-1 text-sm/6 text-muted-foreground ring-1 ring-border hover:ring-border/80 transition-all duration-300 hover:scale-105">
                   {t('badge')}{" "}
                   <Link
@@ -55,13 +55,13 @@ const HeroSection = () => {
                 </div>
               </div>
               <div className="text-center">
-                <h1 className="text-5xl font-semibold tracking-tight text-balance text-foreground sm:text-7xl animate-[fade-in-up_1s_ease-out_0.2s_both]">
+                <h1 className="text-4xl font-semibold tracking-tight text-balance text-foreground sm:text-5xl animate-[fade-in-up_1s_ease-out_0.2s_both]">
                   {t('title')}
                 </h1>
-                <p className="mt-8 text-lg font-medium text-pretty text-muted-foreground sm:text-xl/8 animate-[fade-in-up_1s_ease-out_0.4s_both]">
+                <p className="mt-5 text-base font-medium text-pretty text-muted-foreground sm:text-lg/7 animate-[fade-in-up_1s_ease-out_0.4s_both]">
                   {t('description')}
                 </p>
-                <div className="mt-10 flex items-center justify-center gap-x-6 animate-[fade-in-up_1s_ease-out_0.6s_both]">
+                <div className="mt-7 flex items-center justify-center gap-x-6 animate-[fade-in-up_1s_ease-out_0.6s_both]">
                   <Button asChild size="lg" className="bg-[#D4AF37] hover:bg-[#B8941E] text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl">
                     <Link href="/catalog">{t('ctaPrimary')}</Link>
                   </Button>

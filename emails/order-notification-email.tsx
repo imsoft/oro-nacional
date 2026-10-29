@@ -22,6 +22,7 @@ interface OrderNotificationEmailProps {
   customerName: string;
   customerEmail: string;
   customerPhone: string;
+  customerWhatsapp?: string | null;
   items: OrderItem[];
   subtotal: number;
   shippingCost: number;
@@ -97,6 +98,7 @@ export const OrderNotificationEmail = ({
   customerName,
   customerEmail,
   customerPhone,
+  customerWhatsapp,
   items,
   subtotal,
   shippingCost,
@@ -141,6 +143,14 @@ export const OrderNotificationEmail = ({
             <Text style={text}>
               <strong>{t.phone}:</strong> {customerPhone}
             </Text>
+            {customerWhatsapp && (
+              <Text style={text}>
+                <strong>WhatsApp:</strong>{' '}
+                <a href={`https://wa.me/${customerWhatsapp.replace(/\D/g, '').replace(/^(\d{10})$/, '52$1')}`} style={{ color: '#B8941E' }}>
+                  {customerWhatsapp}
+                </a>
+              </Text>
+            )}
           </Section>
 
           <Hr style={hr} />

@@ -11,7 +11,7 @@ import {
   getListingPrice,
   getPriceSliderMax,
   getPrimaryImageUrl,
-  useProductPriceLabel,
+  useProductPriceRangeLabel,
 } from "@/components/catalog/product-display";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Loader2 } from "lucide-react";
@@ -29,7 +29,7 @@ const CategoryPage = ({ categoryKey, slugs }: CategoryPageProps) => {
   const t = useTranslations(`catalog.${categoryKey}`);
   const tCommon = useTranslations("catalog");
   const locale = useLocale() as "es" | "en";
-  const getPriceLabel = useProductPriceLabel();
+  const getPriceRange = useProductPriceRangeLabel();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
@@ -91,16 +91,20 @@ const CategoryPage = ({ categoryKey, slugs }: CategoryPageProps) => {
     if (sortBy === "price-desc") filtered.sort((a, b) => b.priceValue - a.priceValue);
     if (sortBy === "name") filtered.sort((a, b) => a.product.name.localeCompare(b.product.name));
 
-    return filtered.map(({ product }) => ({
-      id: product.id,
-      name: product.name,
-      description: product.description ?? "",
-      price: getPriceLabel(product),
-      image: getPrimaryImageUrl(product.images),
-      category: product.category?.name || "",
-      material: product.material ?? "",
-      slug: product.slug,
-    }));
+    return filtered.map(({ product }) => {
+      const priceDisplay = getPriceRange(product);
+      return {
+        id: product.id,
+        name: product.name,
+        description: product.description ?? "",
+        price: priceDisplay.label,
+        priceDisplay,
+        image: getPrimaryImageUrl(product.images),
+        category: product.category?.name || "",
+        material: product.material ?? "",
+        slug: product.slug,
+      };
+    });
   })();
 
   const filters = (

@@ -4,7 +4,7 @@ import { Link } from "@/i18n/routing";
 import Image from "next/image";
 import { useTranslations, useLocale } from "next-intl";
 import { Mail, Phone, MapPin } from "lucide-react";
-import { FacebookIcon, InstagramIcon } from "@/components/icons/social-brand-icons";
+import { FacebookIcon, InstagramIcon, TikTokIcon } from "@/components/icons/social-brand-icons";
 import { useState, useEffect } from "react";
 import { getStoreSettings, type StoreSettings } from "@/lib/supabase/settings";
 import { getCategories } from "@/lib/supabase/products-multilingual";
@@ -127,6 +127,16 @@ const Footer = () => {
               >
                 <span className="sr-only">{t("social.instagram")}</span>
                 <InstagramIcon className="h-6 w-6" />
+              </Link>
+              <Link
+                href={SITE_CONTACT.tiktokUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground transition-colors hover:text-foreground"
+                aria-label={t("social.tiktok")}
+              >
+                <span className="sr-only">{t("social.tiktok")}</span>
+                <TikTokIcon className="h-6 w-6" />
               </Link>
             </div>
             <div className="space-y-2">

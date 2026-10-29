@@ -12,7 +12,8 @@ import {
   getListingPrice,
   getPriceSliderMax,
   getPrimaryImageUrl,
-  useProductPriceLabel,
+  useProductPriceRangeLabel,
+  type ProductPriceRangeDisplay,
 } from "@/components/catalog/product-display";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Loader2 } from "lucide-react";
@@ -26,7 +27,7 @@ const CatalogPage = () => {
   const tProduct = useTranslations('product');
   const searchParams = useSearchParams();
   const locale = useLocale() as 'es' | 'en';
-  const getPriceLabel = useProductPriceLabel();
+  const getPriceRange = useProductPriceRangeLabel();
   // Recalcular los precios mostrados cuando cambia la moneda o la tasa de cambio
   const { currency, exchangeRate } = useCurrency();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -128,12 +129,14 @@ const CatalogPage = () => {
   // Filtrar, ordenar y agrupar productos por categoría
   const productsByCategory = useMemo(() => {
     let filtered = products.map((product) => {
+      const priceDisplay = getPriceRange(product);
       return {
         id: product.id,
         name: product.name,
         description: product.description ?? "",
         price: getListingPrice(product).mxn,
-        priceFormatted: getPriceLabel(product),
+        priceFormatted: priceDisplay.label,
+        priceDisplay,
         image: getPrimaryImageUrl(product.images),
         category: product.category?.name || tProduct("uncategorized"),
         categorySlug: product.category?.slug || "",
@@ -188,6 +191,7 @@ const CatalogPage = () => {
         name: product.name,
         description: product.description,
         price: product.priceFormatted,
+        priceDisplay: product.priceDisplay,
         priceValue: product.price, // Guardar el valor numérico para ordenar
         image: product.image,
         category: product.category,
@@ -201,6 +205,7 @@ const CatalogPage = () => {
       name: string;
       description: string;
       price: string;
+      priceDisplay: ProductPriceRangeDisplay;
       priceValue: number;
       image: string;
       category: string;
