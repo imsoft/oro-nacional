@@ -1606,10 +1606,11 @@
       "installmentsBadge": "Installments enabled",
       "paidInMonths": "Paid in {months} installments",
       "breakdownInstallmentsTitle": "If the customer pays in installments",
-      "breakdownInstallmentsHint": "Stripe charges an extra fee depending on the plan the customer chooses; the customer pays no interest.",
+      "breakdownInstallmentsHint": "Plans enabled in Stripe. Stripe charges an extra fee depending on the plan the customer chooses; the customer pays no interest.",
       "breakdownPlan": "Plan",
       "breakdownPlanFee": "Extra fee (+VAT)",
-      "breakdownMonths": "{months} months"
+      "breakdownMonths": "{months} months",
+      "breakdownPlanMin": "Only for purchases from {min}"
     }
   },
   "paymentLink": {

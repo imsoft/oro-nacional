@@ -86,16 +86,17 @@ const NO_SIZE = "__none__";
 
 const STRIPE_FEE_VAT = 0.16; // IVA sobre la comisión de Stripe
 
-// Comisión adicional que Stripe México cobra a la tienda por cada plan de
-// meses sin intereses (sobre el total, más IVA). Verificar contra la tarifa
-// vigente de Stripe si cambia.
+// Planes de meses sin intereses de Stripe México: comisión adicional para la
+// tienda (sobre el total, más IVA) y monto mínimo de compra que pide Stripe.
+// `enabled` debe coincidir con los planes activados en el Dashboard de Stripe
+// (Configuración → Métodos de pago → Meses sin intereses).
 const STRIPE_INSTALLMENT_FEES = [
-  { months: 3, rate: 0.05 },
-  { months: 6, rate: 0.075 },
-  { months: 9, rate: 0.1 },
-  { months: 12, rate: 0.125 },
-  { months: 18, rate: 0.15 },
-  { months: 24, rate: 0.2 },
+  { months: 3, rate: 0.05, minMXN: 300, enabled: true },
+  { months: 6, rate: 0.075, minMXN: 600, enabled: true },
+  { months: 9, rate: 0.1, minMXN: 900, enabled: false },
+  { months: 12, rate: 0.125, minMXN: 1200, enabled: true },
+  { months: 18, rate: 0.175, minMXN: 1800, enabled: false },
+  { months: 24, rate: 0.225, minMXN: 2400, enabled: false },
 ];
 
 /**
@@ -208,13 +209,20 @@ function StripeBreakdown({
               </tr>
             </thead>
             <tbody>
-              {STRIPE_INSTALLMENT_FEES.map((plan) => {
+              {STRIPE_INSTALLMENT_FEES.filter((plan) => plan.enabled).map((plan) => {
                 const extra = total * plan.rate;
                 const extraVat = extra * STRIPE_FEE_VAT;
                 const net = Math.max(0, b.net - extra - extraVat);
                 return (
                   <tr key={plan.months} className="border-t border-border/60">
-                    <td className="py-1">{t("breakdownMonths", { months: plan.months })}</td>
+                    <td className="py-1">
+                      {t("breakdownMonths", { months: plan.months })}
+                      {total < plan.minMXN && (
+                        <span className="block text-[11px] text-amber-700">
+                          {t("breakdownPlanMin", { min: formatMoney(plan.minMXN, "MXN") })}
+                        </span>
+                      )}
+                    </td>
                     <td className="py-1 text-right tabular-nums">
                       +{(plan.rate * 100).toFixed(1)}% · − {formatMoney(extra + extraVat, currency)}
                     </td>

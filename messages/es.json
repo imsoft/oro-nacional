@@ -1598,10 +1598,11 @@
       "installmentsBadge": "MSI habilitados",
       "paidInMonths": "Pagado a {months} meses",
       "breakdownInstallmentsTitle": "Si el cliente paga a meses",
-      "breakdownInstallmentsHint": "Stripe cobra una comisión extra según el plan que elija el cliente; el cliente no paga intereses.",
+      "breakdownInstallmentsHint": "Planes activos en Stripe. Stripe cobra una comisión extra según el plan que elija el cliente; el cliente no paga intereses.",
       "breakdownPlan": "Plan",
       "breakdownPlanFee": "Comisión extra (+IVA)",
-      "breakdownMonths": "{months} meses"
+      "breakdownMonths": "{months} meses",
+      "breakdownPlanMin": "Solo en compras desde {min}"
     }
   },
   "paymentLink": {
