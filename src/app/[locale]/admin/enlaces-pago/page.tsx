@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -60,6 +61,7 @@ interface GeneratedLink {
   expiresAt: string | null;
   total: number;
   currency: Currency;
+  installmentsEnabled: boolean;
 }
 
 interface LinkRow {
@@ -74,6 +76,8 @@ interface LinkRow {
   status: "Pendiente" | "Procesando" | "Enviado" | "Entregado" | "Cancelado";
   url: string | null;
   expiresAt: string | null;
+  installmentsEnabled: boolean;
+  installmentsMonths: number | null;
   createdAt: string;
 }
 
@@ -81,6 +85,18 @@ const DEFAULT_EXCHANGE_RATE = 18;
 const NO_SIZE = "__none__";
 
 const STRIPE_FEE_VAT = 0.16; // IVA sobre la comisión de Stripe
+
+// Comisión adicional que Stripe México cobra a la tienda por cada plan de
+// meses sin intereses (sobre el total, más IVA). Verificar contra la tarifa
+// vigente de Stripe si cambia.
+const STRIPE_INSTALLMENT_FEES = [
+  { months: 3, rate: 0.05 },
+  { months: 6, rate: 0.075 },
+  { months: 9, rate: 0.1 },
+  { months: 12, rate: 0.125 },
+  { months: 18, rate: 0.15 },
+  { months: 24, rate: 0.2 },
+];
 
 /**
  * Desglose de lo que cobra Stripe y lo que recibe la tienda.
@@ -145,12 +161,14 @@ function StripeBreakdown({
   currency,
   fees,
   exchangeRate,
+  installments = false,
   t,
 }: {
   total: number;
   currency: Currency;
   fees: { percentage: number; fixedFeeMXN: number };
   exchangeRate: number;
+  installments?: boolean;
   t: ReturnType<typeof useTranslations>;
 }) {
   if (total <= 0) return null;
@@ -177,6 +195,37 @@ function StripeBreakdown({
         <span className="font-semibold text-foreground">{t("breakdownNet")}</span>
         <span className="text-lg font-bold text-green-700 tabular-nums">{formatMoney(b.net, currency)}</span>
       </div>
+      {installments && (
+        <div className="border-t border-border pt-3 mt-3 space-y-1">
+          <p className="font-medium text-foreground">{t("breakdownInstallmentsTitle")}</p>
+          <p className="text-xs text-muted-foreground mb-2">{t("breakdownInstallmentsHint")}</p>
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="text-muted-foreground">
+                <th className="text-left font-medium py-1">{t("breakdownPlan")}</th>
+                <th className="text-right font-medium py-1">{t("breakdownPlanFee")}</th>
+                <th className="text-right font-medium py-1">{t("breakdownNet")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {STRIPE_INSTALLMENT_FEES.map((plan) => {
+                const extra = total * plan.rate;
+                const extraVat = extra * STRIPE_FEE_VAT;
+                const net = Math.max(0, b.net - extra - extraVat);
+                return (
+                  <tr key={plan.months} className="border-t border-border/60">
+                    <td className="py-1">{t("breakdownMonths", { months: plan.months })}</td>
+                    <td className="py-1 text-right tabular-nums">
+                      +{(plan.rate * 100).toFixed(1)}% · − {formatMoney(extra + extraVat, currency)}
+                    </td>
+                    <td className="py-1 text-right tabular-nums font-medium">{formatMoney(net, currency)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
       <p className="text-xs text-muted-foreground pt-1">{t("breakdownNote")}</p>
     </div>
   );
@@ -192,6 +241,8 @@ export default function PaymentLinksAdmin() {
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerWhatsapp, setCustomerWhatsapp] = useState("");
+  // Meses sin intereses (solo MXN; los planes se configuran en Stripe)
+  const [installmentsEnabled, setInstallmentsEnabled] = useState(false);
 
   const [products, setProducts] = useState<ProductListItem[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
@@ -371,6 +422,7 @@ export default function PaymentLinksAdmin() {
           customer_name: customerName.trim() || undefined,
           customer_email: customerEmail.trim() || undefined,
           customer_whatsapp: customerWhatsapp.trim() || undefined,
+          installments_enabled: installmentsEnabled && currency === "MXN",
           ...(mode === "amount"
             ? { amount: Math.round(Number(amount) * 100) / 100 }
             : {
@@ -672,6 +724,23 @@ export default function PaymentLinksAdmin() {
             </div>
           </div>
 
+          <div className="rounded-lg border border-border p-4 space-y-2">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <Checkbox
+                checked={installmentsEnabled && currency === "MXN"}
+                disabled={currency !== "MXN"}
+                onCheckedChange={(checked) => setInstallmentsEnabled(checked === true)}
+                className="mt-0.5"
+              />
+              <span>
+                <span className="text-sm font-medium text-foreground">{t("installmentsLabel")}</span>
+                <span className="block text-xs text-muted-foreground">
+                  {currency === "MXN" ? t("installmentsHint") : t("installmentsOnlyMxn")}
+                </span>
+              </span>
+            </label>
+          </div>
+
           <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm text-muted-foreground">{t("estimatedTotal")}</p>
@@ -683,6 +752,7 @@ export default function PaymentLinksAdmin() {
                   currency={currency}
                   fees={stripeFees}
                   exchangeRate={exchangeRate}
+                  installments={installmentsEnabled && currency === "MXN"}
                   t={t}
                 />
               </div>
@@ -730,6 +800,7 @@ export default function PaymentLinksAdmin() {
                 currency={result.currency}
                 fees={stripeFees}
                 exchangeRate={exchangeRate}
+                installments={result.installmentsEnabled}
                 t={t}
               />
               <div className="rounded-md bg-muted p-3 text-xs break-all">{result.url}</div>
@@ -810,6 +881,13 @@ export default function PaymentLinksAdmin() {
                       </TableCell>
                       <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
                         {formatDate(link.expiresAt)}
+                        {link.installmentsEnabled && (
+                          <span className="block text-xs text-[#B8941E]">
+                            {link.installmentsMonths
+                              ? t("paidInMonths", { months: link.installmentsMonths })
+                              : t("installmentsBadge")}
+                          </span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center justify-end gap-1">

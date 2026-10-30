@@ -1599,7 +1599,17 @@
       "breakdownStripeFee": "Stripe fee ({percentage} + {fixed})",
       "breakdownVat": "VAT on the fee (16%)",
       "breakdownNet": "You receive",
-      "breakdownNote": "Estimated with the fee configured in the price calculator. Stripe may charge slightly more for international cards or USD payments; the exact amount appears in your Stripe dashboard."
+      "breakdownNote": "Estimated with the fee configured in the price calculator. Stripe may charge slightly more for international cards or USD payments; the exact amount appears in your Stripe dashboard.",
+      "installmentsLabel": "Allow interest-free installments",
+      "installmentsHint": "The customer can choose to pay in installments with their card. The available plans (3, 6, 9, 12…) are configured in Stripe → Settings → Payment methods → Installments.",
+      "installmentsOnlyMxn": "Stripe only offers installments in Mexican pesos (MXN).",
+      "installmentsBadge": "Installments enabled",
+      "paidInMonths": "Paid in {months} installments",
+      "breakdownInstallmentsTitle": "If the customer pays in installments",
+      "breakdownInstallmentsHint": "Stripe charges an extra fee depending on the plan the customer chooses; the customer pays no interest.",
+      "breakdownPlan": "Plan",
+      "breakdownPlanFee": "Extra fee (+VAT)",
+      "breakdownMonths": "{months} months"
     }
   },
   "paymentLink": {

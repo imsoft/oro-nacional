@@ -6,6 +6,7 @@ import {
   cancelExpiredLinkOrder,
   syncCustomerFromPaymentIntent,
   syncCustomerFromSession,
+  saveInstallmentsPlan,
 } from '@/lib/payment-links/server';
 import Stripe from 'stripe';
 
@@ -65,6 +66,7 @@ export async function POST(request: NextRequest) {
         // Pedidos de enlace de pago: completar los datos del cliente que
         // Stripe recogió en el Checkout antes de mandar los correos.
         await syncCustomerFromPaymentIntent(stripe, admin, paymentIntent);
+        await saveInstallmentsPlan(admin, paymentIntent);
         const result = await finalizePaidOrder(admin, paymentIntent);
 
         if (!result.ok) {

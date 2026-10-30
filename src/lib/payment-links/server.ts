@@ -25,6 +25,8 @@ export interface PaymentLinkOrder extends Order {
   payment_link_url?: string | null;
   payment_link_description?: string | null;
   payment_link_expires_at?: string | null;
+  installments_enabled?: boolean;
+  installments_months?: number | null;
 }
 
 /** Datos de cliente que el admin puede conocer (o no) al generar el enlace. */
@@ -237,9 +239,13 @@ export async function createPaymentLinkSession(
   stripe: Stripe,
   admin: SupabaseClient,
   order: PaymentLinkOrder,
-  customer: PaymentLinkCustomerInput
+  customer: PaymentLinkCustomerInput,
+  options: { installmentsEnabled?: boolean } = {}
 ): Promise<Stripe.Checkout.Session> {
   const currency = (order.currency || 'MXN') as CheckoutCurrency;
+  // Stripe solo ofrece meses sin intereses en MXN; los planes disponibles
+  // (3, 6, 9, 12...) se configuran en el Dashboard de Stripe.
+  const installmentsEnabled = Boolean(options.installmentsEnabled) && currency === 'MXN';
   const items: OrderItem[] = order.items || [];
   if (items.length === 0) {
     throw new CheckoutError('server_error', 'El pedido no tiene conceptos');
@@ -277,6 +283,9 @@ export async function createPaymentLinkSession(
         cancel_url: `${siteUrl}/`,
         locale: 'es',
         phone_number_collection: { enabled: true },
+        ...(installmentsEnabled
+          ? { payment_method_options: { card: { installments: { enabled: true } } } }
+          : {}),
         ...(customer.customer_email ? { customer_email: customer.customer_email } : {}),
         payment_intent_data: {
           metadata: {
@@ -303,6 +312,7 @@ export async function createPaymentLinkSession(
       payment_link_url: session.url,
       payment_link_expires_at: new Date(expiresAt * 1000).toISOString(),
       payment_link_description: order.payment_link_description ?? null,
+      installments_enabled: installmentsEnabled,
       stripe_payment_intent_id:
         typeof session.payment_intent === 'string' ? session.payment_intent : null,
     })
@@ -426,4 +436,26 @@ export async function cancelExpiredLinkOrder(
     .neq('payment_status', 'Pagado');
 
   return { error };
+}
+
+/**
+ * Guarda el plan de meses sin intereses que eligió el cliente (si lo hubo).
+ * Stripe lo expone en payment_method_options.card.installments.plan.
+ */
+export async function saveInstallmentsPlan(
+  admin: SupabaseClient,
+  paymentIntent: Stripe.PaymentIntent
+): Promise<void> {
+  const orderId = paymentIntent.metadata?.orderId;
+  const plan = paymentIntent.payment_method_options?.card?.installments?.plan;
+  if (!orderId || !plan?.count) return;
+
+  const { error } = await admin
+    .from('orders')
+    .update({ installments_months: plan.count })
+    .eq('id', orderId);
+
+  if (error) {
+    console.error('[PaymentLinks] Error saving installments plan:', error);
+  }
 }

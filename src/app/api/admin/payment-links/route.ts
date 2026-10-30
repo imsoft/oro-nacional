@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
   const { data, error } = await ctx.admin
     .from('orders')
     .select(
-      'id, order_number, customer_name, customer_email, customer_phone, payment_link_description, total_charged, total, currency, payment_status, status, payment_link_url, payment_link_expires_at, created_at'
+      'id, order_number, customer_name, customer_email, customer_phone, payment_link_description, total_charged, total, currency, payment_status, status, payment_link_url, payment_link_expires_at, installments_enabled, installments_months, created_at'
     )
     .eq('source', 'payment_link')
     .is('deleted_at', null)
@@ -83,6 +83,8 @@ export async function GET(request: NextRequest) {
       status: row.status,
       url: row.payment_link_url,
       expiresAt: row.payment_link_expires_at,
+      installmentsEnabled: Boolean(row.installments_enabled),
+      installmentsMonths: row.installments_months ?? null,
       createdAt: row.created_at,
     })),
   });
@@ -136,6 +138,9 @@ export async function POST(request: NextRequest) {
     if (whatsappDigits && (whatsappDigits.length < 8 || whatsappDigits.length > 15)) {
       return NextResponse.json({ error: 'El número de WhatsApp no es válido' }, { status: 400 });
     }
+
+    // MSI solo aplica en MXN (Stripe no lo ofrece en USD)
+    const installmentsEnabled = body.installments_enabled === true && currency === 'MXN';
 
     const customer: PaymentLinkCustomerInput = {
       customer_name: text(body.customer_name, 200) || undefined,
@@ -193,7 +198,9 @@ export async function POST(request: NextRequest) {
       order = await createProductsLinkOrder(admin, { items, currency, description, customer });
     }
 
-    const session = await createPaymentLinkSession(stripe, admin, order, customer);
+    const session = await createPaymentLinkSession(stripe, admin, order, customer, {
+      installmentsEnabled,
+    });
 
     return NextResponse.json({
       orderId: order.id,
@@ -202,6 +209,7 @@ export async function POST(request: NextRequest) {
       expiresAt: session.expires_at ? new Date(session.expires_at * 1000).toISOString() : null,
       total: Number(order.total_charged ?? order.total),
       currency,
+      installmentsEnabled,
     });
   } catch (error) {
     if (error instanceof CheckoutError) {

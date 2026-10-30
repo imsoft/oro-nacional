@@ -1591,7 +1591,17 @@
       "breakdownStripeFee": "Comisión de Stripe ({percentage} + {fixed})",
       "breakdownVat": "IVA sobre la comisión (16 %)",
       "breakdownNet": "Te queda",
-      "breakdownNote": "Estimado con la comisión configurada en la calculadora de precios. Stripe puede cobrar un poco más en tarjetas internacionales o pagos en USD; el monto exacto aparece en tu panel de Stripe."
+      "breakdownNote": "Estimado con la comisión configurada en la calculadora de precios. Stripe puede cobrar un poco más en tarjetas internacionales o pagos en USD; el monto exacto aparece en tu panel de Stripe.",
+      "installmentsLabel": "Permitir meses sin intereses",
+      "installmentsHint": "El cliente podrá elegir pagar a meses con su tarjeta. Los planes disponibles (3, 6, 9, 12…) se configuran en Stripe → Configuración → Métodos de pago → Meses sin intereses.",
+      "installmentsOnlyMxn": "Stripe solo ofrece meses sin intereses en pesos (MXN).",
+      "installmentsBadge": "MSI habilitados",
+      "paidInMonths": "Pagado a {months} meses",
+      "breakdownInstallmentsTitle": "Si el cliente paga a meses",
+      "breakdownInstallmentsHint": "Stripe cobra una comisión extra según el plan que elija el cliente; el cliente no paga intereses.",
+      "breakdownPlan": "Plan",
+      "breakdownPlanFee": "Comisión extra (+IVA)",
+      "breakdownMonths": "{months} meses"
     }
   },
   "paymentLink": {
