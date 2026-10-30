@@ -35,13 +35,6 @@ export default function HeroCarousel({
     setTimeout(() => setIsTransitioning(false), 500);
   }, [images.length, isTransitioning]);
 
-  const goToSlide = (index: number) => {
-    if (isTransitioning || images.length === 0) return;
-    setIsTransitioning(true);
-    setCurrentIndex(index);
-    setTimeout(() => setIsTransitioning(false), 500);
-  };
-
   // Auto-play functionality
   useEffect(() => {
     if (images.length <= 1) return;
@@ -104,22 +97,6 @@ export default function HeroCarousel({
             <ChevronRight className="h-6 w-6" />
           </Button>
 
-          {/* Dots indicator */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex gap-2">
-            {images.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => goToSlide(index)}
-                disabled={isTransitioning}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  index === currentIndex
-                    ? "w-8 bg-[#D4AF37]"
-                    : "w-2 bg-white/50 hover:bg-white/80"
-                }`}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
-          </div>
         </>
       )}
     </div>
