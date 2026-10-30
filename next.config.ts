@@ -18,6 +18,10 @@ const nextConfig: NextConfig = {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },
   images: {
+    // Sin optimizador de Vercel: el plan Hobby agota su cuota de imágenes
+    // optimizadas y responde 402, dejando el sitio sin imágenes. Se sirven
+    // directo desde Supabase Storage.
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
