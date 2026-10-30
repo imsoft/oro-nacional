@@ -85,7 +85,7 @@ export default function HeroCarousel({
           <Button
             variant="ghost"
             size="icon"
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-background/20 hover:bg-background/40 text-white backdrop-blur-sm transition-all duration-300 hover:scale-110"
+            className="hidden sm:inline-flex absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-background/20 hover:bg-background/40 text-white backdrop-blur-sm transition-all duration-300 hover:scale-110"
             onClick={prevSlide}
             disabled={isTransitioning}
             aria-label="Previous slide"
@@ -96,7 +96,7 @@ export default function HeroCarousel({
           <Button
             variant="ghost"
             size="icon"
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-background/20 hover:bg-background/40 text-white backdrop-blur-sm transition-all duration-300 hover:scale-110"
+            className="hidden sm:inline-flex absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-background/20 hover:bg-background/40 text-white backdrop-blur-sm transition-all duration-300 hover:scale-110"
             onClick={nextSlide}
             disabled={isTransitioning}
             aria-label="Next slide"
