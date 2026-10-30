@@ -5,8 +5,9 @@ import { ContactConfirmationEmail } from '../../../emails/contact-confirmation-e
 import { OrderConfirmationEmail } from '../../../emails/order-confirmation-email';
 import { OrderNotificationEmail } from '../../../emails/order-notification-email';
 import { EmailConfirmation } from '../../../emails/email-confirmation';
+import { OrderStatusEmail } from '../../../emails/order-status-email';
 import type { ContactMessage } from '@/types/contact';
-import type { Order, OrderItem } from '@/types/order';
+import type { Order, OrderItem, OrderStatus } from '@/types/order';
 
 // Email de la empresa (debe configurarse en Resend)
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'noreply@oronacional.com';
@@ -367,3 +368,74 @@ export async function sendOrderNotificationEmail(
   }
 }
 
+
+/**
+ * Avisar al cliente de un cambio de estado de su pedido (Procesando, Enviado,
+ * Entregado, Cancelado). Mismo diseño que el resto de los correos.
+ */
+export async function sendOrderStatusEmail(
+  order: Order,
+  status: OrderStatus,
+  locale: 'es' | 'en' = 'es',
+  note?: string | null
+): Promise<{ success: boolean; error?: string }> {
+  const subjects: Record<'es' | 'en', Record<OrderStatus, string>> = {
+    es: {
+      Pendiente: 'Recibimos tu pedido',
+      Procesando: 'Estamos preparando tu pedido',
+      Enviado: '¡Tu pedido va en camino!',
+      Entregado: 'Tu pedido fue entregado',
+      Cancelado: 'Tu pedido fue cancelado',
+    },
+    en: {
+      Pendiente: 'We received your order',
+      Procesando: 'We are preparing your order',
+      Enviado: 'Your order is on its way!',
+      Entregado: 'Your order was delivered',
+      Cancelado: 'Your order was cancelled',
+    },
+  };
+  const subject = `${subjects[locale][status]} · ${order.order_number} - Oro Nacional`;
+
+  try {
+    if (!process.env.RESEND_API_KEY) {
+      console.log('📧 [DEV] Order status email would be sent:', { to: order.customer_email, subject });
+      return { success: true };
+    }
+
+    const resend = getResend();
+    if (!resend) {
+      return { success: false, error: 'Resend API key not configured' };
+    }
+
+    const emailHtml = await render(
+      OrderStatusEmail({
+        orderNumber: order.order_number,
+        customerName: order.customer_name,
+        status,
+        locale,
+        note: note ?? null,
+      })
+    );
+
+    const { error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: order.customer_email,
+      subject,
+      html: emailHtml,
+    });
+
+    if (error) {
+      console.error('Error sending order status email:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error sending order status email:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}

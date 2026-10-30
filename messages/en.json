@@ -113,7 +113,7 @@
       "tiktok": "TikTok"
     },
     "location": "Guadalajara, Jalisco, Mexico",
-    "phoneNumber": "33 2636 3714",
+    "phoneNumber": "33 1608 3664",
     "emailAddress": "hola@oronacional.com",
     "copyright": "All rights reserved."
   },
@@ -1227,7 +1227,10 @@
       "deleteCancel": "Cancel",
       "deleted": "Order deleted",
       "deleteError": "The order could not be deleted",
-      "deleting": "Deleting..."
+      "deleting": "Deleting...",
+      "statusUpdated": "Status updated",
+      "statusEmailSent": "Email sent to the customer ({email})",
+      "statusEmailFailed": "Status saved, but the customer email could not be sent"
     },
     "blog": {
       "title": "Blog",

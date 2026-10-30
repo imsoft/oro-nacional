@@ -30,7 +30,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { getAllOrders, getOrderStats, updateOrderStatus, getOrderById, deleteOrderPermanently } from "@/lib/supabase/orders";
+import { getAllOrders, getOrderStats, getOrderById, deleteOrderPermanently } from "@/lib/supabase/orders";
+import { supabase } from "@/lib/supabase/client";
 import { getWhatsAppHref } from "@/lib/whatsapp";
 import type { OrderListItem, OrderStatus, OrderStats, Order } from "@/types/order";
 import Image from "next/image";
@@ -77,15 +78,40 @@ export default function OrdersAdmin() {
     return matchesSearch && matchesStatus;
   });
 
+  // El cambio de estado se hace en el servidor: actualiza el pedido y manda al
+  // cliente un correo con el diseño del sitio según el nuevo estado.
   const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
-    const result = await updateOrderStatus(orderId, { status: newStatus });
-    if (result.success) {
-      loadData();
-    } else {
-      toast.error("Error al actualizar el estado", {
-        description: result.error || "No se pudo actualizar el estado del pedido. Por favor intenta de nuevo.",
+    try {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      if (!token) throw new Error("Sesión expirada");
+
+      const response = await fetch("/api/admin/orders/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ orderId, status: newStatus }),
       });
-      // Recargar para que el selector vuelva a mostrar el estado real
+      const result = await response.json().catch(() => null);
+
+      if (!response.ok || !result?.success) {
+        throw new Error(result?.error || "No se pudo actualizar el estado del pedido. Por favor intenta de nuevo.");
+      }
+
+      if (result.emailSent) {
+        toast.success(t("statusUpdated"), {
+          description: t("statusEmailSent", { email: result.customerEmail }),
+        });
+      } else if (result.emailError) {
+        toast.warning(t("statusUpdated"), { description: t("statusEmailFailed") });
+      } else {
+        toast.success(t("statusUpdated"));
+      }
+    } catch (error) {
+      toast.error("Error al actualizar el estado", {
+        description: error instanceof Error ? error.message : undefined,
+      });
+    } finally {
+      // Recargar para que el selector muestre el estado real
       loadData();
     }
   };

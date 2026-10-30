@@ -4,8 +4,8 @@ import { useTranslations } from "next-intl";
 import { Package, Gem, Shield, Truck, Award, Clock } from "lucide-react";
 
 // Datos de contacto reales (los mismos que se muestran en el footer)
-const CONTACT_PHONE = "3326363714";
-const CONTACT_PHONE_DISPLAY = "33 2636 3714";
+const CONTACT_PHONE = "3316083664";
+const CONTACT_PHONE_DISPLAY = "33 1608 3664";
 const CONTACT_EMAIL = "hola@oronacional.com";
 
 interface ProductDetailsProps {

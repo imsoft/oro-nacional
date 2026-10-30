@@ -82,11 +82,11 @@ const ConstructionPage = () => {
                         
                         <div className="space-y-3">
                           <a 
-                            href="tel:+523326363714"
+                            href="tel:+523316083664"
                             className="flex items-center space-x-3 text-muted-foreground hover:text-[#D4AF37] transition-colors cursor-pointer"
                           >
                             <Phone className="w-5 h-5 text-[#D4AF37]" />
-                            <span>3326363714</span>
+                            <span>3316083664</span>
                           </a>
                           
                           <div 

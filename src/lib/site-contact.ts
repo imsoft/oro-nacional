@@ -6,10 +6,10 @@
  * disponible, y en metadatos / JSON-LD que no leen la base de datos.
  */
 export const SITE_CONTACT = {
-  phone: "3326363714",
-  phoneDisplay: "33 2636 3714",
-  phoneE164: "+523326363714",
-  phoneHref: "tel:+523326363714",
+  phone: "3316083664",
+  phoneDisplay: "33 1608 3664",
+  phoneE164: "+523316083664",
+  phoneHref: "tel:+523316083664",
   email: "hola@oronacional.com",
   emailHref: "mailto:hola@oronacional.com",
   streetAddress: "Magno centro joyero, San Juan de Dios interior #4041",
