@@ -1585,7 +1585,13 @@
       "validationItems": "Agrega al menos un producto",
       "validationAmount": "Escribe un monto mayor a cero",
       "validationDescription": "Escribe una descripción del cobro",
-      "resultHint": "Aquí aparecerá el enlace cuando lo generes."
+      "resultHint": "Aquí aparecerá el enlace cuando lo generes.",
+      "breakdownTitle": "Desglose de Stripe",
+      "breakdownCustomerPays": "El cliente paga",
+      "breakdownStripeFee": "Comisión de Stripe ({percentage} + {fixed})",
+      "breakdownVat": "IVA sobre la comisión (16 %)",
+      "breakdownNet": "Te queda",
+      "breakdownNote": "Estimado con la comisión configurada en la calculadora de precios. Stripe puede cobrar un poco más en tarjetas internacionales o pagos en USD; el monto exacto aparece en tu panel de Stripe."
     }
   },
   "paymentLink": {

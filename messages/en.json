@@ -1593,7 +1593,13 @@
       "validationItems": "Add at least one product",
       "validationAmount": "Enter an amount greater than zero",
       "validationDescription": "Enter a description for the charge",
-      "resultHint": "The link will appear here once you generate it."
+      "resultHint": "The link will appear here once you generate it.",
+      "breakdownTitle": "Stripe breakdown",
+      "breakdownCustomerPays": "Customer pays",
+      "breakdownStripeFee": "Stripe fee ({percentage} + {fixed})",
+      "breakdownVat": "VAT on the fee (16%)",
+      "breakdownNet": "You receive",
+      "breakdownNote": "Estimated with the fee configured in the price calculator. Stripe may charge slightly more for international cards or USD payments; the exact amount appears in your Stripe dashboard."
     }
   },
   "paymentLink": {

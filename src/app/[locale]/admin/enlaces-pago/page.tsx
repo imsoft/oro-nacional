@@ -38,6 +38,7 @@ import {
 import { supabase } from "@/lib/supabase/client";
 import { getAllProducts } from "@/lib/supabase/products";
 import { getStoreSettings } from "@/lib/supabase/settings";
+import { getPricingParameters } from "@/lib/supabase/pricing";
 import type { ProductListItem, ProductSize } from "@/types/product";
 import { toast } from "sonner";
 import { normalizeWhatsAppNumber } from "@/lib/whatsapp";
@@ -79,6 +80,32 @@ interface LinkRow {
 const DEFAULT_EXCHANGE_RATE = 18;
 const NO_SIZE = "__none__";
 
+const STRIPE_FEE_VAT = 0.16; // IVA sobre la comisión de Stripe
+
+/**
+ * Desglose de lo que cobra Stripe y lo que recibe la tienda.
+ * La cuota fija está en MXN; para USD se convierte con el tipo de cambio.
+ */
+const getStripeBreakdown = (
+  total: number,
+  currency: Currency,
+  fees: { percentage: number; fixedFeeMXN: number },
+  exchangeRate: number
+) => {
+  const fixedFee = currency === "USD" ? fees.fixedFeeMXN / exchangeRate : fees.fixedFeeMXN;
+  const commission = total > 0 ? total * fees.percentage + fixedFee : 0;
+  const vat = commission * STRIPE_FEE_VAT;
+  const stripeTotal = commission + vat;
+  return {
+    commission,
+    vat,
+    stripeTotal,
+    net: Math.max(0, total - stripeTotal),
+    percentageLabel: `${(fees.percentage * 100).toFixed(1)}%`,
+    fixedFee,
+  };
+};
+
 const formatMoney = (amount: number, currency: Currency) =>
   new Intl.NumberFormat(currency === "USD" ? "en-US" : "es-MX", {
     style: "currency",
@@ -113,6 +140,48 @@ const previewUnitPrice = (
   return fixedUsd ?? mxn / exchangeRate;
 };
 
+function StripeBreakdown({
+  total,
+  currency,
+  fees,
+  exchangeRate,
+  t,
+}: {
+  total: number;
+  currency: Currency;
+  fees: { percentage: number; fixedFeeMXN: number };
+  exchangeRate: number;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  if (total <= 0) return null;
+  const b = getStripeBreakdown(total, currency, fees, exchangeRate);
+  const row = (label: string, value: string, cls = "") => (
+    <div className={`flex items-center justify-between gap-4 ${cls}`}>
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-medium tabular-nums">{value}</span>
+    </div>
+  );
+  return (
+    <div className="rounded-lg border border-border bg-muted/40 p-4 text-sm space-y-1.5">
+      <p className="font-semibold text-foreground mb-2">{t("breakdownTitle")}</p>
+      {row(t("breakdownCustomerPays"), formatMoney(total, currency))}
+      {row(
+        t("breakdownStripeFee", {
+          percentage: b.percentageLabel,
+          fixed: formatMoney(b.fixedFee, currency),
+        }),
+        `− ${formatMoney(b.commission, currency)}`
+      )}
+      {row(t("breakdownVat"), `− ${formatMoney(b.vat, currency)}`)}
+      <div className="border-t border-border pt-2 mt-2 flex items-center justify-between gap-4">
+        <span className="font-semibold text-foreground">{t("breakdownNet")}</span>
+        <span className="text-lg font-bold text-green-700 tabular-nums">{formatMoney(b.net, currency)}</span>
+      </div>
+      <p className="text-xs text-muted-foreground pt-1">{t("breakdownNote")}</p>
+    </div>
+  );
+}
+
 export default function PaymentLinksAdmin() {
   const t = useTranslations("admin.paymentLinks");
 
@@ -127,6 +196,8 @@ export default function PaymentLinksAdmin() {
   const [products, setProducts] = useState<ProductListItem[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
   const [exchangeRate, setExchangeRate] = useState(DEFAULT_EXCHANGE_RATE);
+  // Comisión de Stripe México: porcentaje + cuota fija (en MXN) + IVA sobre la comisión
+  const [stripeFees, setStripeFees] = useState({ percentage: 0.036, fixedFeeMXN: 3 });
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<SelectedItem[]>([]);
 
@@ -168,12 +239,16 @@ export default function PaymentLinksAdmin() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [productsData, settings] = await Promise.all([
+      const [productsData, settings, pricing] = await Promise.all([
         getAllProducts(),
         getStoreSettings(),
+        getPricingParameters().catch(() => null),
         loadLinks(),
       ]);
       if (cancelled) return;
+      if (pricing && pricing.stripePercentage > 0) {
+        setStripeFees({ percentage: pricing.stripePercentage, fixedFeeMXN: pricing.stripeFixedFee });
+      }
       setProducts(productsData.filter((p) => p.is_active));
       const rate = Number(settings?.exchange_rate);
       if (Number.isFinite(rate) && rate > 0) setExchangeRate(rate);
@@ -602,6 +677,15 @@ export default function PaymentLinksAdmin() {
               <p className="text-sm text-muted-foreground">{t("estimatedTotal")}</p>
               <p className="text-2xl font-bold text-[#D4AF37]">{formatMoney(previewTotal, currency)}</p>
               <p className="text-xs text-muted-foreground">{t("previewNote")}</p>
+              <div className="mt-3">
+                <StripeBreakdown
+                  total={previewTotal}
+                  currency={currency}
+                  fees={stripeFees}
+                  exchangeRate={exchangeRate}
+                  t={t}
+                />
+              </div>
             </div>
             <Button
               type="submit"
@@ -641,6 +725,13 @@ export default function PaymentLinksAdmin() {
                   {formatMoney(result.total, result.currency)}
                 </p>
               </div>
+              <StripeBreakdown
+                total={result.total}
+                currency={result.currency}
+                fees={stripeFees}
+                exchangeRate={exchangeRate}
+                t={t}
+              />
               <div className="rounded-md bg-muted p-3 text-xs break-all">{result.url}</div>
               <p className="text-xs text-muted-foreground">
                 {t("expiresAt", { date: formatDate(result.expiresAt) })}
