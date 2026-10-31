@@ -33,7 +33,7 @@ const CallToAction = () => {
               asChild
               size="lg"
               variant="default"
-              className="bg-[#D4AF37] hover:bg-[#B8941E] text-white shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl"
+              className="bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a] shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl"
             >
               <Link href="/contact">{t('primaryButton')}</Link>
             </Button>

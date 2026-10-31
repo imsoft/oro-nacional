@@ -34,7 +34,7 @@ const CartPage = () => {
               <Button
                 asChild
                 size="lg"
-                className="bg-[#D4AF37] hover:bg-[#B8941E] text-white"
+                className="bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a]"
               >
                 <Link href="/catalog">{t('viewCatalog')}</Link>
               </Button>

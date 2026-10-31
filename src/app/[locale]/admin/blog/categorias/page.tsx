@@ -131,7 +131,7 @@ export default function BlogCategoriesAdmin() {
           <p className="mt-2 text-muted-foreground">{t("subtitle")}</p>
         </div>
         <Button
-          className="bg-[#D4AF37] hover:bg-[#B8941E] text-white"
+          className="bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a]"
           asChild
         >
           <Link href="/admin/blog/categorias/nuevo">

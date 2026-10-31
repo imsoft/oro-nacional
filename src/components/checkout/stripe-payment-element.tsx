@@ -167,7 +167,7 @@ export function StripePaymentElement({
       <Button
         type="submit"
         disabled={isLoading || !isReady}
-        className="w-full bg-[#D4AF37] hover:bg-[#B8941E] text-white"
+        className="w-full bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a]"
         size="lg"
       >
         {isLoading ? (

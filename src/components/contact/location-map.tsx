@@ -56,7 +56,7 @@ const LocationMap = () => {
                     href="https://maps.app.goo.gl/GBnsUNi5fe9QNEDj8"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 rounded-lg bg-[#D4AF37] px-4 py-2 text-sm font-medium text-white hover:bg-[#B8941E] transition-colors"
+                    className="inline-flex items-center gap-2 rounded-lg bg-[#D4AF37] px-4 py-2 text-sm font-medium text-[#1a1a1a] hover:bg-[#B8941E] transition-colors"
                   >
                     <MapPin className="h-4 w-4" />
                     {t('getDirections')}

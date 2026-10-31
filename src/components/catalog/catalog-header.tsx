@@ -50,7 +50,7 @@ const CatalogHeader = ({
             onClick={() => onViewModeChange("grid")}
             className={
               viewMode === "grid"
-                ? "bg-[#D4AF37] text-white hover:bg-[#B8941E] hover:text-white border-[#D4AF37]"
+                ? "bg-[#D4AF37] text-[#1a1a1a] hover:bg-[#B8941E] hover:text-[#1a1a1a] border-[#D4AF37]"
                 : "border-border hover:bg-muted"
             }
             aria-label="Vista de cuadrícula"
@@ -63,7 +63,7 @@ const CatalogHeader = ({
             onClick={() => onViewModeChange("list")}
             className={
               viewMode === "list"
-                ? "bg-[#D4AF37] text-white hover:bg-[#B8941E] hover:text-white border-[#D4AF37]"
+                ? "bg-[#D4AF37] text-[#1a1a1a] hover:bg-[#B8941E] hover:text-[#1a1a1a] border-[#D4AF37]"
                 : "border-border hover:bg-muted"
             }
             aria-label="Vista de lista"

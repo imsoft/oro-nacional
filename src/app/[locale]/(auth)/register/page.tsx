@@ -173,7 +173,7 @@ const RegisterPage = () => {
               onClick={handleResend}
               disabled={isResending}
               variant="outline"
-              className="w-full border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white mb-4"
+              className="w-full border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#1a1a1a] mb-4"
             >
               {isResending ? (
                 <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{tVerification('resending')}</>
@@ -341,7 +341,7 @@ const RegisterPage = () => {
               <Button
                 type="submit"
                 size="lg"
-                className="w-full bg-[#D4AF37] hover:bg-[#B8941E] text-white"
+                className="w-full bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a]"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -373,7 +373,7 @@ const RegisterPage = () => {
                 asChild
                 variant="outline"
                 size="lg"
-                className="w-full border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white"
+                className="w-full border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#1a1a1a]"
               >
                 <Link href="/login">{t('login')}</Link>
               </Button>

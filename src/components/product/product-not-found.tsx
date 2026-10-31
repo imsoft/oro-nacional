@@ -77,7 +77,7 @@ export function ProductNotFound({ slug, locale }: ProductNotFoundProps) {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link
               href="/catalog"
-              className="inline-flex items-center gap-2 rounded-md bg-[#D4AF37] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#B8941E] transition-colors"
+              className="inline-flex items-center gap-2 rounded-md bg-[#D4AF37] px-6 py-3 text-sm font-semibold text-[#1a1a1a] shadow-sm hover:bg-[#B8941E] transition-colors"
             >
               <Search className="w-4 h-4" />
               {locale === 'es' ? 'Explorar Catálogo' : 'Browse Catalog'}

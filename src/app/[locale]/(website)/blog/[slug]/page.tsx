@@ -80,7 +80,7 @@ export default function BlogPostPage({
           <p className="text-muted-foreground mb-6">{t("postNotFoundDescription")}</p>
           <Link
             href="/blog"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-[#D4AF37] hover:bg-[#B8941E] text-white font-medium transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a] font-medium transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             {t("backToBlog")}
@@ -277,13 +277,13 @@ export default function BlogPostPage({
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/catalog"
-                className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-[#D4AF37] hover:bg-[#B8941E] text-white font-medium transition-colors"
+                className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a] font-medium transition-colors"
               >
                 {t("viewCatalog")}
               </Link>
               <Link
                 href="/contact"
-                className="inline-flex items-center justify-center px-6 py-3 rounded-lg border-2 border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white font-medium transition-colors"
+                className="inline-flex items-center justify-center px-6 py-3 rounded-lg border-2 border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#1a1a1a] font-medium transition-colors"
               >
                 {t("contactCta")}
               </Link>

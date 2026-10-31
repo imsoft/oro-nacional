@@ -118,7 +118,7 @@ const ProductCard = ({
           </button>
         </div>
         <div className="absolute bottom-4 left-4">
-          <span className="inline-flex items-center rounded-full bg-[#D4AF37] px-3 py-1 text-xs font-medium text-white">
+          <span className="inline-flex items-center rounded-full bg-[#D4AF37] px-3 py-1 text-xs font-medium text-[#1a1a1a]">
             {material}
           </span>
         </div>
@@ -150,7 +150,7 @@ const ProductCard = ({
           <Button
             asChild
             size="sm"
-            className="bg-[#D4AF37] hover:bg-[#B8941E] text-white transition-all duration-300 hover:scale-105"
+            className="bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a] transition-all duration-300 hover:scale-105"
           >
             <Link href={`/product/${slug}`}>{t("viewDetails")}</Link>
           </Button>

@@ -143,7 +143,7 @@ const FeaturedCollection = () => {
                 type="button"
                 onClick={loadMore}
                 size="lg"
-                className="bg-[#D4AF37] hover:bg-[#B8941E] text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
+                className="bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a] shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
               >
                 {tFeatured("loadMore")}
               </Button>
@@ -151,7 +151,7 @@ const FeaturedCollection = () => {
                 asChild
                 size="lg"
                 variant="outline"
-                className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white transition-all duration-300 hover:scale-105"
+                className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#1a1a1a] transition-all duration-300 hover:scale-105"
               >
                 <Link href="/catalog">{tFeatured("viewAll")}</Link>
               </Button>

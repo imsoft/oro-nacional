@@ -229,7 +229,7 @@ const ContactForm = () => {
         <Button
           type="submit"
           size="lg"
-          className="w-full bg-[#D4AF37] hover:bg-[#B8941E] text-white transition-all duration-300 hover:scale-[1.02]"
+          className="w-full bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a] transition-all duration-300 hover:scale-[1.02]"
           disabled={isLoading}
         >
           {isLoading ? (

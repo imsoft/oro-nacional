@@ -47,7 +47,7 @@ const OrderSummary = () => {
       <Button
         asChild
         size="lg"
-        className="w-full bg-[#D4AF37] hover:bg-[#B8941E] text-white mb-4"
+        className="w-full bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a] mb-4"
       >
         <Link href="/checkout">
           <CreditCard className="mr-2 h-5 w-5" />

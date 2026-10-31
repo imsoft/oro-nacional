@@ -780,7 +780,7 @@ export default function PaymentLinksAdmin() {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="bg-[#D4AF37] text-white hover:bg-[#B8941E]"
+              className="bg-[#D4AF37] text-[#1a1a1a] hover:bg-[#B8941E]"
             >
               {isSubmitting ? (
                 <>

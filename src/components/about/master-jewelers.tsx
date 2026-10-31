@@ -69,7 +69,7 @@ const MasterJewelers = () => {
 
                 {/* Badge de experiencia */}
                 <div className="absolute top-4 right-4">
-                  <span className="inline-flex items-center rounded-full bg-[#D4AF37] px-3 py-1 text-xs font-medium text-white">
+                  <span className="inline-flex items-center rounded-full bg-[#D4AF37] px-3 py-1 text-xs font-medium text-[#1a1a1a]">
                     {jeweler.experience}
                   </span>
                 </div>

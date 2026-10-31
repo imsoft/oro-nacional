@@ -38,7 +38,8 @@ export const emailFontFamily =
 export const emailButton = {
   backgroundColor: emailColors.gold,
   borderRadius: '8px',
-  color: '#ffffff',
+  // Texto oscuro sobre dorado: contraste 8.3:1 (blanco daba 2.1:1)
+  color: '#1a1a1a',
   fontSize: '16px',
   fontWeight: '600',
   textDecoration: 'none',

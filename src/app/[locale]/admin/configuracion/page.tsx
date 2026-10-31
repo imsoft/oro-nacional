@@ -207,7 +207,7 @@ export default function AdminSettings() {
         <Button
           onClick={handleSave}
           disabled={isSaving}
-          className="bg-[#D4AF37] hover:bg-[#B8941E] text-white"
+          className="bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a]"
         >
           <Save className="mr-2 h-5 w-5" />
           {isSaving ? t('saving') : t('saveChanges')}
@@ -552,7 +552,7 @@ export default function AdminSettings() {
             onClick={handleSave}
             disabled={isSaving}
             size="lg"
-            className="bg-[#D4AF37] hover:bg-[#B8941E] text-white"
+            className="bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a]"
           >
             <Save className="mr-2 h-5 w-5" />
             {isSaving ? t('saving') : t('saveAllChanges')}

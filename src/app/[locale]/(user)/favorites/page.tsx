@@ -53,7 +53,7 @@ const FavoritesPage = () => {
             <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
               {t('noFavoritesDesc')}
             </p>
-            <Button asChild className="mt-6 bg-[#D4AF37] hover:bg-[#B8941E]">
+            <Button asChild className="mt-6 bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a]">
               <Link href="/catalog">{t('exploreCatalog')}</Link>
             </Button>
           </div>
@@ -86,7 +86,7 @@ const FavoritesPage = () => {
 
                   {/* Badge de material */}
                   <div className="absolute bottom-4 left-4">
-                    <span className="inline-flex items-center rounded-full bg-[#D4AF37] px-3 py-1 text-xs font-medium text-white">
+                    <span className="inline-flex items-center rounded-full bg-[#D4AF37] px-3 py-1 text-xs font-medium text-[#1a1a1a]">
                       {item.material}
                     </span>
                   </div>
@@ -118,7 +118,7 @@ const FavoritesPage = () => {
                     <div className="flex gap-2">
                       <Button
                         onClick={() => handleAddToCart(item)}
-                        className="flex-1 bg-[#D4AF37] hover:bg-[#B8941E] text-white transition-all duration-300"
+                        className="flex-1 bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a] transition-all duration-300"
                         size="sm"
                       >
                         <ShoppingCart className="mr-2 h-4 w-4" />
@@ -146,7 +146,7 @@ const FavoritesPage = () => {
             <Button asChild variant="outline" size="lg">
               <Link href="/catalog">{t('keepShopping')}</Link>
             </Button>
-            <Button asChild size="lg" className="bg-[#D4AF37] hover:bg-[#B8941E]">
+            <Button asChild size="lg" className="bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a]">
               <Link href="/cart">
                 <ShoppingCart className="mr-2 h-5 w-5" />
                 {t('viewCart')}

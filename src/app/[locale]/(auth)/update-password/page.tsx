@@ -145,7 +145,7 @@ const UpdatePasswordPage = () => {
                 <Button
                   asChild
                   size="lg"
-                  className="w-full bg-[#D4AF37] hover:bg-[#B8941E] text-white"
+                  className="w-full bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a]"
                 >
                   <Link href="/reset-password">{t("requestNewLink")}</Link>
                 </Button>
@@ -238,7 +238,7 @@ const UpdatePasswordPage = () => {
                   <Button
                     type="submit"
                     size="lg"
-                    className="w-full bg-[#D4AF37] hover:bg-[#B8941E] text-white"
+                    className="w-full bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a]"
                     disabled={isLoading}
                   >
                     {isLoading ? (

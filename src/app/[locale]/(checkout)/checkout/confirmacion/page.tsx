@@ -127,7 +127,7 @@ const ConfirmationPage = () => {
             {paymentState !== "checking" && (
               <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
                 {paymentState === "failed" && (
-                  <Button asChild size="lg" className="bg-[#D4AF37] hover:bg-[#B8941E] text-white">
+                  <Button asChild size="lg" className="bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a]">
                     <Link href="/checkout">Intentar de nuevo</Link>
                   </Button>
                 )}
@@ -230,7 +230,7 @@ const ConfirmationPage = () => {
             <Button
               asChild
               size="lg"
-              className="flex-1 bg-[#D4AF37] hover:bg-[#B8941E] text-white"
+              className="flex-1 bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a]"
             >
               <Link href="/my-orders">
                 <Package className="mr-2 h-5 w-5" />

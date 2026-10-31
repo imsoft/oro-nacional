@@ -324,7 +324,7 @@ const ProfilePage = () => {
 
                   <Button
                     type="submit"
-                    className="w-full bg-[#D4AF37] hover:bg-[#B8941E]"
+                    className="w-full bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a]"
                     disabled={isLoading}
                   >
                     {isLoading ? (
@@ -433,7 +433,7 @@ const ProfilePage = () => {
 
                   <Button
                     type="submit"
-                    className="w-full bg-[#D4AF37] hover:bg-[#B8941E]"
+                    className="w-full bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a]"
                     disabled={isLoading}
                   >
                     {isLoading ? (
@@ -525,7 +525,7 @@ const ProfilePage = () => {
 
                   <Button
                     type="submit"
-                    className="w-full bg-[#D4AF37] hover:bg-[#B8941E]"
+                    className="w-full bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a]"
                     disabled={isLoading}
                   >
                     {isLoading ? (

@@ -20,7 +20,7 @@ export default async function NotFound() {
           <h1 className="text-3xl font-semibold text-foreground mb-4">{t("title")}</h1>
           <p className="text-muted-foreground mb-8">{t("description")}</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" className="bg-[#D4AF37] hover:bg-[#B8941E] text-white">
+            <Button asChild size="lg" className="bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a]">
               <Link href="/">
                 <Home className="mr-2 h-5 w-5" />
                 {t("goHome")}

@@ -15,7 +15,7 @@ export function CurrencySelector() {
         onClick={() => setCurrency('MXN')}
         className={`flex items-center gap-2 ${
           currency === 'MXN'
-            ? 'bg-[#D4AF37] text-white hover:bg-[#B8941E]'
+            ? 'bg-[#D4AF37] text-[#1a1a1a] hover:bg-[#B8941E]'
             : 'text-muted-foreground hover:text-foreground'
         }`}
       >
@@ -28,7 +28,7 @@ export function CurrencySelector() {
         onClick={() => setCurrency('USD')}
         className={`flex items-center gap-2 ${
           currency === 'USD'
-            ? 'bg-[#D4AF37] text-white hover:bg-[#B8941E]'
+            ? 'bg-[#D4AF37] text-[#1a1a1a] hover:bg-[#B8941E]'
             : 'text-muted-foreground hover:text-foreground'
         }`}
       >

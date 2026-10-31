@@ -380,7 +380,7 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
         <div className="space-y-3">
           <Button
             size="lg"
-            className="w-full bg-[#D4AF37] hover:bg-[#B8941E] text-white text-base font-semibold py-6 transition-all duration-300 hover:scale-[1.02]"
+            className="w-full bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a] text-base font-semibold py-6 transition-all duration-300 hover:scale-[1.02]"
             onClick={handleAddToCart}
             disabled={!hasPrice || isOutOfStock}
           >

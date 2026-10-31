@@ -87,7 +87,7 @@ const BlogPage = () => {
                       )}
                       {post.category_name && (
                         <div className="absolute top-4 left-4 z-10">
-                          <span className="inline-block px-3 py-1 rounded-full bg-[#D4AF37] text-white text-xs font-medium">
+                          <span className="inline-block px-3 py-1 rounded-full bg-[#D4AF37] text-[#1a1a1a] text-xs font-medium">
                             {post.category_name}
                           </span>
                         </div>

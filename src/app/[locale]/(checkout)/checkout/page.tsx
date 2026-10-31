@@ -318,14 +318,14 @@ const CheckoutPage = () => {
         <div className="mb-8">
           <ol className="flex items-center justify-center gap-2 sm:gap-4" aria-label="Pasos de la compra">
             <li className="flex items-center" aria-current="step">
-              <div className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-full bg-[#D4AF37] text-white font-semibold">
+              <div className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-full bg-[#D4AF37] text-[#1a1a1a] font-semibold">
                 1
               </div>
               <span className="ml-2 text-sm font-medium text-foreground">Envío</span>
             </li>
             <li aria-hidden="true" className="w-6 sm:w-16 h-1 bg-[#D4AF37]"></li>
             <li className="flex items-center">
-              <div className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-full bg-[#D4AF37] text-white font-semibold">
+              <div className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-full bg-[#D4AF37] text-[#1a1a1a] font-semibold">
                 2
               </div>
               <span className="ml-2 text-sm font-medium text-foreground">Pago</span>
@@ -546,7 +546,7 @@ const CheckoutPage = () => {
                         type="button"
                         onClick={startPayment}
                         disabled={isLoading || !isShippingComplete}
-                        className="w-full bg-[#D4AF37] hover:bg-[#B8941E] text-white"
+                        className="w-full bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a]"
                         size="lg"
                       >
                         {isLoading ? "Preparando pago..." : "Continuar al pago con tarjeta"}

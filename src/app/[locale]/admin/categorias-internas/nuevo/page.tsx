@@ -162,7 +162,7 @@ export default function NewInternalCategoryPage() {
           </Button>
           <Button
             type="submit"
-            className="bg-[#D4AF37] hover:bg-[#B8941E] text-white"
+            className="bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a]"
             disabled={isLoading}
           >
             {isLoading ? (

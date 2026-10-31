@@ -423,7 +423,7 @@ const MessagesPage = () => {
                 />
                 <Button
                   onClick={handleSaveNotes}
-                  className="mt-2 bg-[#D4AF37] hover:bg-[#B8941E]"
+                  className="mt-2 bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a]"
                   size="sm"
                 >
                   {t('saveNotes')}

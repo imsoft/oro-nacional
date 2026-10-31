@@ -62,7 +62,7 @@ const HeroSection = () => {
                   {t('description')}
                 </p>
                 <div className="mt-7 flex items-center justify-center gap-x-6 animate-[fade-in-up_1s_ease-out_0.6s_both]">
-                  <Button asChild size="lg" className="bg-[#D4AF37] hover:bg-[#B8941E] text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl">
+                  <Button asChild size="lg" className="bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a] shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl">
                     <Link href="/catalog">{t('ctaPrimary')}</Link>
                   </Button>
                   <Link

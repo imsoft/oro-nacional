@@ -121,7 +121,7 @@ const MyOrdersPage = () => {
             </p>
             <Button
               asChild
-              className="bg-[#D4AF37] hover:bg-[#B8941E] text-white"
+              className="bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a]"
             >
               <Link href="/catalog">
                 <ShoppingBag className="mr-2 h-5 w-5" />

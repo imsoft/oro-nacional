@@ -114,7 +114,7 @@ const ResetPasswordPage = () => {
                 <Button
                   asChild
                   size="lg"
-                  className="w-full bg-[#D4AF37] hover:bg-[#B8941E] text-white"
+                  className="w-full bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a]"
                 >
                   <Link href="/login">{t('backToLoginButton')}</Link>
                 </Button>
@@ -202,7 +202,7 @@ const ResetPasswordPage = () => {
               <Button
                 type="submit"
                 size="lg"
-                className="w-full bg-[#D4AF37] hover:bg-[#B8941E] text-white"
+                className="w-full bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a]"
                 disabled={isLoading}
               >
                 {isLoading ? t('sending') : t('submit')}
@@ -227,7 +227,7 @@ const ResetPasswordPage = () => {
                 asChild
                 variant="outline"
                 size="lg"
-                className="w-full border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white"
+                className="w-full border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#1a1a1a]"
               >
                 <Link href="/register">{t('createAccount')}</Link>
               </Button>

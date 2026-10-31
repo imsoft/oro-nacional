@@ -69,7 +69,7 @@ const ArtisanProcess = () => {
                     <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#D4AF37]/10 lg:h-20 lg:w-20">
                       <step.icon className="h-8 w-8 text-[#D4AF37] lg:h-10 lg:w-10" />
                     </div>
-                    <div className="absolute -top-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full bg-[#D4AF37] text-xs font-bold text-white">
+                    <div className="absolute -top-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full bg-[#D4AF37] text-xs font-bold text-[#1a1a1a]">
                       {step.number}
                     </div>
                   </div>

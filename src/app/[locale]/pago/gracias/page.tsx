@@ -48,7 +48,7 @@ const ThanksContent = () => {
           </div>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-            <Button asChild className="bg-[#D4AF37] text-white hover:bg-[#B8941E]">
+            <Button asChild className="bg-[#D4AF37] text-[#1a1a1a] hover:bg-[#B8941E]">
               <Link href="/">
                 <Home className="mr-2 h-4 w-4" />
                 {t("backHome")}

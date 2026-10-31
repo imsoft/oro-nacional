@@ -118,7 +118,7 @@ const Navbar = () => {
                     >
                       <span>{t("cart")}</span>
                       {itemCount > 0 && (
-                        <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-[#D4AF37] rounded-full">
+                        <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-[#1a1a1a] bg-[#D4AF37] rounded-full">
                           {itemCount}
                         </span>
                       )}
@@ -155,7 +155,7 @@ const Navbar = () => {
                         >
                           <span>{t("favorites")}</span>
                           {favoriteCount > 0 && (
-                            <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-[#D4AF37] rounded-full">
+                            <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-[#1a1a1a] bg-[#D4AF37] rounded-full">
                               {favoriteCount}
                             </span>
                           )}
@@ -219,7 +219,7 @@ const Navbar = () => {
             <ShoppingCart className="h-5 w-5" />
             <span>{t("cart")}</span>
             {itemCount > 0 && (
-              <span className="absolute -top-2 -right-2 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-[#D4AF37] rounded-full">
+              <span className="absolute -top-2 -right-2 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-[#1a1a1a] bg-[#D4AF37] rounded-full">
                 {itemCount}
               </span>
             )}
@@ -235,7 +235,7 @@ const Navbar = () => {
                 >
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={user?.avatarUrl} alt={user?.name} />
-                    <AvatarFallback className="bg-[#D4AF37] text-white text-sm font-semibold">
+                    <AvatarFallback className="bg-[#D4AF37] text-[#1a1a1a] text-sm font-semibold">
                       {user?.name?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
@@ -249,7 +249,7 @@ const Navbar = () => {
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
                       <AvatarImage src={user?.avatarUrl} alt={user?.name} />
-                      <AvatarFallback className="bg-[#D4AF37] text-white font-semibold">
+                      <AvatarFallback className="bg-[#D4AF37] text-[#1a1a1a] font-semibold">
                         {user?.name?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
@@ -291,7 +291,7 @@ const Navbar = () => {
                     <span className="flex items-center justify-between w-full">
                       {t("favorites")}
                       {favoriteCount > 0 && (
-                        <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-[#D4AF37] rounded-full">
+                        <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-[#1a1a1a] bg-[#D4AF37] rounded-full">
                           {favoriteCount}
                         </span>
                       )}
@@ -318,7 +318,7 @@ const Navbar = () => {
               </Link>
               <Link
                 href="/register"
-                className="rounded-md bg-[#D4AF37] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#B8941E] transition-colors"
+                className="rounded-md bg-[#D4AF37] px-4 py-2 text-sm font-semibold text-[#1a1a1a] shadow-sm hover:bg-[#B8941E] transition-colors"
               >
                 {t("createAccount")}
               </Link>

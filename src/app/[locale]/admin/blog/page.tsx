@@ -107,7 +107,7 @@ export default function BlogAdmin() {
           </p>
         </div>
         <Link href="/admin/blog/nuevo">
-          <Button className="bg-[#D4AF37] hover:bg-[#B8941E] text-white">
+          <Button className="bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a]">
             <Plus className="mr-2 h-5 w-5" />
             {t('newPost')}
           </Button>

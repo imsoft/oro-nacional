@@ -120,7 +120,7 @@ function SortableImageItem({
           size="sm"
           className={`${
             image.is_primary
-              ? "bg-[#D4AF37] hover:bg-[#B8941E]"
+              ? "bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a]"
               : "bg-white/90 hover:bg-white"
           }`}
           onClick={onSetPrimary}
@@ -147,7 +147,7 @@ function SortableImageItem({
 
       {/* Badge de imagen principal */}
       {image.is_primary && (
-        <div className="absolute bottom-2 left-2 bg-[#D4AF37] text-white text-xs px-2 py-1 rounded font-medium">
+        <div className="absolute bottom-2 left-2 bg-[#D4AF37] text-[#1a1a1a] text-xs px-2 py-1 rounded font-medium">
           {t('productForm.primaryImage') || 'Principal'}
         </div>
       )}
