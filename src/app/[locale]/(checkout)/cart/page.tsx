@@ -2,7 +2,7 @@
 
 import { Link } from "@/i18n/routing";
 import { useTranslations } from 'next-intl';
-import { ShoppingBag, ArrowLeft } from "lucide-react";
+import { ShoppingBag, ArrowLeft, Package, BadgeCheck } from "lucide-react";
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
 import CartItem from "@/components/cart/cart-item";
@@ -121,7 +121,7 @@ const CartPage = () => {
 
           <div className="rounded-lg bg-card p-6 text-center shadow-sm">
             <div className="mx-auto w-12 h-12 rounded-full bg-[#D4AF37]/10 flex items-center justify-center mb-4">
-              <span className="text-2xl">📦</span>
+              <Package className="h-6 w-6 text-[#D4AF37]" aria-hidden="true" />
             </div>
             <h3 className="font-semibold text-foreground mb-2">
               {t('premiumPackaging')}
@@ -133,7 +133,7 @@ const CartPage = () => {
 
           <div className="rounded-lg bg-card p-6 text-center shadow-sm">
             <div className="mx-auto w-12 h-12 rounded-full bg-[#D4AF37]/10 flex items-center justify-center mb-4">
-              <span className="text-2xl">✓</span>
+              <BadgeCheck className="h-6 w-6 text-[#D4AF37]" aria-hidden="true" />
             </div>
             <h3 className="font-semibold text-foreground mb-2">
               {t('certificateIncluded')}

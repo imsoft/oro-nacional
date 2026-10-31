@@ -120,7 +120,7 @@ const UpdatePasswordPage = () => {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
-      <main className="flex-1 flex items-center justify-center px-6 py-12 pt-32">
+      <main className="flex-1 flex items-center justify-center px-6 pt-40 pb-16">
         <div className="w-full max-w-md">
           {status === "checking" && (
             <div className="text-center">

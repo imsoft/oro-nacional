@@ -289,7 +289,7 @@ const MessagesPage = () => {
         </div>
 
         <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as MessageStatus | "all")}>
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full sm:w-56">
             <SelectValue placeholder={t('filterByStatus')} />
           </SelectTrigger>
           <SelectContent>

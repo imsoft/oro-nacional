@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useSyncExternalStore } from "react";
 import { useRouter, Link } from "@/i18n/routing";
 import { useLocale } from "next-intl";
 import Image from "next/image";
@@ -125,12 +125,20 @@ const CheckoutPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // El carrito se lee de localStorage después de hidratar: hasta entonces
+  // `items` llega vacío y no debe redirigirse (p. ej. al recargar /checkout).
+  const hasMounted = useSyncExternalStore(
+    (onChange) => useCartStore.persist.onFinishHydration(onChange),
+    () => useCartStore.persist.hasHydrated(),
+    () => false
+  );
+
   useEffect(() => {
     // Redirigir si el carrito está vacío
-    if (items.length === 0) {
+    if (hasMounted && items.length === 0) {
       router.push("/cart");
     }
-  }, [items, router]);
+  }, [hasMounted, items, router]);
 
   const handleShippingChange = (field: string, value: string) => {
     setShippingData((prev) => ({ ...prev, [field]: value }));
@@ -288,7 +296,7 @@ const CheckoutPage = () => {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
-      <main className="flex-1 mx-auto max-w-7xl px-6 lg:px-8 py-24 lg:py-32">
+      <main className="flex-1 w-full mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-32 pb-24 lg:pt-36 lg:pb-32">
         {/* Header */}
         <div className="mb-8">
           <Link
@@ -308,36 +316,36 @@ const CheckoutPage = () => {
 
         {/* Progress Steps */}
         <div className="mb-8">
-          <div className="flex items-center justify-center gap-4">
-            <div className="flex items-center">
-              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-[#D4AF37] text-white font-semibold">
+          <ol className="flex items-center justify-center gap-2 sm:gap-4" aria-label="Pasos de la compra">
+            <li className="flex items-center" aria-current="step">
+              <div className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-full bg-[#D4AF37] text-white font-semibold">
                 1
               </div>
               <span className="ml-2 text-sm font-medium text-foreground">Envío</span>
-            </div>
-            <div className="w-16 h-1 bg-[#D4AF37]"></div>
-            <div className="flex items-center">
-              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-[#D4AF37] text-white font-semibold">
+            </li>
+            <li aria-hidden="true" className="w-6 sm:w-16 h-1 bg-[#D4AF37]"></li>
+            <li className="flex items-center">
+              <div className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-full bg-[#D4AF37] text-white font-semibold">
                 2
               </div>
               <span className="ml-2 text-sm font-medium text-foreground">Pago</span>
-            </div>
-            <div className="w-16 h-1 bg-muted"></div>
-            <div className="flex items-center">
-              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-muted text-muted-foreground font-semibold">
+            </li>
+            <li aria-hidden="true" className="w-6 sm:w-16 h-1 bg-muted"></li>
+            <li className="flex items-center">
+              <div className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-full bg-muted text-muted-foreground font-semibold">
                 3
               </div>
               <span className="ml-2 text-sm font-medium text-muted-foreground">Confirmación</span>
-            </div>
-          </div>
+            </li>
+          </ol>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Formulario */}
-            <div className="lg:col-span-2 space-y-8">
+            <div className="min-w-0 lg:col-span-2 space-y-8">
               {/* Datos de Envío */}
-              <div className="rounded-2xl bg-card p-6 lg:p-8 shadow-lg">
+              <div className="rounded-2xl bg-card p-5 sm:p-6 lg:p-8 shadow-lg">
                 <div className="flex items-center gap-3 mb-6">
                   <Truck className="h-6 w-6 text-[#D4AF37]" />
                   <h2 className="text-xl font-semibold text-foreground">
@@ -351,6 +359,7 @@ const CheckoutPage = () => {
                     <Input
                       disabled={Boolean(pending)}
                       id="fullName"
+                      autoComplete="name"
                       value={shippingData.fullName}
                       onChange={(e) => handleShippingChange("fullName", e.target.value)}
                       placeholder="Juan Pérez García"
@@ -363,6 +372,7 @@ const CheckoutPage = () => {
                     <Input
                       disabled={Boolean(pending)}
                       id="email"
+                      autoComplete="email"
                       type="email"
                       value={shippingData.email}
                       onChange={(e) => handleShippingChange("email", e.target.value)}
@@ -376,6 +386,7 @@ const CheckoutPage = () => {
                     <Input
                       disabled={Boolean(pending)}
                       id="phone"
+                      autoComplete="tel"
                       type="tel"
                       value={shippingData.phone}
                       onChange={(e) => handleShippingChange("phone", e.target.value)}
@@ -389,6 +400,7 @@ const CheckoutPage = () => {
                     <Input
                       disabled={Boolean(pending)}
                       id="whatsapp"
+                      autoComplete="tel"
                       type="tel"
                       value={shippingData.whatsapp}
                       onChange={(e) => handleShippingChange("whatsapp", e.target.value)}
@@ -405,6 +417,7 @@ const CheckoutPage = () => {
                     <Input
                       disabled={Boolean(pending)}
                       id="street"
+                      autoComplete="address-line1"
                       value={shippingData.street}
                       onChange={(e) => handleShippingChange("street", e.target.value)}
                       placeholder="Magno centro joyero, San Juan de Dios"
@@ -417,6 +430,7 @@ const CheckoutPage = () => {
                     <Input
                       disabled={Boolean(pending)}
                       id="number"
+                      autoComplete="address-line2"
                       value={shippingData.number}
                       onChange={(e) => handleShippingChange("number", e.target.value)}
                       placeholder="123"
@@ -429,6 +443,7 @@ const CheckoutPage = () => {
                     <Input
                       disabled={Boolean(pending)}
                       id="colony"
+                      autoComplete="address-level3"
                       value={shippingData.colony}
                       onChange={(e) => handleShippingChange("colony", e.target.value)}
                       placeholder="Centro"
@@ -441,6 +456,7 @@ const CheckoutPage = () => {
                     <Input
                       disabled={Boolean(pending)}
                       id="city"
+                      autoComplete="address-level2"
                       value={shippingData.city}
                       onChange={(e) => handleShippingChange("city", e.target.value)}
                       placeholder="Guadalajara"
@@ -453,6 +469,7 @@ const CheckoutPage = () => {
                     <Input
                       disabled={Boolean(pending)}
                       id="state"
+                      autoComplete="address-level1"
                       value={shippingData.state}
                       onChange={(e) => handleShippingChange("state", e.target.value)}
                       placeholder="Jalisco"
@@ -465,6 +482,8 @@ const CheckoutPage = () => {
                     <Input
                       disabled={Boolean(pending)}
                       id="zipCode"
+                      autoComplete="postal-code"
+                      inputMode="numeric"
                       value={shippingData.zipCode}
                       onChange={(e) => handleShippingChange("zipCode", e.target.value)}
                       placeholder="44100"
@@ -475,7 +494,7 @@ const CheckoutPage = () => {
               </div>
 
               {/* Método de Pago */}
-              <div className="rounded-2xl bg-card p-6 lg:p-8 shadow-lg">
+              <div className="rounded-2xl bg-card p-5 sm:p-6 lg:p-8 shadow-lg">
                 <div className="flex items-center gap-3 mb-6">
                   <CreditCard className="h-6 w-6 text-[#D4AF37]" />
                   <h2 className="text-xl font-semibold text-foreground">
@@ -544,7 +563,7 @@ const CheckoutPage = () => {
 
               {/* Error */}
               {error && (
-                <div className="flex items-center gap-2 p-4 rounded-lg bg-red-50 border border-red-200">
+                <div role="alert" className="flex items-center gap-2 p-4 rounded-lg bg-red-50 border border-red-200">
                   <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
                   <p className="text-sm text-red-600">{error}</p>
                 </div>
@@ -552,7 +571,7 @@ const CheckoutPage = () => {
             </div>
 
             {/* Resumen */}
-            <div className="lg:col-span-1">
+            <div className="min-w-0 lg:col-span-1">
               <div className="rounded-2xl bg-card p-6 shadow-lg sticky top-24">
                 <h2 className="text-xl font-semibold text-foreground mb-6">
                   Resumen del Pedido

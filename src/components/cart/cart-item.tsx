@@ -30,9 +30,9 @@ const CartItem = ({ item }: CartItemProps) => {
       </Link>
 
       {/* Información */}
-      <div className="flex flex-1 flex-col">
-        <div className="flex justify-between">
-          <div className="flex-1">
+      <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex flex-col gap-2 sm:flex-row sm:justify-between">
+          <div className="min-w-0 flex-1">
             <Link
               href={`/product/${item.slug}`}
               className="font-semibold text-foreground hover:text-[#D4AF37] transition-colors"
@@ -48,8 +48,8 @@ const CartItem = ({ item }: CartItemProps) => {
           </div>
 
           {/* Precio */}
-          <div className="text-right">
-            <p className="font-semibold text-foreground">
+          <div className="sm:text-right">
+            <p className="font-semibold text-foreground tabular-nums">
               {formatPrice(unitPrice * item.quantity)}
             </p>
             <p className="text-xs text-muted-foreground">
@@ -59,21 +59,23 @@ const CartItem = ({ item }: CartItemProps) => {
         </div>
 
         {/* Controles de cantidad y eliminar */}
-        <div className="mt-4 flex items-center justify-between">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="icon"
-              className="h-8 w-8"
+              className="h-10 w-10"
+              aria-label="Quitar una pieza"
               onClick={() => updateQuantity(item.id, item.quantity - 1, item.size)}
             >
               <Minus className="h-4 w-4" />
             </Button>
-            <span className="w-12 text-center font-medium">{item.quantity}</span>
+            <span className="w-10 text-center font-medium tabular-nums" aria-live="polite">{item.quantity}</span>
             <Button
               variant="outline"
               size="icon"
-              className="h-8 w-8"
+              className="h-10 w-10"
+              aria-label="Agregar una pieza"
               onClick={() => updateQuantity(item.id, item.quantity + 1, item.size)}
             >
               <Plus className="h-4 w-4" />

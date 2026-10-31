@@ -108,7 +108,7 @@ const ConfirmationPage = () => {
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
 
-        <main className="flex-1 flex items-center justify-center px-6 pt-32 pb-24">
+        <main className="flex-1 flex items-center justify-center px-6 pt-40 pb-24">
           <div className="w-full max-w-md text-center">
             <div className="mx-auto w-24 h-24 rounded-full bg-muted flex items-center justify-center mb-6">
               {content.icon}
@@ -148,7 +148,7 @@ const ConfirmationPage = () => {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
-      <main className="flex-1 flex items-center justify-center px-6 pt-32 pb-24">
+      <main className="flex-1 flex items-center justify-center px-6 pt-40 pb-24">
         <div className="w-full max-w-2xl">
           {/* Success Icon */}
           <div className="text-center mb-8">

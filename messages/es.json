@@ -1548,13 +1548,13 @@
       "amount": "Monto a cobrar",
       "description": "Descripción",
       "descriptionPlaceholder": "Ej. Anticipo de anillo de compromiso",
-      "descriptionOptionalPlaceholder": "Ej. Pedido especial de Mariana (opcional)",
+      "descriptionOptionalPlaceholder": "Ej. Pedido especial de Mariana",
       "currency": "Moneda",
       "customerData": "Datos del cliente (opcional)",
       "customerName": "Nombre",
       "customerEmail": "Correo electrónico",
       "customerWhatsapp": "WhatsApp",
-      "whatsappHint": "Con lada, ej. 5213312345678",
+      "whatsappHint": "10 dígitos, ej. 33 1234 5678",
       "estimatedTotal": "Total estimado",
       "previewNote": "Vista previa: el total definitivo lo calcula el servidor con los precios actuales.",
       "generate": "Generar enlace de pago",
@@ -1605,7 +1605,8 @@
       "breakdownPlan": "Plan",
       "breakdownPlanFee": "Comisión extra (+IVA)",
       "breakdownMonths": "{months} meses",
-      "breakdownPlanMin": "Solo en compras desde {min}"
+      "breakdownPlanMin": "Solo en compras desde {min}",
+      "optional": "(opcional)"
     }
   },
   "paymentLink": {

@@ -1556,13 +1556,13 @@
       "amount": "Amount to charge",
       "description": "Description",
       "descriptionPlaceholder": "E.g. Engagement ring deposit",
-      "descriptionOptionalPlaceholder": "E.g. Mariana's special order (optional)",
+      "descriptionOptionalPlaceholder": "e.g. Special order for Mariana",
       "currency": "Currency",
       "customerData": "Customer details (optional)",
       "customerName": "Name",
       "customerEmail": "Email",
       "customerWhatsapp": "WhatsApp",
-      "whatsappHint": "With country code, e.g. 5213312345678",
+      "whatsappHint": "10 digits, e.g. 33 1234 5678",
       "estimatedTotal": "Estimated total",
       "previewNote": "Preview: the final total is calculated on the server with current prices.",
       "generate": "Generate payment link",
@@ -1613,7 +1613,8 @@
       "breakdownPlan": "Plan",
       "breakdownPlanFee": "Extra fee (+VAT)",
       "breakdownMonths": "{months} months",
-      "breakdownPlanMin": "Only for purchases from {min}"
+      "breakdownPlanMin": "Only for purchases from {min}",
+      "optional": "(optional)"
     }
   },
   "paymentLink": {

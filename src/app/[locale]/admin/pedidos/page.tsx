@@ -252,7 +252,7 @@ export default function OrdersAdmin() {
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full sm:w-56">
             <SelectValue placeholder={t('status')} />
           </SelectTrigger>
           <SelectContent>

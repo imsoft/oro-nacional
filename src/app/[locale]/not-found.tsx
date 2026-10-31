@@ -11,7 +11,7 @@ export default async function NotFound() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      <main className="flex-1 flex items-center justify-center px-6 pt-32 pb-24">
+      <main className="flex-1 flex items-center justify-center px-6 pt-40 pb-24">
         <div className="text-center max-w-md">
           <div className="mx-auto w-24 h-24 rounded-full bg-[#D4AF37]/10 flex items-center justify-center mb-6">
             <Search className="h-12 w-12 text-[#D4AF37]" />

@@ -489,7 +489,7 @@ export default function PaymentLinksAdmin() {
         <p className="text-muted-foreground">{t("subtitle")}</p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+      <div className={`grid gap-6 ${result ? "lg:grid-cols-[1fr_380px]" : ""}`}>
         {/* Formulario */}
         <form onSubmit={handleSubmit} className="rounded-lg border bg-card p-6 space-y-6">
           <Tabs value={mode} onValueChange={(value) => setMode(value as Mode)}>
@@ -640,7 +640,9 @@ export default function PaymentLinksAdmin() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description-products">{t("description")}</Label>
+                <Label htmlFor="description-products">
+                  {t("description")} <span className="font-normal text-muted-foreground">{t("optional")}</span>
+                </Label>
                 <Input
                   id="description-products"
                   value={description}
@@ -654,9 +656,12 @@ export default function PaymentLinksAdmin() {
             <TabsContent value="amount" className="space-y-4 pt-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="amount">{t("amount")}</Label>
+                  <Label htmlFor="amount">
+                    {t("amount")} <span className="text-red-600" aria-hidden="true">*</span>
+                  </Label>
                   <Input
                     id="amount"
+                    required
                     type="number"
                     min={0.01}
                     step={0.01}
@@ -667,9 +672,12 @@ export default function PaymentLinksAdmin() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="description-amount">{t("description")}</Label>
+                  <Label htmlFor="description-amount">
+                    {t("description")} <span className="text-red-600" aria-hidden="true">*</span>
+                  </Label>
                   <Input
                     id="description-amount"
+                    required
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder={t("descriptionPlaceholder")}
@@ -703,6 +711,7 @@ export default function PaymentLinksAdmin() {
                 <Label htmlFor="customer-name">{t("customerName")}</Label>
                 <Input
                   id="customer-name"
+                  autoComplete="off"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
                   maxLength={200}
@@ -712,6 +721,7 @@ export default function PaymentLinksAdmin() {
                 <Label htmlFor="customer-email">{t("customerEmail")}</Label>
                 <Input
                   id="customer-email"
+                  autoComplete="off"
                   type="email"
                   value={customerEmail}
                   onChange={(e) => setCustomerEmail(e.target.value)}
@@ -722,6 +732,8 @@ export default function PaymentLinksAdmin() {
                 <Label htmlFor="customer-whatsapp">{t("customerWhatsapp")}</Label>
                 <Input
                   id="customer-whatsapp"
+                  autoComplete="off"
+                  inputMode="tel"
                   type="tel"
                   value={customerWhatsapp}
                   onChange={(e) => setCustomerWhatsapp(e.target.value)}
@@ -768,7 +780,7 @@ export default function PaymentLinksAdmin() {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="bg-[#D4AF37] text-black hover:bg-[#B8941F]"
+              className="bg-[#D4AF37] text-white hover:bg-[#B8941E]"
             >
               {isSubmitting ? (
                 <>
@@ -785,13 +797,17 @@ export default function PaymentLinksAdmin() {
           </div>
         </form>
 
-        {/* Resultado */}
-        <aside className="rounded-lg border bg-card p-6 h-fit space-y-4">
-          <h3 className="font-semibold flex items-center gap-2">
-            <Check className="h-5 w-5 text-[#D4AF37]" />
+        {/* Resultado: solo aparece cuando ya hay un enlace (antes mostraba una palomita vacía) */}
+        {result && (
+        <aside
+          className="rounded-lg border border-green-200 bg-card p-6 h-fit space-y-4 order-first lg:order-none lg:sticky lg:top-4"
+          aria-live="polite"
+        >
+          <h3 className="font-semibold flex items-center gap-2 text-green-700">
+            <Check className="h-5 w-5" aria-hidden="true" />
             {t("linkReady")}
           </h3>
-          {result ? (
+          {(
             <div className="space-y-4">
               <div>
                 <p className="text-sm text-muted-foreground">{t("order")}</p>
@@ -811,7 +827,7 @@ export default function PaymentLinksAdmin() {
                 installments={result.installmentsEnabled}
                 t={t}
               />
-              <div className="rounded-md bg-muted p-3 text-xs break-all">{result.url}</div>
+              <div className="rounded-md bg-muted p-3 text-xs [overflow-wrap:anywhere] select-all font-mono">{result.url}</div>
               <p className="text-xs text-muted-foreground">
                 {t("expiresAt", { date: formatDate(result.expiresAt) })}
               </p>
@@ -836,10 +852,9 @@ export default function PaymentLinksAdmin() {
                 </Button>
               </div>
             </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">{t("resultHint")}</p>
           )}
         </aside>
+        )}
       </div>
 
       {/* Historial */}
