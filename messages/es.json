@@ -52,7 +52,7 @@
     },
     "financing": {
       "title": "Pagos Flexibles",
-      "description": "Todas las tarjetas con planes a meses sin intereses"
+      "description": "Pago a meses con intereses con tarjetas de crédito participantes"
     }
   },
   "cta": {
@@ -359,11 +359,11 @@
       "purchase": {
         "payment": {
           "q": "¿Qué métodos de pago aceptan?",
-          "a": "Aceptamos todas las tarjetas de crédito y débito (Visa, Mastercard, American Express). También ofrecemos meses sin intereses en compras mayores a $3,000 MXN con tarjetas participantes."
+          "a": "Aceptamos todas las tarjetas de crédito y débito (Visa, Mastercard, American Express). También ofrecemos pago a meses con intereses en compras mayores a $3,000 MXN con tarjetas participantes."
         },
         "installments": {
-          "q": "¿Puedo pagar a meses sin intereses?",
-          "a": "Sí, ofrecemos planes de 3, 6, 9 y 12 meses sin intereses en compras mayores a $3,000 MXN con tarjetas Visa, Mastercard y American Express participantes. Las opciones disponibles se muestran al momento del pago."
+          "q": "¿Puedo pagar a meses?",
+          "a": "Sí, ofrecemos pago a 3, 6 y 12 meses con intereses en compras mayores a $3,000 MXN con tarjetas Visa, Mastercard y American Express participantes. El costo del financiamiento se suma al precio y el pago se hace con un enlace de pago; pídelo por WhatsApp."
         },
         "secure": {
           "q": "¿Es seguro comprar en línea?",
@@ -864,7 +864,7 @@
     "monthlyPayment": "Pago mensual",
     "totalToPay": "Total a pagar",
     "interestApplied": "Intereses aplicados ({rate}%)",
-    "cashDiscount": "Precio de contado (sin intereses)"
+    "cashDiscount": "Precio de contado"
   },
   "catalog": {
     "title": "Catálogo de Joyería",
@@ -925,16 +925,16 @@
     "priceOnRequestHint": "Contáctanos para conocer el precio de esta pieza.",
     "contactUs": "Contáctanos",
     "uncategorized": "Sin categoría",
-    "installmentOptions": "Opciones de Pago a Meses",
+    "installmentOptions": "Pago a meses con intereses",
     "payInFull": "De contado",
-    "zeroInterest": "0% interés",
+    "zeroInterest": "Sin costo extra",
     "months": "{count} meses",
-    "interestRate": "{rate}% interés",
+    "interestRate": "+{rate}%",
     "monthlyPayment": "Pago mensual ({count} meses):",
     "totalToPay": "Total a pagar:",
-    "includesInterest": "Incluye intereses del {rate}%:",
-    "payInFullNoInterest": "Pago de contado (sin intereses):",
-    "bestPrice": "✓ Mejor precio disponible",
+    "includesInterest": "Costo de financiamiento:",
+    "payInFullNoInterest": "Pago de contado:",
+    "bestPrice": "Mejor precio disponible",
     "saved": "Guardado",
     "share": "Compartir",
     "addedToCart": "¡Producto agregado al carrito!",
@@ -986,7 +986,11 @@
     "previousImage": "Imagen anterior",
     "nextImage": "Imagen siguiente",
     "relatedTitle": "Productos Relacionados",
-    "relatedSubtitle": "También te puede interesar"
+    "relatedSubtitle": "También te puede interesar",
+    "installmentsViaLink": "El pago a meses se hace con un enlace de pago con tarjeta de crédito participante. Pídelo por WhatsApp.",
+    "installmentsMinimum": "Este plazo requiere una compra mínima de {min}.",
+    "installmentsRequest": "Pedir enlace a meses",
+    "installmentsWhatsapp": "Hola, quiero pagar {product} a {months} meses con intereses ({total})."
   },
   "featuredCollection": {
     "title": "Nuestra Colección de Joyería de Oro",
@@ -1589,24 +1593,27 @@
       "validationAmount": "Escribe un monto mayor a cero",
       "validationDescription": "Escribe una descripción del cobro",
       "resultHint": "Aquí aparecerá el enlace cuando lo generes.",
-      "breakdownTitle": "Desglose de Stripe",
-      "breakdownCustomerPays": "El cliente paga",
-      "breakdownStripeFee": "Comisión de Stripe ({percentage} + {fixed})",
-      "breakdownVat": "IVA sobre la comisión (16 %)",
-      "breakdownNet": "Te queda",
-      "breakdownNote": "Estimado con la comisión configurada en la calculadora de precios. Stripe puede cobrar un poco más en tarjetas internacionales o pagos en USD; el monto exacto aparece en tu panel de Stripe.",
-      "installmentsLabel": "Permitir meses sin intereses",
-      "installmentsHint": "El cliente podrá elegir pagar a meses con su tarjeta. Los planes disponibles (3, 6, 9, 12…) se configuran en Stripe → Configuración → Métodos de pago → Meses sin intereses.",
-      "installmentsOnlyMxn": "Stripe solo ofrece meses sin intereses en pesos (MXN).",
-      "installmentsBadge": "MSI habilitados",
+      "breakdownTitle": "Desglose estimado de Stripe",
+      "breakdownStripeFee": "Comisión de Stripe ({percentage} + {fixed} + IVA)",
+      "breakdownNet": "Tú recibes (aprox.)",
+      "breakdownNote": "Estimado con las comisiones configuradas. El monto exacto aparece en tu panel de Stripe.",
+      "installmentsLabel": "Meses con intereses",
+      "installmentsHint": "Habilita esta opción para cobrar a meses. El costo del financiamiento se suma al precio y lo paga el cliente.",
+      "installmentsOnlyMxn": "Los pagos a meses solo están disponibles en pesos (MXN).",
+      "installmentsBadge": "A {months} meses con intereses",
       "paidInMonths": "Pagado a {months} meses",
-      "breakdownInstallmentsTitle": "Si el cliente paga a meses",
-      "breakdownInstallmentsHint": "Planes activos en Stripe. Stripe cobra una comisión extra según el plan que elija el cliente; el cliente no paga intereses.",
-      "breakdownPlan": "Plan",
-      "breakdownPlanFee": "Comisión extra (+IVA)",
-      "breakdownMonths": "{months} meses",
-      "breakdownPlanMin": "Solo en compras desde {min}",
-      "optional": "(opcional)"
+      "breakdownPlanMin": "Stripe pide un total mínimo de {min} para este plazo",
+      "optional": "(opcional)",
+      "installmentsPlanLabel": "Selecciona el plazo",
+      "installmentsPlanOption": "{months} meses con intereses (+{rate}%)",
+      "breakdownBase": "Precio original",
+      "breakdownFinancing": "Incremento por financiamiento ({months} meses)",
+      "breakdownLinkTotal": "Total del enlace de pago",
+      "breakdownMonthly": "En {months} pagos de {monthly}",
+      "breakdownFinancingFee": "Comisión de financiamiento ({rate}% + IVA)",
+      "breakdownEmpty": "Agrega productos o un monto para ver el desglose.",
+      "generateNoteInstallments": "El enlace se generará por {total}, a {months} meses con intereses. Tú solo absorbes la comisión ordinaria de Stripe.",
+      "generateNoteCash": "El enlace se generará por {total}, de contado."
     }
   },
   "paymentLink": {
@@ -1615,7 +1622,39 @@
     "notice": "Recibirás un correo de confirmación con los detalles de tu compra. Nos pondremos en contacto contigo para coordinar la entrega.",
     "noOrder": "Tu pago fue recibido correctamente.",
     "backHome": "Volver al inicio",
-    "contact": "¿Tienes dudas? Escríbenos"
+    "contact": "¿Tienes dudas? Escríbenos",
+    "pay": {
+      "title": "Pago a meses con intereses",
+      "subtitle": "Completa tus datos y paga con tarjeta de crédito a {months} meses.",
+      "loading": "Cargando…",
+      "yourData": "Tus datos",
+      "name": "Nombre completo",
+      "email": "Correo electrónico",
+      "card": "Tarjeta de crédito",
+      "cardHint": "El plazo de {months} meses ya está fijado. Usa una tarjeta de crédito de un banco participante.",
+      "payButton": "Pagar {total} a {months} meses",
+      "paying": "Procesando pago…",
+      "secureNote": "Pago seguro procesado por Stripe. Oro Nacional no guarda los datos de tu tarjeta.",
+      "order": "Pedido",
+      "total": "Total a pagar",
+      "monthlyLine": "{months} pagos mensuales de {monthly}",
+      "financingNote": "El total incluye el costo de financiamiento a {months} meses.",
+      "errorCustomer": "Completa tu nombre, correo y WhatsApp para continuar.",
+      "errorGeneric": "No se pudo procesar el pago. Revisa los datos e intenta de nuevo.",
+      "errorDeclined": "El pago no se completó. Intenta con otra tarjeta o contáctanos.",
+      "contact": "Escríbenos por WhatsApp",
+      "whatsappMessage": "Hola, tengo una duda con el pago de mi pedido {order}.",
+      "notFoundTitle": "Enlace no encontrado",
+      "notFoundBody": "Revisa que el enlace esté completo o pide uno nuevo a Oro Nacional.",
+      "paidTitle": "Este enlace ya fue pagado",
+      "paidBody": "El pedido {order} ya está pagado. Si tienes dudas, escríbenos.",
+      "expiredTitle": "Este enlace ya venció",
+      "expiredBody": "Pide un enlace nuevo a Oro Nacional para completar tu compra.",
+      "cancelledTitle": "Este enlace fue cancelado",
+      "cancelledBody": "Escríbenos si quieres retomar tu compra.",
+      "unavailableTitle": "Pago no disponible",
+      "unavailableBody": "El pago con tarjeta no está disponible en este momento. Escríbenos para ayudarte."
+    }
   },
   "notFound": {
     "title": "Página no encontrada",

@@ -19,7 +19,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -43,6 +42,11 @@ import { getPricingParameters } from "@/lib/supabase/pricing";
 import type { ProductListItem, ProductSize } from "@/types/product";
 import { toast } from "sonner";
 import { normalizeWhatsAppNumber } from "@/lib/whatsapp";
+import {
+  INSTALLMENT_PLANS,
+  getFinancedTotal,
+  getStripeBreakdown,
+} from "@/lib/payment-links/installments";
 
 type Currency = "MXN" | "USD";
 type Mode = "products" | "amount";
@@ -61,7 +65,9 @@ interface GeneratedLink {
   expiresAt: string | null;
   total: number;
   currency: Currency;
+  baseAmount: number;
   installmentsEnabled: boolean;
+  installmentsMonths: number | null;
 }
 
 interface LinkRow {
@@ -78,50 +84,12 @@ interface LinkRow {
   expiresAt: string | null;
   installmentsEnabled: boolean;
   installmentsMonths: number | null;
+  installmentsPlan: number | null;
   createdAt: string;
 }
 
 const DEFAULT_EXCHANGE_RATE = 18;
 const NO_SIZE = "__none__";
-
-const STRIPE_FEE_VAT = 0.16; // IVA sobre la comisión de Stripe
-
-// Planes de meses sin intereses de Stripe México: comisión adicional para la
-// tienda (sobre el total, más IVA) y monto mínimo de compra que pide Stripe.
-// `enabled` debe coincidir con los planes activados en el Dashboard de Stripe
-// (Configuración → Métodos de pago → Meses sin intereses).
-const STRIPE_INSTALLMENT_FEES = [
-  { months: 3, rate: 0.05, minMXN: 300, enabled: true },
-  { months: 6, rate: 0.075, minMXN: 600, enabled: true },
-  { months: 9, rate: 0.1, minMXN: 900, enabled: false },
-  { months: 12, rate: 0.125, minMXN: 1200, enabled: true },
-  { months: 18, rate: 0.175, minMXN: 1800, enabled: false },
-  { months: 24, rate: 0.225, minMXN: 2400, enabled: false },
-];
-
-/**
- * Desglose de lo que cobra Stripe y lo que recibe la tienda.
- * La cuota fija está en MXN; para USD se convierte con el tipo de cambio.
- */
-const getStripeBreakdown = (
-  total: number,
-  currency: Currency,
-  fees: { percentage: number; fixedFeeMXN: number },
-  exchangeRate: number
-) => {
-  const fixedFee = currency === "USD" ? fees.fixedFeeMXN / exchangeRate : fees.fixedFeeMXN;
-  const commission = total > 0 ? total * fees.percentage + fixedFee : 0;
-  const vat = commission * STRIPE_FEE_VAT;
-  const stripeTotal = commission + vat;
-  return {
-    commission,
-    vat,
-    stripeTotal,
-    net: Math.max(0, total - stripeTotal),
-    percentageLabel: `${(fees.percentage * 100).toFixed(1)}%`,
-    fixedFee,
-  };
-};
 
 const formatMoney = (amount: number, currency: Currency) =>
   new Intl.NumberFormat(currency === "USD" ? "en-US" : "es-MX", {
@@ -157,84 +125,83 @@ const previewUnitPrice = (
   return fixedUsd ?? mxn / exchangeRate;
 };
 
-function StripeBreakdown({
-  total,
+/**
+ * Desglose del enlace: precio base, incremento por financiamiento (si es a
+ * meses), total que paga el cliente, comisiones de Stripe y neto estimado.
+ */
+function LinkBreakdown({
+  base,
   currency,
   fees,
   exchangeRate,
-  installments = false,
+  months,
   t,
 }: {
-  total: number;
+  base: number;
   currency: Currency;
   fees: { percentage: number; fixedFeeMXN: number };
   exchangeRate: number;
-  installments?: boolean;
+  months: number | null;
   t: ReturnType<typeof useTranslations>;
 }) {
-  if (total <= 0) return null;
-  const b = getStripeBreakdown(total, currency, fees, exchangeRate);
+  if (base <= 0) return null;
+  const financed = months && currency === "MXN" ? getFinancedTotal(base, months) : null;
+  const total = financed?.total ?? base;
+  const b = getStripeBreakdown({
+    total,
+    currency,
+    fees,
+    exchangeRate,
+    installmentRate: financed?.plan.rate ?? 0,
+  });
   const row = (label: string, value: string, cls = "") => (
     <div className={`flex items-center justify-between gap-4 ${cls}`}>
       <span className="text-muted-foreground">{label}</span>
-      <span className="font-medium tabular-nums">{value}</span>
+      <span className="font-medium tabular-nums whitespace-nowrap">{value}</span>
     </div>
   );
+
   return (
-    <div className="rounded-lg border border-border bg-muted/40 p-4 text-sm space-y-1.5">
-      <p className="font-semibold text-foreground mb-2">{t("breakdownTitle")}</p>
-      {row(t("breakdownCustomerPays"), formatMoney(total, currency))}
-      {row(
-        t("breakdownStripeFee", {
-          percentage: b.percentageLabel,
-          fixed: formatMoney(b.fixedFee, currency),
-        }),
-        `− ${formatMoney(b.commission, currency)}`
-      )}
-      {row(t("breakdownVat"), `− ${formatMoney(b.vat, currency)}`)}
-      <div className="border-t border-border pt-2 mt-2 flex items-center justify-between gap-4">
-        <span className="font-semibold text-foreground">{t("breakdownNet")}</span>
-        <span className="text-lg font-bold text-green-700 tabular-nums">{formatMoney(b.net, currency)}</span>
+    <div className="space-y-3 text-sm">
+      <div className="space-y-1.5">
+        {row(t("breakdownBase"), formatMoney(base, currency))}
+        {financed && row(t("breakdownFinancing", { months: financed.plan.months }), formatMoney(financed.financing, currency))}
       </div>
-      {installments && (
-        <div className="border-t border-border pt-3 mt-3 space-y-1">
-          <p className="font-medium text-foreground">{t("breakdownInstallmentsTitle")}</p>
-          <p className="text-xs text-muted-foreground mb-2">{t("breakdownInstallmentsHint")}</p>
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="text-muted-foreground">
-                <th className="text-left font-medium py-1">{t("breakdownPlan")}</th>
-                <th className="text-right font-medium py-1">{t("breakdownPlanFee")}</th>
-                <th className="text-right font-medium py-1">{t("breakdownNet")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {STRIPE_INSTALLMENT_FEES.filter((plan) => plan.enabled).map((plan) => {
-                const extra = total * plan.rate;
-                const extraVat = extra * STRIPE_FEE_VAT;
-                const net = Math.max(0, b.net - extra - extraVat);
-                return (
-                  <tr key={plan.months} className="border-t border-border/60">
-                    <td className="py-1">
-                      {t("breakdownMonths", { months: plan.months })}
-                      {total < plan.minMXN && (
-                        <span className="block text-[11px] text-amber-700">
-                          {t("breakdownPlanMin", { min: formatMoney(plan.minMXN, "MXN") })}
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-1 text-right tabular-nums">
-                      +{(plan.rate * 100).toFixed(1)}% · − {formatMoney(extra + extraVat, currency)}
-                    </td>
-                    <td className="py-1 text-right tabular-nums font-medium">{formatMoney(net, currency)}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+
+      <div className="rounded-lg bg-[#D4AF37]/10 border border-[#D4AF37]/30 p-3">
+        <div className="flex items-baseline justify-between gap-4">
+          <span className="font-semibold text-foreground">{t("breakdownLinkTotal")}</span>
+          <span className="text-2xl font-bold text-[#B8941E] tabular-nums">{formatMoney(total, currency)}</span>
         </div>
-      )}
-      <p className="text-xs text-muted-foreground pt-1">{t("breakdownNote")}</p>
+        {financed && (
+          <p className="text-xs text-muted-foreground mt-1">
+            {t("breakdownMonthly", { months: financed.plan.months, monthly: formatMoney(financed.monthly, currency) })}
+          </p>
+        )}
+        {financed && !financed.meetsMinimum && (
+          <p className="text-xs font-medium text-amber-700 mt-1">
+            {t("breakdownPlanMin", { min: formatMoney(financed.plan.minMXN, "MXN") })}
+          </p>
+        )}
+      </div>
+
+      <div className="space-y-1.5 border-t border-border pt-3">
+        <p className="font-medium text-foreground">{t("breakdownTitle")}</p>
+        {financed &&
+          row(
+            t("breakdownFinancingFee", { rate: (financed.plan.rate * 100).toFixed(1) }),
+            `− ${formatMoney(b.financingFee, currency)}`
+          )}
+        {row(
+          t("breakdownStripeFee", { percentage: b.percentageLabel, fixed: formatMoney(b.fixedFee, currency) }),
+          `− ${formatMoney(b.ordinaryFee, currency)}`
+        )}
+        <div className="flex items-center justify-between gap-4 rounded-md bg-green-50 px-3 py-2 mt-2">
+          <span className="font-semibold text-green-800">{t("breakdownNet")}</span>
+          <span className="text-lg font-bold text-green-700 tabular-nums">{formatMoney(b.net, currency)}</span>
+        </div>
+      </div>
+      <p className="text-xs text-muted-foreground">{t("breakdownNote")}</p>
     </div>
   );
 }
@@ -249,8 +216,9 @@ export default function PaymentLinksAdmin() {
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerWhatsapp, setCustomerWhatsapp] = useState("");
-  // Meses sin intereses (solo MXN; los planes se configuran en Stripe)
+  // Meses con intereses (solo MXN): el admin fija el plazo del enlace
   const [installmentsEnabled, setInstallmentsEnabled] = useState(false);
+  const [installmentsMonths, setInstallmentsMonths] = useState<number>(INSTALLMENT_PLANS[0].months);
 
   const [products, setProducts] = useState<ProductListItem[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
@@ -362,6 +330,9 @@ export default function PaymentLinksAdmin() {
     );
   }, [mode, amount, selected, currency, exchangeRate]);
 
+  const installmentsActive = installmentsEnabled && currency === "MXN";
+  const previewFinanced = installmentsActive ? getFinancedTotal(previewTotal, installmentsMonths) : null;
+
   const copyToClipboard = async (url: string) => {
     try {
       await navigator.clipboard.writeText(url);
@@ -431,6 +402,7 @@ export default function PaymentLinksAdmin() {
           customer_email: customerEmail.trim() || undefined,
           customer_whatsapp: customerWhatsapp.trim() || undefined,
           installments_enabled: installmentsEnabled && currency === "MXN",
+          installments_months: installmentsEnabled && currency === "MXN" ? installmentsMonths : undefined,
           ...(mode === "amount"
             ? { amount: Math.round(Number(amount) * 100) / 100 }
             : {
@@ -744,39 +716,102 @@ export default function PaymentLinksAdmin() {
             </div>
           </div>
 
-          <div className="rounded-lg border border-border p-4 space-y-2">
-            <label className="flex items-start gap-3 cursor-pointer">
-              <Checkbox
-                checked={installmentsEnabled && currency === "MXN"}
-                disabled={currency !== "MXN"}
-                onCheckedChange={(checked) => setInstallmentsEnabled(checked === true)}
-                className="mt-0.5"
-              />
-              <span>
-                <span className="text-sm font-medium text-foreground">{t("installmentsLabel")}</span>
-                <span className="block text-xs text-muted-foreground">
-                  {currency === "MXN" ? t("installmentsHint") : t("installmentsOnlyMxn")}
-                </span>
-              </span>
-            </label>
-          </div>
+          {/* Meses con intereses + vista previa del cobro */}
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="rounded-lg border border-border p-4 space-y-4">
+              <div className="flex items-start gap-3">
+                <button
+                  type="button"
+                  role="switch"
+                  id="installments-switch"
+                  aria-checked={installmentsActive}
+                  aria-describedby="installments-hint"
+                  disabled={currency !== "MXN"}
+                  onClick={() => setInstallmentsEnabled((value) => !value)}
+                  className={`relative mt-0.5 inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B8941E] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+                    installmentsActive ? "bg-[#D4AF37]" : "bg-muted-foreground/30"
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                      installmentsActive ? "translate-x-5" : "translate-x-0.5"
+                    }`}
+                  />
+                </button>
+                <div>
+                  <label htmlFor="installments-switch" className="text-sm font-medium text-foreground cursor-pointer">
+                    {t("installmentsLabel")}
+                  </label>
+                  <p id="installments-hint" className="text-xs text-muted-foreground">
+                    {currency === "MXN" ? t("installmentsHint") : t("installmentsOnlyMxn")}
+                  </p>
+                </div>
+              </div>
 
-          <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">{t("estimatedTotal")}</p>
-              <p className="text-2xl font-bold text-[#D4AF37]">{formatMoney(previewTotal, currency)}</p>
-              <p className="text-xs text-muted-foreground">{t("previewNote")}</p>
-              <div className="mt-3">
-                <StripeBreakdown
-                  total={previewTotal}
+              {installmentsActive && (
+                <fieldset className="space-y-2">
+                  <legend className="text-sm font-medium text-foreground mb-2">{t("installmentsPlanLabel")}</legend>
+                  {INSTALLMENT_PLANS.map((plan) => {
+                    const financed = getFinancedTotal(previewTotal, plan.months);
+                    const belowMin = Boolean(financed && !financed.meetsMinimum);
+                    const checked = installmentsMonths === plan.months;
+                    return (
+                      <label
+                        key={plan.months}
+                        className={`flex items-center gap-3 rounded-md border px-3 py-2 text-sm cursor-pointer transition-colors ${
+                          checked ? "border-[#D4AF37] bg-[#D4AF37]/10" : "border-border hover:bg-muted/50"
+                        } ${belowMin ? "opacity-60" : ""}`}
+                      >
+                        <input
+                          type="radio"
+                          name="installments-plan"
+                          value={plan.months}
+                          checked={checked}
+                          onChange={() => setInstallmentsMonths(plan.months)}
+                          className="h-4 w-4 accent-[#B8941E]"
+                        />
+                        <span className="flex-1">
+                          {t("installmentsPlanOption", { months: plan.months, rate: (plan.rate * 100).toFixed(1) })}
+                          {belowMin && (
+                            <span className="block text-xs text-amber-700">
+                              {t("breakdownPlanMin", { min: formatMoney(plan.minMXN, "MXN") })}
+                            </span>
+                          )}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </fieldset>
+              )}
+            </div>
+
+            <div className="rounded-lg border border-border p-4">
+              {previewTotal > 0 ? (
+                <LinkBreakdown
+                  base={previewTotal}
                   currency={currency}
                   fees={stripeFees}
                   exchangeRate={exchangeRate}
-                  installments={installmentsEnabled && currency === "MXN"}
+                  months={installmentsActive ? installmentsMonths : null}
                   t={t}
                 />
-              </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">{t("breakdownEmpty")}</p>
+              )}
             </div>
+          </div>
+
+          <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-muted-foreground max-w-xl">
+              {previewTotal > 0
+                ? installmentsActive && previewFinanced
+                  ? t("generateNoteInstallments", {
+                      total: formatMoney(previewFinanced.total, currency),
+                      months: installmentsMonths,
+                    })
+                  : t("generateNoteCash", { total: formatMoney(previewTotal, currency) })
+                : t("previewNote")}
+            </p>
             <Button
               type="submit"
               disabled={isSubmitting}
@@ -813,18 +848,12 @@ export default function PaymentLinksAdmin() {
                 <p className="text-sm text-muted-foreground">{t("order")}</p>
                 <p className="font-mono font-medium">{result.orderNumber}</p>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">{t("colTotal")}</p>
-                <p className="text-xl font-bold text-[#D4AF37]">
-                  {formatMoney(result.total, result.currency)}
-                </p>
-              </div>
-              <StripeBreakdown
-                total={result.total}
+              <LinkBreakdown
+                base={result.baseAmount}
                 currency={result.currency}
                 fees={stripeFees}
                 exchangeRate={exchangeRate}
-                installments={result.installmentsEnabled}
+                months={result.installmentsEnabled ? result.installmentsMonths : null}
                 t={t}
               />
               <div className="rounded-md bg-muted p-3 text-xs [overflow-wrap:anywhere] select-all font-mono">{result.url}</div>
@@ -904,11 +933,11 @@ export default function PaymentLinksAdmin() {
                       </TableCell>
                       <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
                         {formatDate(link.expiresAt)}
-                        {link.installmentsEnabled && (
+                        {link.installmentsPlan && (
                           <span className="block text-xs text-[#B8941E]">
                             {link.installmentsMonths
                               ? t("paidInMonths", { months: link.installmentsMonths })
-                              : t("installmentsBadge")}
+                              : t("installmentsBadge", { months: link.installmentsPlan })}
                           </span>
                         )}
                       </TableCell>

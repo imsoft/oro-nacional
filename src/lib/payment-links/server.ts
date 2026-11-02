@@ -15,6 +15,7 @@ import {
   type CheckoutCurrency,
   type CheckoutItemInput,
 } from '@/lib/orders/server';
+import { getFinancedTotal } from '@/lib/payment-links/installments';
 
 export type PaymentLinkSource = 'web' | 'payment_link';
 
@@ -27,6 +28,8 @@ export interface PaymentLinkOrder extends Order {
   payment_link_expires_at?: string | null;
   installments_enabled?: boolean;
   installments_months?: number | null;
+  installments_plan?: number | null;
+  base_amount?: number | null;
 }
 
 /** Datos de cliente que el admin puede conocer (o no) al generar el enlace. */
@@ -46,6 +49,9 @@ export const placeholderEmail = (): string =>
 
 /** Vigencia del enlace: Stripe permite como máximo 24 horas en Checkout. */
 export const PAYMENT_LINK_TTL_SECONDS = 24 * 60 * 60;
+
+/** Vigencia de los enlaces a meses (página de pago propia, sin límite de Stripe). */
+export const INSTALLMENT_LINK_TTL_SECONDS = 7 * 24 * 60 * 60;
 
 export const MAX_AMOUNT = 1_000_000;
 
@@ -240,12 +246,8 @@ export async function createPaymentLinkSession(
   admin: SupabaseClient,
   order: PaymentLinkOrder,
   customer: PaymentLinkCustomerInput,
-  options: { installmentsEnabled?: boolean } = {}
 ): Promise<Stripe.Checkout.Session> {
   const currency = (order.currency || 'MXN') as CheckoutCurrency;
-  // Stripe solo ofrece meses sin intereses en MXN; los planes disponibles
-  // (3, 6, 9, 12...) se configuran en el Dashboard de Stripe.
-  const installmentsEnabled = Boolean(options.installmentsEnabled) && currency === 'MXN';
   const items: OrderItem[] = order.items || [];
   if (items.length === 0) {
     throw new CheckoutError('server_error', 'El pedido no tiene conceptos');
@@ -283,9 +285,9 @@ export async function createPaymentLinkSession(
         cancel_url: `${siteUrl}/`,
         locale: 'es',
         phone_number_collection: { enabled: true },
-        ...(installmentsEnabled
-          ? { payment_method_options: { card: { installments: { enabled: true } } } }
-          : {}),
+        // Enlace de contado: Checkout no permite fijar un plazo, así que los
+        // pagos a meses van por la página de pago propia (/pago/[id]).
+        payment_method_options: { card: { installments: { enabled: false } } },
         ...(customer.customer_email ? { customer_email: customer.customer_email } : {}),
         payment_intent_data: {
           metadata: {
@@ -312,7 +314,7 @@ export async function createPaymentLinkSession(
       payment_link_url: session.url,
       payment_link_expires_at: new Date(expiresAt * 1000).toISOString(),
       payment_link_description: order.payment_link_description ?? null,
-      installments_enabled: installmentsEnabled,
+      installments_enabled: false,
       stripe_payment_intent_id:
         typeof session.payment_intent === 'string' ? session.payment_intent : null,
     })
@@ -450,12 +452,123 @@ export async function saveInstallmentsPlan(
   const plan = paymentIntent.payment_method_options?.card?.installments?.plan;
   if (!orderId || !plan?.count) return;
 
-  const { error } = await admin
+  const { data: order } = await admin
     .from('orders')
-    .update({ installments_months: plan.count })
-    .eq('id', orderId);
+    .select('installments_plan, admin_notes')
+    .eq('id', orderId)
+    .maybeSingle();
+
+  const updates: Record<string, unknown> = { installments_months: plan.count };
+  if (order?.installments_plan && order.installments_plan !== plan.count) {
+    updates.admin_notes = [
+      order.admin_notes,
+      `Atención: el enlace era a ${order.installments_plan} meses y el pago se hizo a ${plan.count} meses.`,
+    ]
+      .filter(Boolean)
+      .join('\n');
+  }
+
+  const { error } = await admin.from('orders').update(updates).eq('id', orderId);
 
   if (error) {
     console.error('[PaymentLinks] Error saving installments plan:', error);
   }
+}
+
+/**
+ * Convierte el pedido de un enlace en un cobro a N meses con intereses:
+ * agrega el costo de financiamiento como concepto y actualiza los totales.
+ * Solo MXN (Stripe no ofrece meses en USD).
+ */
+export async function applyInstallmentFinancing(
+  admin: SupabaseClient,
+  order: PaymentLinkOrder,
+  months: number
+): Promise<PaymentLinkOrder> {
+  const base = Number(order.total_charged ?? order.total);
+  const financed = getFinancedTotal(base, months);
+  if (!financed) {
+    throw new CheckoutError('invalid_input', 'El plazo seleccionado no es válido');
+  }
+  if (!financed.meetsMinimum) {
+    throw new CheckoutError(
+      'invalid_input',
+      `El plazo de ${months} meses requiere un total mínimo de $${financed.plan.minMXN} MXN`
+    );
+  }
+
+  const { error: itemError } = await admin.from('order_items').insert({
+    order_id: order.id,
+    product_id: null,
+    product_name: `Costo de financiamiento a ${months} meses`,
+    product_slug: null,
+    product_sku: null,
+    product_image: null,
+    quantity: 1,
+    unit_price: financed.financing,
+    unit_price_charged: financed.financing,
+    size: null,
+    material: null,
+    subtotal: financed.financing,
+  });
+
+  if (itemError) {
+    console.error('[PaymentLinks] Error adding financing item:', itemError);
+    await admin.from('orders').delete().eq('id', order.id);
+    throw new CheckoutError('server_error', 'No se pudo calcular el pago a meses');
+  }
+
+  const { error } = await admin
+    .from('orders')
+    .update({
+      subtotal: financed.total,
+      total: financed.total,
+      total_charged: financed.total,
+      base_amount: financed.base,
+      installments_enabled: true,
+      installments_plan: months,
+    })
+    .eq('id', order.id);
+
+  if (error) {
+    console.error('[PaymentLinks] Error updating financed totals:', error);
+    await admin.from('orders').delete().eq('id', order.id);
+    throw new CheckoutError('server_error', 'No se pudo calcular el pago a meses');
+  }
+
+  const full = await getOrderWithItems(admin, order.id);
+  if (!full) {
+    throw new CheckoutError('server_error', 'No se pudo leer el pedido creado');
+  }
+  return full as PaymentLinkOrder;
+}
+
+/**
+ * Enlace a meses: página de pago propia, donde el plazo queda fijo y el
+ * servidor confirma el cobro solo con ese plan.
+ */
+export async function createInstallmentLink(
+  admin: SupabaseClient,
+  order: PaymentLinkOrder
+): Promise<{ url: string; expiresAt: string }> {
+  const url = `${getSiteUrl()}/pago/${order.id}`;
+  const expiresAt = new Date(Date.now() + INSTALLMENT_LINK_TTL_SECONDS * 1000).toISOString();
+
+  const { error } = await admin
+    .from('orders')
+    .update({
+      source: 'payment_link',
+      payment_link_url: url,
+      payment_link_expires_at: expiresAt,
+      payment_link_description: order.payment_link_description ?? null,
+    })
+    .eq('id', order.id);
+
+  if (error) {
+    console.error('[PaymentLinks] Error saving installment link:', error);
+    await admin.from('orders').delete().eq('id', order.id);
+    throw new CheckoutError('server_error', 'No se pudo guardar el enlace de pago');
+  }
+
+  return { url, expiresAt };
 }

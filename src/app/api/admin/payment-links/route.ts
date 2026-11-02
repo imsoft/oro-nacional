@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { normalizeWhatsAppNumber } from '@/lib/whatsapp';
+import { getInstallmentPlan } from '@/lib/payment-links/installments';
 import { getStripe, isStripeConfigured } from '@/lib/stripe/config';
 import { createAdminClient } from '@/lib/supabase/admin';
 import {
@@ -9,7 +10,9 @@ import {
 } from '@/lib/orders/server';
 import {
   MAX_AMOUNT,
+  applyInstallmentFinancing,
   createAmountLinkOrder,
+  createInstallmentLink,
   createPaymentLinkSession,
   createProductsLinkOrder,
   requireAdmin,
@@ -57,7 +60,7 @@ export async function GET(request: NextRequest) {
   const { data, error } = await ctx.admin
     .from('orders')
     .select(
-      'id, order_number, customer_name, customer_email, customer_phone, payment_link_description, total_charged, total, currency, payment_status, status, payment_link_url, payment_link_expires_at, installments_enabled, installments_months, created_at'
+      'id, order_number, customer_name, customer_email, customer_phone, payment_link_description, total_charged, total, currency, payment_status, status, payment_link_url, payment_link_expires_at, installments_enabled, installments_months, installments_plan, base_amount, created_at'
     )
     .eq('source', 'payment_link')
     .is('deleted_at', null)
@@ -85,6 +88,7 @@ export async function GET(request: NextRequest) {
       expiresAt: row.payment_link_expires_at,
       installmentsEnabled: Boolean(row.installments_enabled),
       installmentsMonths: row.installments_months ?? null,
+      installmentsPlan: row.installments_plan ?? null,
       createdAt: row.created_at,
     })),
   });
@@ -139,8 +143,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'El número de WhatsApp no es válido' }, { status: 400 });
     }
 
-    // MSI solo aplica en MXN (Stripe no lo ofrece en USD)
-    const installmentsEnabled = body.installments_enabled === true && currency === 'MXN';
+    // Meses con intereses: solo MXN (Stripe no los ofrece en USD) y con un
+    // plazo de la lista de planes activos.
+    const installmentsEnabled = body.installments_enabled === true;
+    const installmentsMonths = Number(body.installments_months);
+    if (installmentsEnabled) {
+      if (currency !== 'MXN') {
+        return NextResponse.json(
+          { error: 'Los pagos a meses solo están disponibles en pesos (MXN)' },
+          { status: 400 }
+        );
+      }
+      if (!getInstallmentPlan(installmentsMonths)) {
+        return NextResponse.json({ error: 'Selecciona un plazo válido' }, { status: 400 });
+      }
+    }
 
     const customer: PaymentLinkCustomerInput = {
       customer_name: text(body.customer_name, 200) || undefined,
@@ -198,9 +215,26 @@ export async function POST(request: NextRequest) {
       order = await createProductsLinkOrder(admin, { items, currency, description, customer });
     }
 
-    const session = await createPaymentLinkSession(stripe, admin, order, customer, {
-      installmentsEnabled,
-    });
+    if (installmentsEnabled) {
+      // Precio base + costo de financiamiento; el plazo queda fijo
+      const baseAmount = Number(order.total_charged ?? order.total);
+      order = await applyInstallmentFinancing(admin, order, installmentsMonths);
+      const link = await createInstallmentLink(admin, order);
+
+      return NextResponse.json({
+        orderId: order.id,
+        orderNumber: order.order_number,
+        url: link.url,
+        expiresAt: link.expiresAt,
+        total: Number(order.total_charged ?? order.total),
+        baseAmount,
+        currency,
+        installmentsEnabled: true,
+        installmentsMonths,
+      });
+    }
+
+    const session = await createPaymentLinkSession(stripe, admin, order, customer);
 
     return NextResponse.json({
       orderId: order.id,
@@ -208,8 +242,10 @@ export async function POST(request: NextRequest) {
       url: session.url,
       expiresAt: session.expires_at ? new Date(session.expires_at * 1000).toISOString() : null,
       total: Number(order.total_charged ?? order.total),
+      baseAmount: Number(order.total_charged ?? order.total),
       currency,
-      installmentsEnabled,
+      installmentsEnabled: false,
+      installmentsMonths: null,
     });
   } catch (error) {
     if (error instanceof CheckoutError) {

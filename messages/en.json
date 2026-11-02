@@ -52,7 +52,7 @@
     },
     "financing": {
       "title": "Flexible Payments",
-      "description": "All cards with interest-free installment plans"
+      "description": "Installments with interest on participating credit cards"
     }
   },
   "cta": {
@@ -359,11 +359,11 @@
       "purchase": {
         "payment": {
           "q": "What payment methods do you accept?",
-          "a": "We accept all credit and debit cards (Visa, Mastercard, American Express). We also offer interest-free installments on purchases over $3,000 MXN with participating cards."
+          "a": "We accept all credit and debit cards (Visa, Mastercard, American Express). We also offer installments with interest on purchases over $3,000 MXN with participating cards."
         },
         "installments": {
-          "q": "Can I pay in interest-free installments?",
-          "a": "Yes, we offer 3, 6, 9, and 12-month interest-free plans on purchases over $3,000 MXN with participating Visa, Mastercard, and American Express cards. Available options are shown at checkout."
+          "q": "Can I pay in installments?",
+          "a": "Yes, we offer 3, 6, and 12-month installments with interest on purchases over $3,000 MXN with participating Visa, Mastercard, and American Express cards. The financing cost is added to the price and payment is made through a payment link; request it on WhatsApp."
         },
         "secure": {
           "q": "Is it safe to shop online?",
@@ -933,16 +933,16 @@
     "priceOnRequestHint": "Contact us to get the price of this piece.",
     "contactUs": "Contact us",
     "uncategorized": "Uncategorized",
-    "installmentOptions": "Installment Payment Options",
+    "installmentOptions": "Installments with interest",
     "payInFull": "Pay in full",
-    "zeroInterest": "0% interest",
+    "zeroInterest": "No extra cost",
     "months": "{count} months",
-    "interestRate": "{rate}% interest",
+    "interestRate": "+{rate}%",
     "monthlyPayment": "Monthly payment ({count} months):",
     "totalToPay": "Total to pay:",
-    "includesInterest": "Includes {rate}% interest:",
-    "payInFullNoInterest": "Pay in full (no interest):",
-    "bestPrice": "✓ Best price available",
+    "includesInterest": "Financing cost:",
+    "payInFullNoInterest": "Pay in full:",
+    "bestPrice": "Best available price",
     "saved": "Saved",
     "share": "Share",
     "addedToCart": "Product added to cart!",
@@ -994,7 +994,11 @@
     "previousImage": "Previous image",
     "nextImage": "Next image",
     "relatedTitle": "Related Products",
-    "relatedSubtitle": "You may also like"
+    "relatedSubtitle": "You may also like",
+    "installmentsViaLink": "Installment payments are made through a payment link with a participating credit card. Request it on WhatsApp.",
+    "installmentsMinimum": "This term requires a minimum purchase of {min}.",
+    "installmentsRequest": "Request installment link",
+    "installmentsWhatsapp": "Hi, I would like to pay for {product} in {months} months with interest ({total})."
   },
   "featuredCollection": {
     "title": "Our Gold Jewelry Collection",
@@ -1597,24 +1601,27 @@
       "validationAmount": "Enter an amount greater than zero",
       "validationDescription": "Enter a description for the charge",
       "resultHint": "The link will appear here once you generate it.",
-      "breakdownTitle": "Stripe breakdown",
-      "breakdownCustomerPays": "Customer pays",
-      "breakdownStripeFee": "Stripe fee ({percentage} + {fixed})",
-      "breakdownVat": "VAT on the fee (16%)",
-      "breakdownNet": "You receive",
-      "breakdownNote": "Estimated with the fee configured in the price calculator. Stripe may charge slightly more for international cards or USD payments; the exact amount appears in your Stripe dashboard.",
-      "installmentsLabel": "Allow interest-free installments",
-      "installmentsHint": "The customer can choose to pay in installments with their card. The available plans (3, 6, 9, 12…) are configured in Stripe → Settings → Payment methods → Installments.",
-      "installmentsOnlyMxn": "Stripe only offers installments in Mexican pesos (MXN).",
-      "installmentsBadge": "Installments enabled",
-      "paidInMonths": "Paid in {months} installments",
-      "breakdownInstallmentsTitle": "If the customer pays in installments",
-      "breakdownInstallmentsHint": "Plans enabled in Stripe. Stripe charges an extra fee depending on the plan the customer chooses; the customer pays no interest.",
-      "breakdownPlan": "Plan",
-      "breakdownPlanFee": "Extra fee (+VAT)",
-      "breakdownMonths": "{months} months",
-      "breakdownPlanMin": "Only for purchases from {min}",
-      "optional": "(optional)"
+      "breakdownTitle": "Estimated Stripe breakdown",
+      "breakdownStripeFee": "Stripe fee ({percentage} + {fixed} + VAT)",
+      "breakdownNet": "You receive (approx.)",
+      "breakdownNote": "Estimated with the configured fees. The exact amount appears in your Stripe dashboard.",
+      "installmentsLabel": "Installments with interest",
+      "installmentsHint": "Enable this option to charge in installments. The financing cost is added to the price and paid by the customer.",
+      "installmentsOnlyMxn": "Installments are only available in Mexican pesos (MXN).",
+      "installmentsBadge": "{months} months with interest",
+      "paidInMonths": "Paid in {months} months",
+      "breakdownPlanMin": "Stripe requires a minimum total of {min} for this term",
+      "optional": "(optional)",
+      "installmentsPlanLabel": "Choose the term",
+      "installmentsPlanOption": "{months} months with interest (+{rate}%)",
+      "breakdownBase": "Original price",
+      "breakdownFinancing": "Financing increase ({months} months)",
+      "breakdownLinkTotal": "Payment link total",
+      "breakdownMonthly": "In {months} payments of {monthly}",
+      "breakdownFinancingFee": "Financing fee ({rate}% + VAT)",
+      "breakdownEmpty": "Add products or an amount to see the breakdown.",
+      "generateNoteInstallments": "The link will be generated for {total}, in {months} months with interest. You only absorb Stripe's ordinary fee.",
+      "generateNoteCash": "The link will be generated for {total}, paid in full."
     }
   },
   "paymentLink": {
@@ -1623,7 +1630,39 @@
     "notice": "You will receive a confirmation email with the details of your purchase. We will contact you to coordinate delivery.",
     "noOrder": "Your payment was received successfully.",
     "backHome": "Back to home",
-    "contact": "Questions? Write to us"
+    "contact": "Questions? Write to us",
+    "pay": {
+      "title": "Pay in monthly installments",
+      "subtitle": "Enter your details and pay with a credit card in {months} monthly installments.",
+      "loading": "Loading…",
+      "yourData": "Your details",
+      "name": "Full name",
+      "email": "Email",
+      "card": "Credit card",
+      "cardHint": "The {months}-month plan is already set. Use a credit card from a participating bank.",
+      "payButton": "Pay {total} in {months} months",
+      "paying": "Processing payment…",
+      "secureNote": "Secure payment processed by Stripe. Oro Nacional does not store your card details.",
+      "order": "Order",
+      "total": "Total to pay",
+      "monthlyLine": "{months} monthly payments of {monthly}",
+      "financingNote": "The total includes the {months}-month financing cost.",
+      "errorCustomer": "Enter your name, email and WhatsApp to continue.",
+      "errorGeneric": "The payment could not be processed. Check your details and try again.",
+      "errorDeclined": "The payment was not completed. Try another card or contact us.",
+      "contact": "Message us on WhatsApp",
+      "whatsappMessage": "Hi, I have a question about paying for order {order}.",
+      "notFoundTitle": "Link not found",
+      "notFoundBody": "Check that the link is complete or ask Oro Nacional for a new one.",
+      "paidTitle": "This link has already been paid",
+      "paidBody": "Order {order} is already paid. Message us if you have questions.",
+      "expiredTitle": "This link has expired",
+      "expiredBody": "Ask Oro Nacional for a new link to complete your purchase.",
+      "cancelledTitle": "This link was cancelled",
+      "cancelledBody": "Message us if you want to resume your purchase.",
+      "unavailableTitle": "Payment unavailable",
+      "unavailableBody": "Card payment is not available right now. Message us and we will help you."
+    }
   },
   "notFound": {
     "title": "Page not found",
