@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
-import { Plus, Pencil, Trash2, Search, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Loader2, FileSpreadsheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -145,15 +145,23 @@ export default function ProductsAdmin() {
             {t('subtitle')}
           </p>
         </div>
-        <Button
-          className="bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a]"
-          asChild
-        >
-          <Link href="/admin/productos/nuevo">
-            <Plus className="mr-2 h-5 w-5" />
-            {t('newProduct')}
-          </Link>
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Button variant="outline" asChild>
+            <Link href="/admin/productos/importar">
+              <FileSpreadsheet className="mr-2 h-5 w-5" />
+              Importar desde Excel
+            </Link>
+          </Button>
+          <Button
+            className="bg-[#D4AF37] hover:bg-[#B8941E] text-[#1a1a1a]"
+            asChild
+          >
+            <Link href="/admin/productos/nuevo">
+              <Plus className="mr-2 h-5 w-5" />
+              {t('newProduct')}
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Search */}
