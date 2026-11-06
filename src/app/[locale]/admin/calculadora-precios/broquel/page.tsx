@@ -35,13 +35,14 @@ import { getInternalSubcategoriesByCategoryName, getProductsByInternalSubcategor
 import {
   getAllSubcategoryBroquelPricing,
   upsertSubcategoryBroquelPricing,
-  type SubcategoryBroquelPricingData,
   getBroquelPricingParameters,
   updateBroquelPricingParameters,
+  calculateBroquelBreakdown,
   calculateBroquelPrice,
   DEFAULT_SUBCATEGORY_BROQUEL_PRICING,
   type BroquelPricingParameters,
 } from "@/lib/supabase/pricing";
+import { BroquelCostsPanel, type BroquelModel } from "@/components/admin/broquel-costs-panel";
 import { updateMultipleProductPrices, getProductsWithDetailsBySubcategory } from "@/lib/supabase/products";
 import type { ProductListItem } from "@/types/product";
 import {
@@ -56,30 +57,28 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 
-// Datos específicos por subcategoría
+// Costos de cada modelo (subcategoría). La comisión de venta y las piezas
+// son parámetros generales; el envío ya no entra en el precio.
 interface ProductBroquelData {
   id: string;
   name: string;
-  pz: number; // Piezas
   goldGrams: number; // Oro (GRS)
   carats: number; // Kilataje
   factor: number; // Factor
   merma: number; // Merma %
   laborCost: number; // Mano de obra
   stoneCost: number; // Piedra
-  salesCommission: number; // Comisión de venta
-  shipping: number; // Envío
-  material: string;
-  stock: number;
-  category_name?: string;
-  primary_image?: string;
   is_active: boolean;
 }
 
-// Cálculos completos por subcategoría
+// Cálculos completos por modelo (con las piezas base de los parámetros)
 interface ProductBroquelCalculation extends ProductBroquelData {
-  subtotalBeforeProfit: number; // Subtotal antes de utilidad
+  pz: number; // Piezas base (parámetro general)
+  goldCost: number; // Costo oro por pieza
+  goldCostWithMerma: number; // Costo oro con merma por pieza
+  broquelCost: number; // Costo broquel (antes de utilidad)
   subtotalWithProfit: number; // + Utilidad
+  commissionCost: number; // PZ × comisión de venta
   subtotalWithVat: number; // + IVA
   subtotalWithStripe: number; // + Stripe %
   finalPrice: number; // Precio final (fórmula completa)
@@ -130,6 +129,8 @@ export default function BroquelCalculatorPage() {
     vat: 0.16, // 16% IVA
     stripePercentage: 0.036, // 3.6% Stripe
     stripeFixedFee: 3.00, // $3 MXN Stripe fijo
+    salesCommission: 0, // Comisión de venta por pieza
+    pz: 1, // Piezas base
   });
 
   // Datos por subcategoría - valores por defecto
@@ -173,78 +174,56 @@ export default function BroquelCalculatorPage() {
     }
   };
 
-  // Función para calcular el precio final de un subcategoría broquel
-  // Fórmula del Excel: =((((($I$2*F7/24*E7)*(1+H7)+I7+J7))*D7)*(1+K7)+(D7*L7)+M7)*(1+N7)*(1+O7)+P7
-  // I2=COTIZACIÓN, F7=KILATAJE, E7=ORO(GRS), H7=MERMA, I7=MANO DE OBRA, J7=PIEDRA, D7=PZ, K7=UTILIDAD, L7=COMISIÓN DE VENTA, M7=ENVÍO, N7=IVA, O7=STRIPE%, P7=STRIPE FIJO
+  // Costos y precio final de un modelo, con la misma fórmula que el Excel del cliente
+  // (ver calculateBroquelBreakdown). El envío no se incluye: se cobra aparte.
   const calculateSubcategoryPrice = (
     subcategoryItem: InternalSubcategory,
     broquelData: Partial<ProductBroquelData>
   ): ProductBroquelCalculation | null => {
-    // Usar ?? para conservar valores en 0 (igual que la calculadora de Gramo)
-    const pz = broquelData.pz ?? DEFAULT_SUBCATEGORY_BROQUEL_PRICING.pz;
-    const goldGrams = broquelData.goldGrams || 0;
-    const carats = broquelData.carats ?? 10;
-    const merma = ((broquelData.merma ?? 8) / 100); // Convertir % a decimal, default 8%
-    const laborCost = broquelData.laborCost || 0;
-    const stoneCost = broquelData.stoneCost || 0;
-    const shipping = broquelData.shipping ?? 800;
-    const salesCommission = broquelData.salesCommission ?? DEFAULT_SUBCATEGORY_BROQUEL_PRICING.salesCommission;
-
-    // Fórmula Excel paso a paso:
-    // 1. (COTIZACIÓN * KILATAJE / 24 * ORO(GRS))
-    const goldCost = parameters.quotation * (carats / 24) * goldGrams;
-
-    // 2. goldCost * (1 + MERMA%)
-    const goldCostWithMerma = goldCost * (1 + merma);
-
-    // 3. + MANO DE OBRA + PIEDRA
-    const subtotalBeforeProfit = goldCostWithMerma + laborCost + stoneCost;
-
-    // 4. * PZ
-    const subtotalByPieces = subtotalBeforeProfit * pz;
-
-    // 5. * (1 + UTILIDAD)
-    const subtotalWithProfit = subtotalByPieces * (1 + parameters.profitMargin);
-
-    // 6. + (PZ * COMISIÓN DE VENTA)
-    const commissionCost = pz * salesCommission;
-    const subtotalWithCommission = subtotalWithProfit + commissionCost;
-
-    // 7. + ENVÍO
-    const subtotalWithShipping = subtotalWithCommission + shipping;
-
-    // 8. * (1 + IVA)
-    const subtotalWithVat = subtotalWithShipping * (1 + parameters.vat);
-
-    // 9. INCLUIR comisiones de Stripe en el precio final usando los parámetros guardados
-    const stripePercentage = parameters.stripePercentage;
-    const stripeFixedFee = parameters.stripeFixedFee;
-    const finalPrice = (subtotalWithVat * (1 + stripePercentage)) + stripeFixedFee;
+    // Usar ?? para conservar valores en 0
+    const pricing = {
+      goldGrams: broquelData.goldGrams ?? 0,
+      carats: broquelData.carats ?? DEFAULT_SUBCATEGORY_BROQUEL_PRICING.carats,
+      factor: 0, // No se usa en la fórmula
+      merma: broquelData.merma ?? DEFAULT_SUBCATEGORY_BROQUEL_PRICING.merma,
+      laborCost: broquelData.laborCost ?? 0,
+      stoneCost: broquelData.stoneCost ?? 0,
+    };
+    const breakdown = calculateBroquelBreakdown(pricing, parameters);
 
     return {
       id: subcategoryItem.id,
       name: subcategoryItem.name,
-      pz,
-      goldGrams,
-      carats,
-      factor: 0, // No se usa en la fórmula nueva
-      merma: broquelData.merma ?? 8,
-      laborCost,
-      stoneCost,
-      shipping,
-      material: "",
-      stock: 0,
-      category_name: "",
-      primary_image: undefined,
+      ...pricing,
       is_active: subcategoryItem.is_active,
-      salesCommission,
-      subtotalBeforeProfit: subtotalByPieces,
-      subtotalWithProfit,
-      subtotalWithVat,
-      subtotalWithStripe: subtotalWithVat * (1 + parameters.stripePercentage), // Solo para mostrar en la tabla
-      finalPrice,
+      pz: parameters.pz,
+      ...breakdown,
+      subtotalWithStripe: breakdown.subtotalWithVat * (1 + parameters.stripePercentage),
     };
   };
+
+  // Modelos para la tabla de costos (código = special_code de la subcategoría)
+  const brokerModels: BroquelModel[] = useMemo(
+    () =>
+      subcategories.map((sub) => {
+        const data = productBroquelData.get(sub.id) || {};
+        return {
+          id: sub.id,
+          code: sub.special_code || sub.name,
+          name: sub.name,
+          internalCategoryId: sub.internal_category_id,
+          pricing: {
+            goldGrams: data.goldGrams ?? 0,
+            carats: data.carats ?? DEFAULT_SUBCATEGORY_BROQUEL_PRICING.carats,
+            factor: 0,
+            merma: data.merma ?? DEFAULT_SUBCATEGORY_BROQUEL_PRICING.merma,
+            laborCost: data.laborCost ?? 0,
+            stoneCost: data.stoneCost ?? 0,
+          },
+        };
+      }),
+    [subcategories, productBroquelData]
+  );
 
   // Calculate prices for all subcategories
   const calculatedSubcategories = useMemo(() => {
@@ -296,17 +275,15 @@ export default function BroquelCalculatorPage() {
   const getSizePriceForCalc = (calc: ProductBroquelCalculation, pieces: number): number =>
     calculateBroquelPrice(
       {
-        pz: pieces,
         goldGrams: calc.goldGrams,
         carats: calc.carats,
         factor: calc.factor,
         merma: calc.merma,
         laborCost: calc.laborCost,
         stoneCost: calc.stoneCost,
-        salesCommission: calc.salesCommission,
-        shipping: calc.shipping,
       },
-      parameters
+      parameters,
+      pieces
     );
 
   // Rango de precios (mín – máx) para mostrar
@@ -367,15 +344,12 @@ export default function BroquelCalculatorPage() {
       const timeout = setTimeout(async () => {
         try {
           await upsertSubcategoryBroquelPricing(subcategoryId, {
-            pz: updatedData.pz ?? DEFAULT_SUBCATEGORY_BROQUEL_PRICING.pz,
             goldGrams: updatedData.goldGrams ?? DEFAULT_SUBCATEGORY_BROQUEL_PRICING.goldGrams,
             carats: updatedData.carats ?? DEFAULT_SUBCATEGORY_BROQUEL_PRICING.carats,
             factor: updatedData.factor ?? DEFAULT_SUBCATEGORY_BROQUEL_PRICING.factor,
             merma: updatedData.merma ?? DEFAULT_SUBCATEGORY_BROQUEL_PRICING.merma,
             laborCost: updatedData.laborCost ?? DEFAULT_SUBCATEGORY_BROQUEL_PRICING.laborCost,
             stoneCost: updatedData.stoneCost ?? DEFAULT_SUBCATEGORY_BROQUEL_PRICING.stoneCost,
-            salesCommission: updatedData.salesCommission ?? DEFAULT_SUBCATEGORY_BROQUEL_PRICING.salesCommission,
-            shipping: updatedData.shipping ?? DEFAULT_SUBCATEGORY_BROQUEL_PRICING.shipping,
           });
           saveTimeoutsRef.current.delete(subcategoryId);
         } catch (error) {
@@ -449,9 +423,9 @@ export default function BroquelCalculatorPage() {
 
     // Para Broquel: las tallas guardan PIEZAS en `weight`, así que la base se expresa en piezas
     // (misma unidad que product_sizes.weight) y cada talla se calcula con la fórmula completa.
-    const basePieces = calc.pz;
+    const basePieces = parameters.pz;
     if (!basePieces || basePieces <= 0) {
-      alert("Error: Las piezas base deben ser mayores a 0.");
+      alert("Error: Las piezas base (PZ) deben ser mayores a 0.");
       return;
     }
 
@@ -524,7 +498,7 @@ export default function BroquelCalculatorPage() {
       // Iterar sobre todas las subcategorías calculadas
       for (const calc of calculatedSubcategories) {
         // Para Broquel: la base se expresa en piezas (misma unidad que product_sizes.weight)
-        const basePieces = calc.pz;
+        const basePieces = parameters.pz;
         if (!basePieces || basePieces <= 0) {
           failedSubcategories.push({
             name: calc.name,
@@ -765,6 +739,34 @@ export default function BroquelCalculatorPage() {
                     />
                   </div>
                 </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="pz">PZ (piezas base)</Label>
+                    <Input
+                      id="pz"
+                      type="number"
+                      step="1"
+                      min="1"
+                      value={parameters.pz}
+                      onChange={(e) => handleParameterChange("pz", e.target.value)}
+                      disabled={!isUnlocked}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="salesCommission">Comisión de venta por pieza (MXN)</Label>
+                    <Input
+                      id="salesCommission"
+                      type="number"
+                      step="0.01"
+                      value={parameters.salesCommission}
+                      onChange={(e) => handleParameterChange("salesCommission", e.target.value)}
+                      disabled={!isUnlocked}
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Estos parámetros se aplican a todos los modelos de broquel. El envío ya no se incluye en el precio: se cobra aparte al cliente.
+                </p>
               </div>
             </DialogContent>
           </Dialog>
@@ -800,7 +802,7 @@ export default function BroquelCalculatorPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
             <div>
               <p className="text-sm text-muted-foreground">Cotización</p>
               <p className="text-lg font-semibold">
@@ -831,6 +833,14 @@ export default function BroquelCalculatorPage() {
                 {formatMXN(parameters.stripeFixedFee)}
               </p>
             </div>
+            <div>
+              <p className="text-sm text-muted-foreground">PZ</p>
+              <p className="text-lg font-semibold">{parameters.pz}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Comisión de venta</p>
+              <p className="text-lg font-semibold">{formatMXN(parameters.salesCommission)}</p>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -850,7 +860,7 @@ export default function BroquelCalculatorPage() {
           <div className="bg-white rounded-lg p-4 border border-purple-200">
             <p className="text-sm font-semibold text-purple-900 mb-3">Precio Final =</p>
             <p className="text-xs font-mono text-gray-800 leading-relaxed bg-gray-50 p-3 rounded border break-words">
-              (((((Cotización × Kilataje / 24 × Oro) × (1 + Merma) + Mano de obra + Piedra)) × PZ) × (1 + Utilidad) + (PZ × Comisión de venta) + Envío) × (1 + IVA) × (1 + Stripe %) + Stripe fijo
+              ((((Cotización × Kilataje / 24 × Oro) × (1 + Merma) + Mano de obra + Piedra) × PZ) × (1 + Utilidad) + (PZ × Comisión de venta)) × (1 + IVA) × (1 + Stripe %) + Stripe fijo
             </p>
 
             <div className="mt-4 space-y-2 text-xs text-gray-700 border-t pt-3">
@@ -858,8 +868,9 @@ export default function BroquelCalculatorPage() {
               <div className="space-y-1.5 ml-2">
                 <p><span className="font-semibold text-purple-800">Costo Oro:</span> Cotización × (Kilataje / 24) × Oro(grs)</p>
                 <p><span className="font-semibold text-purple-800">Costo Oro con Merma:</span> Costo Oro × (1 + Merma%)</p>
-                <p><span className="font-semibold text-purple-800">Subtotal Base:</span> (Costo Oro con Merma + Mano de Obra + Piedra) × PZ</p>
+                <p><span className="font-semibold text-purple-800">Costo Broquel:</span> (Costo Oro con Merma + Mano de Obra + Piedra) × PZ</p>
                 <p><span className="font-semibold text-purple-800">Costo Comisión:</span> PZ × Comisión de Venta</p>
+                <p><span className="font-semibold text-purple-800">Envío:</span> ya no se incluye; se cobra aparte al cliente</p>
               </div>
             </div>
           </div>
@@ -872,16 +883,13 @@ export default function BroquelCalculatorPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-3 border border-purple-200">
-              <p className="text-xs font-semibold text-purple-900 mb-2">Variables por Subcategoría:</p>
+              <p className="text-xs font-semibold text-purple-900 mb-2">Costos por Modelo:</p>
               <ul className="text-xs text-purple-800 space-y-1">
-                <li>• PZ (Piezas)</li>
                 <li>• Oro (grs)</li>
                 <li>• Kilataje</li>
                 <li>• Merma %</li>
                 <li>• Mano de Obra</li>
                 <li>• Piedra</li>
-                <li>• Comisión de Venta</li>
-                <li>• Envío</li>
               </ul>
             </div>
 
@@ -893,6 +901,8 @@ export default function BroquelCalculatorPage() {
                 <li>• IVA (%)</li>
                 <li>• Stripe (%)</li>
                 <li>• Stripe Fijo</li>
+                <li>• PZ (Piezas)</li>
+                <li>• Comisión de Venta</li>
               </ul>
             </div>
           </div>
@@ -907,6 +917,13 @@ export default function BroquelCalculatorPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Tabla de costos por modelo con carga desde Excel */}
+      <BroquelCostsPanel
+        models={brokerModels}
+        parameters={parameters}
+        onImported={loadProducts}
+      />
 
       {/* Products accordions with calculations */}
       <Card>
@@ -947,8 +964,8 @@ export default function BroquelCalculatorPage() {
                             )}
                           </div>
                           <div className="flex gap-4 text-xs text-muted-foreground">
-                            <span>PZ: {calc.pz}</span>
                             <span>Oro: {calc.goldGrams}g</span>
+                            <span>Costo Broquel: <span className="font-semibold text-foreground">{formatMXN(calc.broquelCost)}</span></span>
                             <span>Precio Final: <span className="font-bold text-[#D4AF37]">{formatMXN(calc.finalPrice)}</span></span>
                           </div>
                         </div>
@@ -981,17 +998,6 @@ export default function BroquelCalculatorPage() {
                         <div className="bg-purple-50/50 rounded-lg p-4 border border-purple-200">
                           <h4 className="font-semibold text-sm mb-3 text-purple-900">Variables de Cálculo</h4>
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div className="space-y-1">
-                              <Label htmlFor={`pz-${calc.id}`} className="text-xs">PZ (Piezas)</Label>
-                          <Input
-                                id={`pz-${calc.id}`}
-                            type="number"
-                            step="0.01"
-                            value={calc.pz}
-                                onChange={(e) => handleSubcategoryDataChange(calc.id, "pz", e.target.value)}
-                                className="h-8"
-                              />
-                            </div>
                             <div className="space-y-1">
                               <Label htmlFor={`goldGrams-${calc.id}`} className="text-xs">Oro (grs)</Label>
                           <Input
@@ -1051,37 +1057,17 @@ export default function BroquelCalculatorPage() {
                                 className="h-8"
                           />
                             </div>
-                            <div className="space-y-1">
-                              <Label htmlFor={`salesCommission-${calc.id}`} className="text-xs">Comisión Venta</Label>
-                          <Input
-                                id={`salesCommission-${calc.id}`}
-                            type="number"
-                            step="0.01"
-                            value={calc.salesCommission}
-                                onChange={(e) => handleSubcategoryDataChange(calc.id, "salesCommission", e.target.value)}
-                            disabled={!isUnlocked}
-                                className="h-8"
-                          />
-                            </div>
-                            <div className="space-y-1">
-                              <Label htmlFor={`shipping-${calc.id}`} className="text-xs">Envío</Label>
-                          <Input
-                                id={`shipping-${calc.id}`}
-                            type="number"
-                            step="0.01"
-                            value={calc.shipping}
-                                onChange={(e) => handleSubcategoryDataChange(calc.id, "shipping", e.target.value)}
-                            disabled={!isUnlocked}
-                                className="h-8"
-                              />
-                            </div>
                             </div>
                               </div>
 
                         {/* Resultados de cálculo */}
                         <div className="bg-blue-50/50 rounded-lg p-4 border border-blue-200">
                           <h4 className="font-semibold text-sm mb-3 text-blue-900">Desglose de Costos</h4>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+                            <div>
+                              <p className="text-xs text-muted-foreground">Costo Broquel</p>
+                              <p className="font-semibold">{formatMXN(calc.broquelCost)}</p>
+                            </div>
                             <div>
                               <p className="text-xs text-muted-foreground">+ Utilidad</p>
                               <p className="font-semibold">{formatMXN(calc.subtotalWithProfit)}</p>
@@ -1142,16 +1128,15 @@ export default function BroquelCalculatorPage() {
                                         <div className="space-y-3 text-xs">
                                           {(() => {
                                             // Calcular valores intermedios para el desglose
-                                            const goldCostPerPiece = (parameters?.quotation || 0) * (calc.carats / 24) * calc.goldGrams;
+                                            const goldCostPerPiece = calc.goldCost;
                                             const mermaDecimal = calc.merma / 100;
-                                            const goldCostWithMermaPerPiece = goldCostPerPiece * (1 + mermaDecimal);
+                                            const goldCostWithMermaPerPiece = calc.goldCostWithMerma;
                                             const subtotalBeforeProfitPerPiece = goldCostWithMermaPerPiece + calc.laborCost + calc.stoneCost;
-                                            const subtotalByPieces = subtotalBeforeProfitPerPiece * calc.pz;
-                                            const commissionCost = calc.pz * calc.salesCommission;
+                                            const subtotalByPieces = calc.broquelCost;
+                                            const commissionCost = calc.commissionCost;
                                             const subtotalWithCommission = calc.subtotalWithProfit + commissionCost;
-                                            const subtotalWithShipping = subtotalWithCommission + calc.shipping;
-                                            const stripePercentage = 0.036;
-                                            const stripeFixedFee = 3;
+                                            const stripePercentage = parameters.stripePercentage;
+                                            const stripeFixedFee = parameters.stripeFixedFee;
 
                                             return (
                                               <>
@@ -1194,7 +1179,7 @@ export default function BroquelCalculatorPage() {
                                                 </div>
 
                                                 <div className="bg-purple-50 p-2 rounded border border-purple-200">
-                                                  <p className="font-semibold text-purple-900 mb-1">Paso 4: Multiplicamos por el número de piezas</p>
+                                                  <p className="font-semibold text-purple-900 mb-1">Paso 4: Costo broquel (multiplicamos por el número de piezas)</p>
                                                   <p className="text-gray-700">Cada pieza cuesta: {formatMXN(subtotalBeforeProfitPerPiece)}</p>
                                                   <p className="text-gray-700">Este producto tiene {calc.pz} pieza{calc.pz !== 1 ? 's' : ''}</p>
                                                   <p className="font-mono font-semibold text-purple-900 mt-1">
@@ -1218,10 +1203,10 @@ export default function BroquelCalculatorPage() {
 
                                                 <div className="bg-orange-50 p-2 rounded border border-orange-200">
                                                   <p className="font-semibold text-orange-900 mb-1">Paso 6: Agregamos la comisión de venta</p>
-                                                  <p className="text-gray-700">Por cada pieza cobramos {formatMXN(calc.salesCommission)} de comisión</p>
+                                                  <p className="text-gray-700">Por cada pieza cobramos {formatMXN(parameters.salesCommission)} de comisión</p>
                                                   <p className="text-gray-700">Este producto tiene {calc.pz} pieza{calc.pz !== 1 ? 's' : ''}</p>
                                                   <p className="font-mono font-semibold text-orange-900 mt-1">
-                                                    {calc.pz} × {formatMXN(calc.salesCommission)} = {formatMXN(commissionCost)}
+                                                    {calc.pz} × {formatMXN(parameters.salesCommission)} = {formatMXN(commissionCost)}
                                                   </p>
                                                   <p className="text-xs text-orange-700 mt-2 italic border-t border-orange-200 pt-1">
                                                     📝 Fórmula: (Piezas × Comisión de venta)
@@ -1240,32 +1225,20 @@ export default function BroquelCalculatorPage() {
                                                   </p>
                                                 </div>
 
-                                                <div className="bg-red-50 p-2 rounded border border-red-200">
-                                                  <p className="font-semibold text-red-900 mb-1">Paso 8: Agregamos el costo de envío</p>
-                                                  <p className="text-gray-700">Subtotal con comisión: {formatMXN(subtotalWithCommission)}</p>
-                                                  <p className="text-gray-700">Costo de envío: {formatMXN(calc.shipping)}</p>
-                                                  <p className="font-mono font-semibold text-red-900 mt-1">
-                                                    {formatMXN(subtotalWithCommission)} + {formatMXN(calc.shipping)} = {formatMXN(subtotalWithShipping)}
-                                                  </p>
-                                                  <p className="text-xs text-red-700 mt-2 italic border-t border-red-200 pt-1">
-                                                    📝 Fórmula: (Subtotal con comisión + Envío)
-                                                  </p>
-                                                </div>
-
                                                 <div className="bg-indigo-50 p-2 rounded border border-indigo-200">
-                                                  <p className="font-semibold text-indigo-900 mb-1">Paso 9: Agregamos el IVA ({toPercent(parameters?.vat || 0)}%)</p>
+                                                  <p className="font-semibold text-indigo-900 mb-1">Paso 8: Agregamos el IVA ({toPercent(parameters?.vat || 0)}%)</p>
                                                   <p className="text-gray-700">El gobierno cobra {toPercent(parameters?.vat || 0)}% de impuesto</p>
                                                   <p className="text-gray-700">Multiplicamos el subtotal anterior por {(1 + (parameters?.vat || 0)).toFixed(2)}</p>
                                                   <p className="font-mono font-semibold text-indigo-900 mt-1">
-                                                    {formatMXN(subtotalWithShipping)} × {(1 + (parameters?.vat || 0)).toFixed(2)} = {formatMXN(calc.subtotalWithVat)}
+                                                    {formatMXN(subtotalWithCommission)} × {(1 + (parameters?.vat || 0)).toFixed(2)} = {formatMXN(calc.subtotalWithVat)}
                                                   </p>
                                                   <p className="text-xs text-indigo-700 mt-2 italic border-t border-indigo-200 pt-1">
-                                                    📝 Fórmula: (Subtotal con envío × (1 + IVA%))
+                                                    📝 Fórmula: (Subtotal con comisión × (1 + IVA%))
                                                   </p>
                                                 </div>
 
                                                 <div className="bg-teal-50 p-2 rounded border border-teal-200">
-                                                  <p className="font-semibold text-teal-900 mb-1">Paso 10: Agregamos la comisión de Stripe</p>
+                                                  <p className="font-semibold text-teal-900 mb-1">Paso 9: Agregamos la comisión de Stripe</p>
                                                   <p className="text-gray-700">Stripe cobra {toPercent(parameters?.stripePercentage || 0)}% más {formatMXN(parameters?.stripeFixedFee || 0)} fijos</p>
                                                   <p className="text-gray-700">Primero multiplicamos por {(1 + stripePercentage).toFixed(4)}</p>
                                                   <p className="text-gray-700">Luego sumamos {formatMXN(stripeFixedFee)}</p>

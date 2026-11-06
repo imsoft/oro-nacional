@@ -448,6 +448,11 @@ export async function batchUpsertSubcategoryPricing(
 // Broquel Pricing Parameters
 // ============================================
 
+// Error de PostgREST cuando se escribe una columna que no existe (migración pendiente)
+function isMissingColumnError(error: { code?: string; message?: string }): boolean {
+  return error.code === "PGRST204" || error.code === "42703" || /column/i.test(error.message || "");
+}
+
 interface BroquelPricingParametersRow {
   id: string;
   quotation: number;
@@ -455,27 +460,38 @@ interface BroquelPricingParametersRow {
   vat: number;
   stripe_percentage: number;
   stripe_fixed_fee: number;
+  // Desde la migración 059 (pueden faltar si aún no se aplica)
+  sales_commission?: number | null;
+  pz?: number | null;
   created_at: string;
   updated_at: string;
 }
 
+/** Parámetros generales de Broquel: se aplican igual a todos los modelos. */
 export interface BroquelPricingParameters {
   quotation: number;
   profitMargin: number;
   vat: number;
   stripePercentage: number;
   stripeFixedFee: number;
+  /** Comisión de venta por pieza (MXN) */
+  salesCommission: number;
+  /** Piezas base con las que se muestra el precio de cada modelo */
+  pz: number;
 }
 
 // Convert database row to application type
 function convertBroquelPricingParameters(row: BroquelPricingParametersRow): BroquelPricingParameters {
   // Supabase puede devolver strings para campos numeric
+  const pz = Number(row.pz ?? 1);
   return {
     quotation: Number(row.quotation),
     profitMargin: Number(row.profit_margin),
     vat: Number(row.vat),
     stripePercentage: Number(row.stripe_percentage),
     stripeFixedFee: Number(row.stripe_fixed_fee),
+    salesCommission: Number(row.sales_commission ?? 0),
+    pz: pz > 0 ? pz : 1,
   };
 }
 
@@ -486,6 +502,8 @@ const DEFAULT_BROQUEL_PRICING_PARAMETERS: BroquelPricingParameters = {
   vat: 0.16,
   stripePercentage: 0.036,
   stripeFixedFee: 3.00,
+  salesCommission: 0,
+  pz: 1,
 };
 
 // Get global broquel pricing parameters
@@ -564,16 +582,33 @@ export async function updateBroquelPricingParameters(
     vat: parameters.vat,
     stripe_percentage: parameters.stripePercentage,
     stripe_fixed_fee: parameters.stripeFixedFee,
+    sales_commission: parameters.salesCommission,
+    pz: parameters.pz,
   };
 
   if (current && current.id) {
     // Update existing row (trigger sincronizará automáticamente con pricing_parameters)
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from("broquel_pricing_parameters")
       .update(updateData)
       .eq("id", current.id)
       .select()
       .single();
+
+    // Si la migración 059 aún no se aplica, las columnas nuevas no existen:
+    // guardar al menos los parámetros de siempre.
+    if (error && isMissingColumnError(error)) {
+      console.warn("broquel_pricing_parameters sin columnas de la migración 059; se guardan solo los parámetros anteriores");
+      const { sales_commission: _commission, pz: _pz, ...legacyData } = updateData;
+      void _commission;
+      void _pz;
+      ({ data, error } = await supabase
+        .from("broquel_pricing_parameters")
+        .update(legacyData)
+        .eq("id", current.id)
+        .select()
+        .single());
+    }
 
     if (error) {
       console.error("Error updating broquel pricing parameters:", error);
@@ -626,30 +661,49 @@ interface SubcategoryBroquelPricingRow {
   updated_at: string;
 }
 
+/**
+ * Costos de un modelo de broquel (una subcategoría de "Broquel").
+ * La comisión de venta y las piezas son parámetros generales, y el envío
+ * ya no entra en el precio (se cobra aparte).
+ */
 export interface SubcategoryBroquelPricingData {
-  pz: number;
   goldGrams: number;
   carats: number;
   factor: number;
+  /** Merma en porcentaje (8 = 8 %) */
   merma: number;
   laborCost: number;
   stoneCost: number;
-  salesCommission: number;
-  shipping: number;
 }
 
 // Valores por defecto de una subcategoría Broquel (compartidos por la calculadora y el formulario de productos)
 export const DEFAULT_SUBCATEGORY_BROQUEL_PRICING: SubcategoryBroquelPricingData = {
-  pz: 1.0,
   goldGrams: 0.185,
   carats: 10,
   factor: 0.000,
   merma: 8.00, // 8%
   laborCost: 20.00,
   stoneCost: 0.00,
-  salesCommission: 30.00,
-  shipping: 800.00,
 };
+
+const toBroquelPricingData = (row: SubcategoryBroquelPricingRow): SubcategoryBroquelPricingData => ({
+  goldGrams: Number(row.gold_grams),
+  carats: Number(row.carats),
+  factor: Number(row.factor),
+  merma: Number(row.merma),
+  laborCost: Number(row.labor_cost),
+  stoneCost: Number(row.stone_cost),
+});
+
+const toBroquelPricingRow = (subcategoryId: string, data: SubcategoryBroquelPricingData) => ({
+  subcategory_id: subcategoryId,
+  gold_grams: data.goldGrams,
+  carats: data.carats,
+  factor: data.factor,
+  merma: data.merma,
+  labor_cost: data.laborCost,
+  stone_cost: data.stoneCost,
+});
 
 // Get pricing data for a single subcategory (Broquel)
 export async function getSubcategoryBroquelPricing(subcategoryId: string): Promise<SubcategoryBroquelPricingData | null> {
@@ -668,17 +722,7 @@ export async function getSubcategoryBroquelPricing(subcategoryId: string): Promi
     return null;
   }
 
-  return {
-    pz: data.pz,
-    goldGrams: data.gold_grams,
-    carats: data.carats,
-    factor: data.factor,
-    merma: data.merma,
-    laborCost: data.labor_cost,
-    stoneCost: data.stone_cost,
-    salesCommission: data.sales_commission,
-    shipping: data.shipping,
-  };
+  return toBroquelPricingData(data);
 }
 
 // Get pricing data for multiple subcategories (Broquel)
@@ -694,17 +738,7 @@ export async function getAllSubcategoryBroquelPricing(): Promise<Map<string, Sub
 
   const pricingMap = new Map<string, SubcategoryBroquelPricingData>();
   data.forEach((row) => {
-    pricingMap.set(row.subcategory_id, {
-      pz: row.pz,
-      goldGrams: row.gold_grams,
-      carats: row.carats,
-      factor: row.factor,
-      merma: row.merma,
-      laborCost: row.labor_cost,
-      stoneCost: row.stone_cost,
-      salesCommission: row.sales_commission,
-      shipping: row.shipping,
-    });
+    pricingMap.set(row.subcategory_id, toBroquelPricingData(row));
   });
 
   return pricingMap;
@@ -717,21 +751,7 @@ export async function upsertSubcategoryBroquelPricing(
 ) {
   const { data, error } = await supabase
     .from("subcategory_broquel_pricing")
-    .upsert(
-      {
-        subcategory_id: subcategoryId,
-        pz: pricingData.pz,
-        gold_grams: pricingData.goldGrams,
-        carats: pricingData.carats,
-        factor: pricingData.factor,
-        merma: pricingData.merma,
-        labor_cost: pricingData.laborCost,
-        stone_cost: pricingData.stoneCost,
-        sales_commission: pricingData.salesCommission,
-        shipping: pricingData.shipping,
-      },
-      { onConflict: "subcategory_id" }
-    )
+    .upsert(toBroquelPricingRow(subcategoryId, pricingData), { onConflict: "subcategory_id" })
     .select()
     .maybeSingle();
 
@@ -750,18 +770,7 @@ export async function batchUpsertSubcategoryBroquelPricing(
     pricingData: SubcategoryBroquelPricingData;
   }>
 ) {
-  const insertData = pricingDataArray.map((item) => ({
-    subcategory_id: item.subcategoryId,
-    pz: item.pricingData.pz,
-    gold_grams: item.pricingData.goldGrams,
-    carats: item.pricingData.carats,
-    factor: item.pricingData.factor,
-    merma: item.pricingData.merma,
-    labor_cost: item.pricingData.laborCost,
-    stone_cost: item.pricingData.stoneCost,
-    sales_commission: item.pricingData.salesCommission,
-    shipping: item.pricingData.shipping,
-  }));
+  const insertData = pricingDataArray.map((item) => toBroquelPricingRow(item.subcategoryId, item.pricingData));
 
   const { data, error } = await supabase
     .from("subcategory_broquel_pricing")
@@ -813,24 +822,15 @@ export async function calculateDynamicProductPrice(
       if (!broquelData) {
         console.log('[calculateDynamicProductPrice] No saved data, using defaults');
         // Si no hay datos guardados, usar valores por defecto
-        const defaultData: SubcategoryBroquelPricingData = {
-          ...DEFAULT_SUBCATEGORY_BROQUEL_PRICING,
-          pz: params.goldGrams, // Para Broquel, params.goldGrams es en realidad el número de piezas
-        };
-        const price = calculateBroquelPrice(defaultData, broquelParams);
+        // Para Broquel, params.goldGrams es en realidad el número de piezas
+        const price = calculateBroquelPrice(DEFAULT_SUBCATEGORY_BROQUEL_PRICING, broquelParams, params.goldGrams);
         console.log('[calculateDynamicProductPrice] Calculated price (default):', price);
         return price;
       }
 
-      // Para Broquel: params.goldGrams es el número de piezas (PZ)
-      // Los gramos de oro por pieza vienen de la configuración de la subcategoría
-      const calculationData: SubcategoryBroquelPricingData = {
-        ...broquelData,
-        pz: params.goldGrams, // params.goldGrams es en realidad el número de piezas
-      };
-      console.log('[calculateDynamicProductPrice] Calculation data:', calculationData);
-
-      const price = calculateBroquelPrice(calculationData, broquelParams);
+      // Para Broquel: params.goldGrams es el número de piezas (PZ) de la talla;
+      // los gramos de oro por pieza vienen de la configuración del modelo
+      const price = calculateBroquelPrice(broquelData, broquelParams, params.goldGrams);
       console.log('[calculateDynamicProductPrice] Calculated price (Broquel):', price);
       return price;
     } else {
@@ -903,47 +903,54 @@ export function calculateGramoPrice(
   return finalPrice;
 }
 
+export interface BroquelCostBreakdown {
+  /** Cotización × (Kilataje / 24) × Oro (por pieza) */
+  goldCost: number;
+  /** Costo oro × (1 + Merma) (por pieza) */
+  goldCostWithMerma: number;
+  /** Costo broquel = (Costo oro con merma + Mano de obra + Piedra) × PZ */
+  broquelCost: number;
+  /** Costo broquel × (1 + Utilidad) */
+  subtotalWithProfit: number;
+  /** PZ × Comisión de venta */
+  commissionCost: number;
+  /** (Subtotal con utilidad + comisión) × (1 + IVA) */
+  subtotalWithVat: number;
+  /** Precio final con Stripe (% y fija) */
+  finalPrice: number;
+}
+
 /**
- * Calcular precio usando fórmula de Broquel
- * INCLUYE comisiones de Stripe (porcentaje y cuota fija de los parámetros guardados)
+ * Fórmula de Broquel, igual que el Excel del cliente:
+ *   Costo broquel = ((Cotización × Kilataje/24 × Oro) × (1 + Merma) + Mano de obra + Piedra) × PZ
+ *   Costo final   = ((Costo broquel × (1 + Utilidad) + PZ × Comisión de venta) × (1 + IVA) × (1 + Stripe %)) + Stripe fija
+ * El envío no se incluye: se cobra aparte al cliente.
+ *
+ * @param pieces Piezas a cotizar; por omisión, las piezas base de los parámetros generales.
  */
+export function calculateBroquelBreakdown(
+  pricingData: SubcategoryBroquelPricingData,
+  broquelParams: BroquelPricingParameters,
+  pieces: number = broquelParams.pz
+): BroquelCostBreakdown {
+  const { goldGrams, carats, merma, laborCost, stoneCost } = pricingData;
+
+  const goldCost = broquelParams.quotation * (carats / 24) * goldGrams;
+  const goldCostWithMerma = goldCost * (1 + merma / 100);
+  const broquelCost = (goldCostWithMerma + laborCost + stoneCost) * pieces;
+  const subtotalWithProfit = broquelCost * (1 + broquelParams.profitMargin);
+  const commissionCost = pieces * broquelParams.salesCommission;
+  const subtotalWithVat = (subtotalWithProfit + commissionCost) * (1 + broquelParams.vat);
+  const finalPrice = subtotalWithVat * (1 + broquelParams.stripePercentage) + broquelParams.stripeFixedFee;
+
+  return { goldCost, goldCostWithMerma, broquelCost, subtotalWithProfit, commissionCost, subtotalWithVat, finalPrice };
+}
+
+/** Precio final de Broquel (ver calculateBroquelBreakdown). */
 export function calculateBroquelPrice(
   pricingData: SubcategoryBroquelPricingData,
-  broquelParams: BroquelPricingParameters
+  broquelParams: BroquelPricingParameters,
+  pieces: number = broquelParams.pz
 ): number {
-  const { pz, goldGrams, carats, merma, laborCost, stoneCost, salesCommission, shipping } = pricingData;
-
-  // Fórmula Excel paso a paso:
-  // 1. (COTIZACIÓN * KILATAJE / 24 * ORO(GRS))
-  const goldCost = broquelParams.quotation * (carats / 24) * goldGrams;
-
-  // 2. goldCost * (1 + MERMA%)
-  const mermaDecimal = merma / 100; // Convertir % a decimal
-  const goldCostWithMerma = goldCost * (1 + mermaDecimal);
-
-  // 3. + MANO DE OBRA + PIEDRA
-  const subtotalBeforeProfit = goldCostWithMerma + laborCost + stoneCost;
-
-  // 4. * PZ
-  const subtotalByPieces = subtotalBeforeProfit * pz;
-
-  // 5. * (1 + UTILIDAD)
-  const subtotalWithProfit = subtotalByPieces * (1 + broquelParams.profitMargin);
-
-  // 6. + (PZ * COMISIÓN DE VENTA)
-  const commissionCost = pz * salesCommission;
-  const subtotalWithCommission = subtotalWithProfit + commissionCost;
-
-  // 7. + ENVÍO
-  const subtotalWithShipping = subtotalWithCommission + shipping;
-
-  // 8. * (1 + IVA)
-  const subtotalWithVat = subtotalWithShipping * (1 + broquelParams.vat);
-
-  // 9. Agregar comisiones de Stripe usando los parámetros guardados
-  const stripePercentage = broquelParams.stripePercentage;
-  const stripeFixedFee = broquelParams.stripeFixedFee;
-  const finalPrice = (subtotalWithVat * (1 + stripePercentage)) + stripeFixedFee;
-
-  return finalPrice;
+  return calculateBroquelBreakdown(pricingData, broquelParams, pieces).finalPrice;
 }
